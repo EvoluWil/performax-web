@@ -9,17 +9,38 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.1.1",
+    "@mona-health/react-input-mask": "^3.0.3",
+    "@mui/icons-material": "^7.1.2",
+    "@mui/material": "^7.1.2",
+    "@mui/material-nextjs": "^7.1.1",
+    "@tanstack/react-query": "^5.81.5",
+    "axios": "^1.10.0",
+    "check-password-strength": "^3.0.0",
+    "cookies-next": "^6.0.0",
+    "date-fns": "^4.1.0",
+    "material-react-table": "^3.2.1",
+    "nestjs-prisma-querybuilder-interface": "^1.4.0",
+    "next": "15.3.4",
+    "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.4"
+    "react-hook-form": "^7.59.0",
+    "react-toastify": "^11.0.5",
+    "sweetalert2": "^11.22.2",
+    "uuid": "^11.1.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "@eslint/eslintrc": "^3"
+    "typescript": "^5"
   }
 }
