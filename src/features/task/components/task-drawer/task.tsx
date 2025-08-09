@@ -1,5 +1,6 @@
 import { BaseDrawer } from '@/components/drawer';
 import { TextInput } from '@/components/inputs';
+import { DateInput } from '@/components/inputs/date-input/date-input';
 import { Task } from '@/features/task/types';
 import { Box, Button } from '@mui/material';
 import { useTaskDrawer } from './task.hook';
@@ -30,7 +31,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
           flexDirection="column"
           flex={1}
         >
-          <TextInput label="Título" name="title" control={control} />
+          <TextInput
+            label="Título"
+            name="title"
+            placeholder="Digite o título da tarefa"
+            control={control}
+          />
+          <TextInput
+            label="Descrição"
+            name="description"
+            placeholder="Descreva a tarefa"
+            control={control}
+            multiline
+            minRows={3}
+          />
+
+          <DateInput label="Data e Hora" name="date" control={control} />
 
           <Box
             mt="auto"
