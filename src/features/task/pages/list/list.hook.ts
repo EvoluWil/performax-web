@@ -9,8 +9,8 @@ export const useTaskList = () => {
     data: { data: tasks },
     refetch,
   } = useTasksQuery();
-  console.log('tasks', tasks);
   const [openModal, setOpenModal] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [term, setTerm] = useState('');
 
@@ -28,6 +28,10 @@ export const useTaskList = () => {
   const handleSelectTaskToEdit = (task: Task) => {
     setSelectedTask(task);
     setOpenModal(true);
+  };
+
+  const toggleShowFilter = () => {
+    setShowFilter((prev) => !prev);
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -78,5 +82,7 @@ export const useTaskList = () => {
     handleCloseAdd,
     handleDeleteTask,
     handleSelectTaskToEdit,
+    showFilter,
+    toggleShowFilter,
   };
 };

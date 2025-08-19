@@ -1,14 +1,17 @@
-import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
+import {
+  DateTimePicker,
+  DateTimePickerProps,
+} from '@mui/x-date-pickers/DateTimePicker';
 import {
   FieldValues,
   UseControllerProps,
   useController,
 } from 'react-hook-form';
 
-export type DateInputProps<T extends FieldValues> = DatePickerProps &
+export type DateTimeInputProps<T extends FieldValues> = DateTimePickerProps &
   UseControllerProps<T>;
 
-export function DateInput<T extends FieldValues>({
+export function DateTimeInput<T extends FieldValues>({
   name,
   control,
   defaultValue,
@@ -16,7 +19,7 @@ export function DateInput<T extends FieldValues>({
   shouldUnregister,
   disabled,
   ...rest
-}: DateInputProps<T>) {
+}: DateTimeInputProps<T>) {
   const {
     field,
     fieldState: { error },
@@ -31,7 +34,7 @@ export function DateInput<T extends FieldValues>({
 
   const isDisabled = disabled || isSubmitting;
   return (
-    <DatePicker
+    <DateTimePicker
       value={field.value}
       onChange={field.onChange}
       sx={{ width: '100%' }}

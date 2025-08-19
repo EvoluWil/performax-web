@@ -10,7 +10,8 @@ import {
   useController,
 } from 'react-hook-form';
 
-export interface SwitchStyledProps extends MuiSwitchProps {
+export interface SwitchStyledProps
+  extends Omit<MuiSwitchProps, 'defaultValue' | 'checked' | 'onChange'> {
   label: string;
 }
 
@@ -40,13 +41,20 @@ export function Switch<T extends FieldValues>({
   });
 
   return (
-    <Box width="100%" display="flex" flexDirection="column">
+    <Box
+      display="flex"
+      flexDirection="column"
+      border="1px solid"
+      borderColor={error ? 'error.main' : 'divider'}
+      borderRadius={2}
+      pl={1}
+    >
       <Box
         display="flex"
         alignItems="center"
         gap={1}
         justifyContent="space-between"
-        width="100%"
+        width={200}
       >
         <Typography variant="body2" color={error ? 'error' : 'textSecondary'}>
           {label}

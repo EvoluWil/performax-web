@@ -2,26 +2,44 @@
 
 import { Table } from '@/components/common';
 import { ListHeader } from '@/components/common/list-header/list-header';
-import { TaskDrawer } from '@/features/task/components';
+import { TaskDrawer, TaskFilter } from '@/features/task/components';
 import { Task } from '@/features/task/types';
-import { formatCnpj } from '@/utils/cnpj';
+import { formatDate } from '@/utils/date';
 import { DeleteOutlined } from '@mui/icons-material';
-import { Typography } from '@mui/material';
+import { Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { taskStatusLabels } from '../../types/task';
 import { useTaskList } from './list.hook';
 
 const columns: MRT_ColumnDef<Task>[] = [
   {
-    accessorKey: 'name',
-    header: 'Nome',
+    accessorKey: 'title',
+    header: 'Título',
   },
   {
-    accessorKey: 'address',
-    header: 'Endereço',
+    accessorKey: 'client',
+    header: 'Cliente',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name;
+    },
   },
   {
-    accessorKey: 'cnpj',
-    header: 'CNPJ',
+    accessorKey: 'responsible',
+    header: 'Responsável',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name;
+    },
+  },
+  {
+    accessorKey: 'type',
+    header: 'Tipo',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name;
+    },
+  },
+  {
+    accessorKey: 'date',
+    header: 'Data prevista',
     muiTableHeadCellProps: {
       align: 'center',
     },
@@ -29,7 +47,26 @@ const columns: MRT_ColumnDef<Task>[] = [
       align: 'center',
     },
     Cell({ cell }: any) {
-      return formatCnpj(cell.getValue());
+      return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    Cell({ cell }: any) {
+      const status = cell.getValue();
+      const { label, color } = taskStatusLabels[status] || {
+        label: status,
+        color: 'default',
+      };
+      return (
+        <Chip
+          label={label}
+          sx={{ color, borderColor: color }}
+          variant="outlined"
+          size="small"
+        />
+      );
     },
   },
 ];
@@ -45,6 +82,8 @@ export const TaskList = () => {
     handleCloseAdd,
     handleDeleteTask,
     handleSelectTaskToEdit,
+    showFilter,
+    toggleShowFilter,
   } = useTaskList();
 
   return (
@@ -59,8 +98,11 @@ export const TaskList = () => {
         onSearch={handleSearch}
         searchTitle="Pesquise por nome, CNPJ ou endereço"
         addTitle="Adicionar tarefa"
+        onShowFilters={toggleShowFilter}
       />
-      <br />
+
+      <TaskFilter open={showFilter} onFilter={console.log} loading={false} />
+
       <Table
         columns={columns}
         data={tasks}

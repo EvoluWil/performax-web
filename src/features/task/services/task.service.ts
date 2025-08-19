@@ -6,7 +6,22 @@ import { BaseResponseCount } from '@/types/base-response-count';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 
 export const getTaskQuery: Query = {
-  select: 'title description status date createdAt protocol completedAt',
+  select:
+    'title description status date files internalNote createdAt protocol completedAt',
+  populate: [
+    {
+      path: 'client',
+      select: 'id name',
+    },
+    {
+      path: 'type',
+      select: 'id name',
+    },
+    {
+      path: 'responsible',
+      select: 'id name',
+    },
+  ],
   sort: {
     field: 'date',
     criteria: 'asc',

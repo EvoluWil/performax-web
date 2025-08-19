@@ -1,17 +1,44 @@
-import { useTaskMutation } from '@/features/task/hooks';
+import { useClientsQuery } from '@/features/client/hooks';
+import { useTaskMutation, useTaskTypesQuery } from '@/features/task/hooks';
 import {
   TaskFormDto,
   taskFormInitialValues,
   taskFormSchema,
 } from '@/features/task/schemas';
+import { useUsersQuery } from '@/features/user/hooks';
+import { useUpload } from '@/hooks/common/upload';
+import { File } from '@/types/file';
+import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { Task } from '../../types';
 import { TaskDrawerProps } from './task';
 
-export const useTaskDrawer = ({ onClose, open, task }: TaskDrawerProps) => {
+export const useTaskDrawer = ({
+  onClose,
+  open,
+  task: selectedTask,
+}: TaskDrawerProps) => {
+  const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
+  const { sendFiles, deleteFile } = useUpload();
+  const {
+    data: { data: clients },
+  } = useClientsQuery();
+  const { data: taskTypes } = useTaskTypesQuery();
+  const {
+    data: { data: users },
+  } = useUsersQuery();
+
+  const options = useMemo(() => {
+    return {
+      clients: formatterSelectOptions(clients, 'id', 'name'),
+      types: formatterSelectOptions(taskTypes, 'id', 'name'),
+      users: formatterSelectOptions(users, 'id', 'name'),
+    };
+  }, [clients, taskTypes, users]);
 
   const { control, handleSubmit, reset } = useForm<TaskFormDto>({
     defaultValues: taskFormInitialValues,
@@ -19,6 +46,11 @@ export const useTaskDrawer = ({ onClose, open, task }: TaskDrawerProps) => {
   });
 
   const handleTask = handleSubmit(async (data: TaskFormDto) => {
+    if (data.files && data.files.length > 0) {
+      const files = await sendFiles(data.files as any, `tasks/${data.title}`);
+      data.files = files;
+    }
+
     const result = await taskMutation.mutateAsync({
       type: task ? 'update' : 'create',
       data: data,
@@ -34,6 +66,31 @@ export const useTaskDrawer = ({ onClose, open, task }: TaskDrawerProps) => {
     }
   });
 
+  const handleRemoveDefaultFile = async (file: File) => {
+    try {
+      const result = await taskMutation.mutateAsync({
+        type: 'update',
+        data: {
+          files: task?.files?.filter((f) => f.url !== file.url) || [],
+        } as TaskFormDto,
+        id: task?.id,
+      });
+      if (result) {
+        await deleteFile(file?.url || '');
+        setTask(
+          (prev) =>
+            ({
+              ...prev,
+              files: prev?.files?.filter((f) => f.url !== file.url) || [],
+            } as Task),
+        );
+        toast.success('Arquivo removido com sucesso');
+      }
+    } catch {
+      toast.error('Erro ao remover arquivo');
+    }
+  };
+
   const handleClose = () => {
     onClose();
     reset();
@@ -44,13 +101,12 @@ export const useTaskDrawer = ({ onClose, open, task }: TaskDrawerProps) => {
       reset({
         title: task?.title || '',
         description: task?.description || '',
-        date: String(task?.date) || '',
-        clientId: task?.clientId || '',
-        typeId: task?.typeId || '',
+        date: (new Date(task?.date) as any) || '',
+        clientId: task?.client?.id || '',
+        typeId: task?.type?.id || '',
         internalNote: task?.internalNote || '',
-        responsibleId: task?.responsibleId || '',
+        responsibleId: task?.responsible?.id || '',
         status: task?.status || '',
-        files: task?.files || [],
       });
     } else {
       reset(taskFormInitialValues);
@@ -63,6 +119,9 @@ export const useTaskDrawer = ({ onClose, open, task }: TaskDrawerProps) => {
     loading: taskMutation.isPending,
     handleClose,
     open,
+    options,
+    defaultFiles: task?.files || [],
     editing: !!task,
+    handleRemoveDefaultFile,
   };
 };

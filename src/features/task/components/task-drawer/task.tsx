@@ -1,8 +1,12 @@
 import { BaseDrawer } from '@/components/drawer';
-import { TextInput } from '@/components/inputs';
-import { DateInput } from '@/components/inputs/date-input/date-input';
+import {
+  DateTimeInput,
+  FileInput,
+  SelectInput,
+  TextInput,
+} from '@/components/inputs';
 import { Task } from '@/features/task/types';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Divider } from '@mui/material';
 import { useTaskDrawer } from './task.hook';
 
 export type TaskDrawerProps = {
@@ -12,8 +16,17 @@ export type TaskDrawerProps = {
 };
 
 export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
-  const { control, handleTask, loading, handleClose, open, editing } =
-    useTaskDrawer(props);
+  const {
+    control,
+    handleTask,
+    loading,
+    handleClose,
+    open,
+    editing,
+    options,
+    defaultFiles,
+    handleRemoveDefaultFile,
+  } = useTaskDrawer(props);
 
   return (
     <BaseDrawer
@@ -45,9 +58,52 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
             multiline
             minRows={3}
           />
-
-          <DateInput label="Data e Hora" name="date" control={control} />
-
+          <DateTimeInput label="Data e Hora" name="date" control={control} />
+          <SelectInput
+            label="Status"
+            name="status"
+            control={control}
+            options={[
+              { value: 'OPEN', label: 'Aberta' },
+              { value: 'EMERGENCY', label: 'Emergência' },
+              { value: 'SCHEDULED', label: 'Agendada' },
+            ]}
+          />
+          <SelectInput
+            label="Responsável"
+            name="responsibleId"
+            control={control}
+            options={options.users || []}
+          />
+          <SelectInput
+            label="Cliente"
+            name="clientId"
+            control={control}
+            options={options.clients || []}
+          />
+          <SelectInput
+            label="Tipo de Tarefa"
+            name="typeId"
+            control={control}
+            options={options.types || []}
+          />
+          <TextInput
+            label="Observações"
+            name="internalNote"
+            placeholder="Digite suas observações"
+            control={control}
+            multiline
+            minRows={3}
+          />
+          <FileInput
+            label="Adicionar arquivos"
+            name="files"
+            control={control}
+            multiple
+            defaultFiles={defaultFiles}
+            onRemoveDefaultFile={handleRemoveDefaultFile}
+          />
+          <Divider sx={{ width: '100%' }} />
           <Box
             mt="auto"
             display="flex"

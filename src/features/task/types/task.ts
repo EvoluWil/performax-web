@@ -1,4 +1,7 @@
+import { Client } from '@/features/client/types';
 import { File } from '@/types/file';
+import { User } from '@/types/user';
+import { TaskType } from './task-type';
 
 export const TaskStatusEnum = {
   PENDING: 'PENDING',
@@ -11,6 +14,19 @@ export const TaskStatusEnum = {
   SCHEDULED: 'SCHEDULED',
   IMPEDED: 'IMPEDED',
   IN_PROGRESS: 'IN_PROGRESS',
+};
+
+export const taskStatusLabels = {
+  [TaskStatusEnum.PENDING]: { label: 'Pendente', color: 'orange' },
+  [TaskStatusEnum.APPROVED]: { label: 'Aprovada', color: 'green' },
+  [TaskStatusEnum.REJECTED]: { label: 'Rejeitada', color: 'red' },
+  [TaskStatusEnum.OPEN]: { label: 'Em Aberto', color: 'blue' },
+  [TaskStatusEnum.CLOSED]: { label: 'Fechada', color: 'gray' },
+  [TaskStatusEnum.EXPIRED]: { label: 'Expirada', color: 'error' },
+  [TaskStatusEnum.EMERGENCY]: { label: 'Emergencial', color: 'red' },
+  [TaskStatusEnum.SCHEDULED]: { label: 'Agendada', color: 'purple' },
+  [TaskStatusEnum.IMPEDED]: { label: 'Impedida', color: 'yellow' },
+  [TaskStatusEnum.IN_PROGRESS]: { label: 'Em Progresso', color: 'cyan' },
 };
 
 export type TaskStatusEnum =
@@ -30,14 +46,17 @@ export type Task = {
   updatedAt: Date;
   completedAt: Date;
   clientId: string;
+  client: Client;
   companyId: string;
   typeId: string;
+  type: TaskType;
   updatedById: string;
   createdById: string;
   budgetId: string;
   deleted: boolean;
   closeBudgetId: string;
   responsibleId: string;
+  responsible: User;
   files: File[];
   conclusionFiles: File[];
 };

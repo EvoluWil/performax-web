@@ -1,14 +1,14 @@
-import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker, TimePickerProps } from '@mui/x-date-pickers/TimePicker';
 import {
   FieldValues,
   UseControllerProps,
   useController,
 } from 'react-hook-form';
 
-export type DateInputProps<T extends FieldValues> = DatePickerProps &
+export type TimeInputProps<T extends FieldValues> = TimePickerProps &
   UseControllerProps<T>;
 
-export function DateInput<T extends FieldValues>({
+export function TimeInput<T extends FieldValues>({
   name,
   control,
   defaultValue,
@@ -16,7 +16,7 @@ export function DateInput<T extends FieldValues>({
   shouldUnregister,
   disabled,
   ...rest
-}: DateInputProps<T>) {
+}: TimeInputProps<T>) {
   const {
     field,
     fieldState: { error },
@@ -31,7 +31,7 @@ export function DateInput<T extends FieldValues>({
 
   const isDisabled = disabled || isSubmitting;
   return (
-    <DatePicker
+    <TimePicker
       value={field.value}
       onChange={field.onChange}
       sx={{ width: '100%' }}
