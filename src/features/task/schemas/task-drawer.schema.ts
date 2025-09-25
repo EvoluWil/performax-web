@@ -1,3 +1,5 @@
+import { ChecklistDtoSchema } from '@/features/task/components/checklist-modal/checklist.schema';
+import { ChecklistDto } from '@/features/task/types/checklist.types';
 import { File } from '@/types/file';
 import { subHours } from 'date-fns';
 import * as yup from 'yup';
@@ -12,6 +14,7 @@ export type TaskFormDto = {
   typeId: string;
   status: string;
   internalNote?: string;
+  checklist?: ChecklistDto | null;
 };
 
 export const taskFormInitialValues: TaskFormDto = {
@@ -24,6 +27,7 @@ export const taskFormInitialValues: TaskFormDto = {
   typeId: '',
   status: '',
   internalNote: '',
+  checklist: { modules: [] },
 };
 
 export const taskFormSchema = yup.object().shape({
@@ -44,4 +48,5 @@ export const taskFormSchema = yup.object().shape({
   clientId: yup.string().required('Cliente é obrigatório'),
   typeId: yup.string().required('Tipo de tarefa é obrigatório'),
   status: yup.string().required(),
+  checklist: ChecklistDtoSchema.notRequired(),
 });

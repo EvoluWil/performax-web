@@ -4,7 +4,7 @@ import { TextInput, TextInputStyledProps } from '../text-input/text-input';
 
 export type Option<T = FieldValues> = {
   label: string;
-  value: string | number;
+  value: string;
   data?: T;
 };
 

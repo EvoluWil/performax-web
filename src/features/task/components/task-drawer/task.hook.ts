@@ -40,15 +40,19 @@ export const useTaskDrawer = ({
     };
   }, [clients, taskTypes, users]);
 
-  const { control, handleSubmit, reset } = useForm<TaskFormDto>({
+  const { control, handleSubmit, reset, setValue } = useForm<TaskFormDto>({
     defaultValues: taskFormInitialValues,
-    resolver: yupResolver(taskFormSchema),
+    resolver: yupResolver(taskFormSchema) as any,
   });
 
   const handleTask = handleSubmit(async (data: TaskFormDto) => {
     if (data.files && data.files.length > 0) {
       const files = await sendFiles(data.files as any, `tasks/${data.title}`);
       data.files = files;
+    }
+
+    if (!data.checklist || !data.checklist?.modules?.length) {
+      data.checklist = undefined;
     }
 
     const result = await taskMutation.mutateAsync({
@@ -115,6 +119,7 @@ export const useTaskDrawer = ({
 
   return {
     control,
+    setValue,
     handleTask,
     loading: taskMutation.isPending,
     handleClose,

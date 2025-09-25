@@ -1,13 +1,18 @@
 'use client';
 
-import { FilterAltOutlined, Refresh } from '@mui/icons-material';
+import { DebounceInput } from '@/components/inputs/debouce-input/debouce-input';
+import {
+  Dashboard,
+  FilterAltOutlined,
+  Refresh,
+  TableRows,
+} from '@mui/icons-material';
 import {
   AppBar,
   Box,
   Button,
   CircularProgress,
   IconButton,
-  TextField,
   Toolbar,
   Tooltip,
 } from '@mui/material';
@@ -20,6 +25,8 @@ type ListHeaderProps = {
   onShowFilters?: () => void;
   searchTitle: string;
   addTitle: string;
+  viewMode?: 'table' | 'list';
+  onToggleView?: () => void;
 };
 
 export const ListHeader: React.FC<ListHeaderProps> = ({
@@ -29,6 +36,8 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
   addTitle,
   searchTitle,
   onShowFilters,
+  viewMode,
+  onToggleView,
 }) => {
   const [reloading, setReloading] = useState(false);
 
@@ -48,10 +57,10 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
       <Toolbar sx={{ p: '0 !important' }}>
         <Box display="flex" gap={2} alignItems="center" width="100%">
           <Box width="100%">
-            <TextField
+            <DebounceInput
               variant="filled"
               placeholder={searchTitle}
-              onChange={(e) => onSearch(e.target.value)}
+              onDebounce={onSearch}
               fullWidth
             />
           </Box>
@@ -86,6 +95,17 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
                     color="inherit"
                     sx={{ display: 'block' }}
                   />
+                </IconButton>
+              </Tooltip>
+            )}
+            {onToggleView && (
+              <Tooltip
+                title={
+                  viewMode === 'list' ? 'Ver como tabela' : 'Ver como lista'
+                }
+              >
+                <IconButton onClick={onToggleView}>
+                  {viewMode === 'list' ? <TableRows /> : <Dashboard />}
                 </IconButton>
               </Tooltip>
             )}

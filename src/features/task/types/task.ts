@@ -1,6 +1,7 @@
 import { Client } from '@/features/client/types';
 import { File } from '@/types/file';
 import { User } from '@/types/user';
+import { ChecklistDto } from '.';
 import { TaskType } from './task-type';
 
 export const TaskStatusEnum = {
@@ -57,6 +58,7 @@ export type Task = {
   closeBudgetId: string;
   responsibleId: string;
   responsible: User;
+  checklist: ChecklistDto;
   files: File[];
   conclusionFiles: File[];
 };

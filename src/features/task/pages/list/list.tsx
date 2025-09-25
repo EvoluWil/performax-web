@@ -3,10 +3,11 @@
 import { Table } from '@/components/common';
 import { ListHeader } from '@/components/common/list-header/list-header';
 import { TaskDrawer, TaskFilter } from '@/features/task/components';
+import TaskCard from '@/features/task/components/task-card/task-card';
 import { Task } from '@/features/task/types';
 import { formatDate } from '@/utils/date';
-import { DeleteOutlined } from '@mui/icons-material';
-import { Chip, Typography } from '@mui/material';
+import { DeleteOutlined, EditOutlined } from '@mui/icons-material';
+import { Box, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
 import { taskStatusLabels } from '../../types/task';
 import { useTaskList } from './list.hook';
@@ -84,6 +85,10 @@ export const TaskList = () => {
     handleSelectTaskToEdit,
     showFilter,
     toggleShowFilter,
+    handleFilter,
+    viewMode,
+    toggleView,
+    handleRowClick,
   } = useTaskList();
 
   return (
@@ -96,27 +101,65 @@ export const TaskList = () => {
         onAdd={handleOpenAdd}
         onReload={handleReload}
         onSearch={handleSearch}
-        searchTitle="Pesquise por nome, CNPJ ou endereço"
+        searchTitle="Pesquise por titulo, descrição ou protocolo"
         addTitle="Adicionar tarefa"
         onShowFilters={toggleShowFilter}
+        viewMode={viewMode}
+        onToggleView={toggleView}
       />
 
-      <TaskFilter open={showFilter} onFilter={console.log} loading={false} />
-
-      <Table
-        columns={columns}
-        data={tasks}
-        emptyMessage="Nenhum resultado encontrado"
-        onReload={handleReload}
-        onRowClick={handleSelectTaskToEdit}
-        actions={[
-          {
-            icon: () => <DeleteOutlined />,
-            label: () => 'Excluir tarefa',
-            onClick: (task) => handleDeleteTask(task.id),
-          },
-        ]}
+      <TaskFilter
+        open={showFilter}
+        onFilter={(filter) => handleFilter(filter)}
+        loading={false}
       />
+
+      {viewMode === 'table' ? (
+        <Table
+          columns={columns}
+          data={tasks}
+          emptyMessage="Nenhum resultado encontrado"
+          onReload={handleReload}
+          onRowClick={handleRowClick}
+          actions={[
+            {
+              icon: () => <EditOutlined />,
+              label: () => 'Editar tarefa',
+              onClick: (task) => handleSelectTaskToEdit(task),
+            },
+            {
+              icon: () => <DeleteOutlined />,
+              label: () => 'Excluir tarefa',
+              onClick: (task) => handleDeleteTask(task.id),
+            },
+          ]}
+        />
+      ) : (
+        <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
+          {tasks && tasks.length > 0 ? (
+            tasks.map((t) => (
+              <Box
+                key={t.id}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: { xs: '100%', sm: 'auto' },
+                }}
+              >
+                <TaskCard
+                  task={t}
+                  onClick={() => handleSelectTaskToEdit(t)}
+                  onEdit={() => handleSelectTaskToEdit(t)}
+                  onDelete={() => handleDeleteTask(t.id)}
+                />
+              </Box>
+            ))
+          ) : (
+            <Typography>Nenhum resultado encontrado</Typography>
+          )}
+        </Box>
+      )}
 
       {openModal && (
         <TaskDrawer

@@ -21,6 +21,10 @@ export const getTaskQuery: Query = {
       path: 'responsible',
       select: 'id name',
     },
+    {
+      path: 'checklist',
+      select: 'id modules',
+    },
   ],
   sort: {
     field: 'date',

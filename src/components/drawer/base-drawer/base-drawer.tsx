@@ -17,7 +17,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
   open,
   setOpen,
   content,
-  width = 30,
+  width = 32,
   direction = 'right',
   title,
 }) => {

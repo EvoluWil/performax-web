@@ -3,6 +3,7 @@ import {
   taskFormInitialValues,
   taskFormSchema,
 } from './task-drawer.schema';
+import { TaskFilterDto, taskFilterInitialValues } from './task-filter.schema';
 import {
   TaskTypeFormDto,
   taskTypeFormInitialValues,
@@ -10,9 +11,11 @@ import {
 } from './task-type-drawer.schema';
 
 export {
+  taskFilterInitialValues,
   taskFormInitialValues,
   taskFormSchema,
   taskTypeFormInitialValues,
   taskTypeFormSchema,
 };
-export type { TaskFormDto, TaskTypeFormDto };
+
+export type { TaskFilterDto, TaskFormDto, TaskTypeFormDto };
