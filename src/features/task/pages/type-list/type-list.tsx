@@ -1,18 +1,17 @@
-'use client';
+"use client";
 
-import { Table } from '@/components/common';
-import { ListHeader } from '@/components/common/list-header/list-header';
-import { TaskTypeDrawer } from '@/features/task/components';
-import { TaskType } from '@/features/task/types';
-import { DeleteOutlined } from '@mui/icons-material';
-import { Typography } from '@mui/material';
-import { MRT_ColumnDef } from 'material-react-table';
-import { useTaskTypeList } from './type-list.hook';
+import { ListHeader, Table } from "@/components/common";
+import { TaskTypeDrawer } from "@/features/task/components";
+import { TaskType } from "@/features/task/types";
+import { DeleteOutlined } from "@mui/icons-material";
+import { Typography } from "@mui/material";
+import { MRT_ColumnDef } from "material-react-table";
+import { useTaskTypeList } from "./type-list.hook";
 
 const columns: MRT_ColumnDef<TaskType>[] = [
   {
-    accessorKey: 'name',
-    header: 'Nome',
+    accessorKey: "name",
+    header: "Nome",
   },
 ];
 
@@ -52,7 +51,7 @@ export const TaskTypeList = () => {
         actions={[
           {
             icon: () => <DeleteOutlined />,
-            label: () => 'Excluir tipo de tarefa',
+            label: () => "Excluir tipo de tarefa",
             onClick: (taskType) => handleDeleteTaskType(taskType.id),
           },
         ]}

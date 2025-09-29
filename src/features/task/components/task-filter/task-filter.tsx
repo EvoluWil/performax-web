@@ -3,11 +3,11 @@ import {
   DateInput,
   SelectInput,
   TextInput,
-} from '@/components/inputs';
-import { Box, Button, Divider, Paper, Typography } from '@mui/material';
-import React from 'react';
-import { TaskFilterDto } from '../../schemas';
-import { useTaskFilter } from './task-filter.hook';
+} from "@/components/inputs";
+import { TaskFilterDto } from "@/features/task/schemas";
+import { Box, Button, Divider, Paper, Typography } from "@mui/material";
+import React from "react";
+import { useTaskFilter } from "./task-filter.hook";
 
 type TaskFilterProps = {
   open: boolean;
@@ -34,9 +34,9 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
       <Box my={2} display="flex" alignItems="center" gap={2}>
         <ButtonGroup
           options={[
-            { label: 'Abertas', value: 'OPEN' },
-            { label: 'Em progresso', value: 'IN_PROGRESS' },
-            { label: 'Concluídas', value: 'COMPLETED' },
+            { label: "Abertas", value: "OPEN" },
+            { label: "Em progresso", value: "IN_PROGRESS" },
+            { label: "Concluídas", value: "COMPLETED" },
           ]}
           multiple
           value={statusFilters}
@@ -44,7 +44,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
         />
       </Box>
       {open && (
-        <Paper variant="outlined" sx={{ p: 2, overflowX: 'auto', my: 2 }}>
+        <Paper variant="outlined" sx={{ p: 2, overflowX: "auto", my: 2 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom>
             Filtros para tarefas
           </Typography>

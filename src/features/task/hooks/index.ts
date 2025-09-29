@@ -1,12 +1,3 @@
-import {
-  useTaskTypeMutation,
-  useTaskTypesQuery,
-} from './queries/task-types.query';
-import { useTaskMutation, useTasksQuery } from './queries/tasks.query';
-
-export {
-  useTaskMutation,
-  useTasksQuery,
-  useTaskTypeMutation,
-  useTaskTypesQuery,
-};
+export * from "./queries/task-detail.query";
+export * from "./queries/task-types.query";
+export * from "./queries/tasks.query";

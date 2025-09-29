@@ -1,18 +1,3 @@
-import {
-  ChecklistDto,
-  ChecklistItemDto,
-  ChecklistItemType,
-  ChecklistModuleDto,
-} from './checklist.types';
-import { Task, TaskStatusEnum } from './task';
-import { TaskType } from './task-type';
-
-export type {
-  ChecklistDto,
-  ChecklistItemDto,
-  ChecklistItemType,
-  ChecklistModuleDto,
-  Task,
-  TaskStatusEnum,
-  TaskType,
-};
+export * from "./checklist.types";
+export * from "./task";
+export * from "./task-type";

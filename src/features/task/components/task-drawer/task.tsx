@@ -1,12 +1,12 @@
-import { BaseDrawer } from '@/components/drawer';
+import { BaseDrawer } from "@/components/drawer";
 import {
   DateTimeInput,
   FileInput,
   SelectInput,
   TextInput,
-} from '@/components/inputs';
-import { ChecklistDto, Task } from '@/features/task/types';
-import DeleteOutline from '@mui/icons-material/DeleteOutline';
+} from "@/components/inputs";
+import { ChecklistDto, Task } from "@/features/task/types";
+import { DeleteOutline } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -16,11 +16,11 @@ import {
   ListItem,
   ListItemText,
   Typography,
-} from '@mui/material';
-import { useState } from 'react';
-import { useWatch } from 'react-hook-form';
-import { ChecklistModal } from '..';
-import { useTaskDrawer } from './task.hook';
+} from "@mui/material";
+import { useState } from "react";
+import { useWatch } from "react-hook-form";
+import { ChecklistModal } from "..";
+import { useTaskDrawer } from "./task.hook";
 
 export type TaskDrawerProps = {
   open: boolean;
@@ -42,14 +42,14 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
     setValue,
   } = useTaskDrawer(props);
   const [openChecklist, setOpenChecklist] = useState(false);
-  const checklist = useWatch({ control, name: 'checklist' }) as
+  const checklist = useWatch({ control, name: "checklist" }) as
     | ChecklistDto
     | null
     | undefined;
   const expectedTypeLabels: Record<string, string> = {
-    BOOLEAN: 'Escolha',
-    TEXT: 'Texto',
-    NUMBER: 'Número',
+    BOOLEAN: "Escolha",
+    TEXT: "Texto",
+    NUMBER: "Número",
   };
   return (
     <>
@@ -57,7 +57,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
         open={open}
         setOpen={handleClose}
         height="auto"
-        title={editing ? 'Editar Tarefa' : 'Nova Tarefa'}
+        title={editing ? "Editar Tarefa" : "Nova Tarefa"}
         content={
           <Box
             gap={2}
@@ -88,9 +88,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               name="status"
               control={control}
               options={[
-                { value: 'OPEN', label: 'Aberta' },
-                { value: 'EMERGENCY', label: 'Emerência' },
-                { value: 'SCHEDULED', label: 'Agendada' },
+                { value: "OPEN", label: "Aberta" },
+                { value: "EMERGENCY", label: "Emerência" },
+                { value: "SCHEDULED", label: "Agendada" },
               ]}
             />
             <SelectInput
@@ -120,16 +120,16 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               minRows={3}
             />
 
-            <Divider sx={{ width: '100%' }} />
+            <Divider sx={{ width: "100%" }} />
 
             {Array.isArray(checklist?.modules) &&
             checklist!.modules.length > 0 ? (
-              <List sx={{ width: '100%' }}>
+              <List sx={{ width: "100%" }}>
                 {checklist!.modules.map((modGroup: any, modIdx: number) => (
                   <Box
                     key={modIdx}
                     sx={{
-                      border: '1px solid #eee',
+                      border: "1px solid #eee",
                       borderRadius: 1,
                       mb: 1,
                     }}
@@ -145,7 +145,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                               ? [...existing.modules]
                               : [];
                             modules.splice(modIdx, 1);
-                            setValue('checklist' as any, {
+                            setValue("checklist" as any, {
                               ...existing,
                               modules,
                             });
@@ -172,7 +172,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                                 onClick={() => {
                                   const existing = checklist || { modules: [] };
                                   const modules = Array.isArray(
-                                    existing.modules,
+                                    existing.modules
                                   )
                                     ? [...existing.modules]
                                     : [];
@@ -184,7 +184,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                                     : [];
                                   items.splice(idx, 1);
                                   modules[modIdx] = { ...target, items };
-                                  setValue('checklist' as any, {
+                                  setValue("checklist" as any, {
                                     ...existing,
                                     modules,
                                   });
@@ -195,11 +195,11 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                             }
                           >
                             <ListItemText
-                              primary={item.question || 'Sem pergunta'}
+                              primary={item.question || "Sem pergunta"}
                               secondary={
                                 expectedTypeLabels[item.expectedType] ||
                                 item.expectedType ||
-                                ''
+                                ""
                               }
                             />
                           </ListItem>
@@ -214,7 +214,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                 variant="body2"
                 color="text.secondary"
                 textAlign="center"
-                sx={{ width: '100%', py: 2 }}
+                sx={{ width: "100%", py: 2 }}
               >
                 Nenhum checklist adicionado
               </Typography>
@@ -238,7 +238,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               onRemoveDefaultFile={handleRemoveDefaultFile}
             />
 
-            <Divider sx={{ width: '100%' }} />
+            <Divider sx={{ width: "100%" }} />
 
             <Box
               mt="auto"
@@ -283,7 +283,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
           const payloadModules = Array.isArray(payload.modules)
             ? payload.modules
             : [];
-          setValue('checklist' as any, {
+          setValue("checklist" as any, {
             ...existing,
             modules: [...existingModules, ...payloadModules],
           });

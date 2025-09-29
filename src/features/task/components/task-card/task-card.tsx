@@ -1,7 +1,7 @@
-import { Task } from '@/features/task/types';
-import { formatDate } from '@/utils/date';
-import DeleteOutline from '@mui/icons-material/DeleteOutline';
-import EditOutlined from '@mui/icons-material/EditOutlined';
+import { Task, taskStatusLabels } from "@/features/task/types";
+import { formatDate } from "@/utils/date";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import EditOutlined from "@mui/icons-material/EditOutlined";
 import {
   Box,
   Card,
@@ -10,9 +10,8 @@ import {
   IconButton,
   Tooltip,
   Typography,
-} from '@mui/material';
-import React from 'react';
-import { taskStatusLabels } from '../../types/task';
+} from "@mui/material";
+import React from "react";
 
 type TaskCardProps = {
   task: Task;
@@ -30,47 +29,46 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const status = task.status;
   const { label, color } = taskStatusLabels[status] || {
     label: status,
-    color: 'default',
+    color: "default",
   };
 
   return (
     <Card
       variant="outlined"
-      onClick={() => onClick && onClick(task)}
+      onClick={() => onClick?.(task)}
       sx={{
         mb: 2,
         mx: 1,
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
         minWidth: 300,
         maxWidth: 450,
-        width: '100%',
-        aspectRatio: '4 / 2',
+        width: "100%",
+        aspectRatio: "4 / 2",
         borderLeft: `6px solid ${color}`,
-        overflow: 'hidden',
+        overflow: "hidden",
       }}
     >
       <CardContent
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          height: '100%',
-          position: 'relative',
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          height: "100%",
+          position: "relative",
         }}
       >
         <Box
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: 8,
             right: 8,
             zIndex: 2,
-            display: 'flex',
+            display: "flex",
             gap: 0.5,
           }}
         >
-          {/** prevent click propagation from buttons to card click */}
           <Tooltip title="Editar">
             <IconButton
               size="small"
@@ -121,5 +119,3 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     </Card>
   );
 };
-
-export default TaskCard;

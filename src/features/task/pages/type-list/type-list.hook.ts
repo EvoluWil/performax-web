@@ -1,17 +1,17 @@
-import { useTaskTypeMutation, useTaskTypesQuery } from '@/features/task/hooks';
-import { TaskType } from '@/features/task/types';
-import { useState } from 'react';
-import { toast } from 'react-toastify';
-import swal from 'sweetalert2';
+import { useTaskTypeMutation, useTaskTypesQuery } from "@/features/task/hooks";
+import { TaskType } from "@/features/task/types";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import swal from "sweetalert2";
 
 export const useTaskTypeList = () => {
   const { data: taskTypes, refetch } = useTaskTypesQuery();
-  console.log('taskTypes', taskTypes);
+
   const [openModal, setOpenModal] = useState(false);
   const [selectedTaskType, setSelectedTaskType] = useState<TaskType | null>(
-    null,
+    null
   );
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState("");
 
   const taskTypeMutation = useTaskTypeMutation();
 
@@ -31,19 +31,19 @@ export const useTaskTypeList = () => {
 
   const handleDeleteTaskType = async (taskTypeId: string) => {
     swal.fire({
-      title: 'Tem certeza que deseja excluir este tipo de tarefa?',
-      icon: 'warning',
+      title: "Tem certeza que deseja excluir este tipo de tarefa?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sim, excluir',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: "Sim, excluir",
+      cancelButtonText: "Cancelar",
       preConfirm: async () => {
         const result = await taskTypeMutation.mutateAsync({
-          type: 'delete',
+          type: "delete",
           id: taskTypeId,
         });
 
         if (result) {
-          toast.success('Tipo de tarefa excluído com sucesso');
+          toast.success("Tipo de tarefa excluído com sucesso");
         }
       },
     });
@@ -52,7 +52,7 @@ export const useTaskTypeList = () => {
   const handleReload = async () => {
     const { data } = await refetch();
     if (data) {
-      toast.success('Dados atualizados com sucesso');
+      toast.success("Dados atualizados com sucesso");
     }
   };
 
@@ -61,7 +61,7 @@ export const useTaskTypeList = () => {
   };
 
   const filteredTaskTypes = taskTypes?.filter((taskType) =>
-    taskType.name?.toLowerCase().includes(term.toLowerCase()),
+    taskType.name?.toLowerCase().includes(term.toLowerCase())
   );
 
   return {

@@ -1,30 +1,19 @@
-import { taskService } from '@/features/task/services/task.service';
-import { Task } from '@/features/task/types';
-import { useEffect, useState } from 'react';
+"use client";
 
-export const useTaskDetail = (taskId: string) => {
-  const [task, setTask] = useState<Task | null>(null);
-  const [loading, setLoading] = useState(true);
+import { useTaskDetailQuery } from "@/features/task/hooks";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export const useTaskDetail = () => {
+  const { taskId } = useParams();
+  const { replace } = useRouter();
+  const { data: task, error } = useTaskDetailQuery(String(taskId));
 
   useEffect(() => {
-    let mounted = true;
+    if (error) {
+      replace("/panel/tasks");
+    }
+  }, [error, replace]);
 
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await taskService.getById(taskId);
-        if (mounted) setTask(data);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    if (taskId) load();
-
-    return () => {
-      mounted = false;
-    };
-  }, [taskId]);
-
-  return { task, loading };
+  return { task };
 };

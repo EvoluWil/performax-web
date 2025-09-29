@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
-import { ChecklistDto } from '../../types/checklist.types';
-import { ChecklistDtoSchema } from './checklist.schema';
+import { ChecklistDto } from "@/features/task/types";
+import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { ChecklistDtoSchema } from "./checklist.schema";
 
 export type UseChecklistProps = {
   open: boolean;
@@ -29,13 +29,13 @@ export const useChecklist = ({
 
   const { fields: modules, append: appendModule } = useFieldArray({
     control,
-    name: 'modules',
+    name: "modules",
   });
 
   useEffect(() => {
     if (open && startWithModule) {
       if (!modules || modules.length === 0) {
-        appendModule({ name: '', items: [] });
+        appendModule({ name: "", items: [] });
       }
     }
   }, [open, startWithModule, appendModule, modules]);
@@ -55,7 +55,7 @@ export const useChecklist = ({
         if (err && err.inner && err.inner.length) {
           err.inner.forEach((e: any) => toast.error(e.message));
         } else {
-          toast.error(err.message || 'Erro ao validar checklist');
+          toast.error(err.message || "Erro ao validar checklist");
         }
       });
   });

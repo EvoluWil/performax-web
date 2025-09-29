@@ -1,14 +1,14 @@
-import { useTaskMutation, useTasksQuery } from '@/features/task/hooks';
-import { taskService } from '@/features/task/services';
-import { getTaskQuery } from '@/features/task/services/task.service';
-import { Task } from '@/features/task/types';
-import { addDays } from 'date-fns';
-import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'react-toastify';
-import swal from 'sweetalert2';
-import { TaskFilterDto } from '../../schemas';
+import { useTaskMutation, useTasksQuery } from "@/features/task/hooks";
+import { TaskFilterDto } from "@/features/task/schemas";
+import { taskService } from "@/features/task/services";
+import { getTaskQuery } from "@/features/task/services/task.service";
+import { Task } from "@/features/task/types";
+import { addDays } from "date-fns";
+import { Filter, Query } from "nestjs-prisma-querybuilder-interface";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import swal from "sweetalert2";
 
 export const useTaskList = () => {
   const {
@@ -18,13 +18,13 @@ export const useTaskList = () => {
   const [openModal, setOpenModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState("");
   const [filter, setFilter] = useState<TaskFilterDto>({} as TaskFilterDto);
-  const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
+  const [viewMode, setViewMode] = useState<"table" | "list">("table");
 
   useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-      setViewMode('list');
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      setViewMode("list");
     }
   });
 
@@ -52,19 +52,19 @@ export const useTaskList = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     swal.fire({
-      title: 'Tem certeza que deseja excluir esta tarefa?',
-      icon: 'warning',
+      title: "Tem certeza que deseja excluir esta tarefa?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sim, excluir',
-      cancelButtonText: 'Cancelar',
+      confirmButtonText: "Sim, excluir",
+      cancelButtonText: "Cancelar",
       preConfirm: async () => {
         const result = await taskMutation.mutateAsync({
-          type: 'delete',
+          type: "delete",
           id: taskId,
         });
 
         if (result) {
-          toast.success('Tarefa excluída com sucesso');
+          toast.success("Tarefa excluída com sucesso");
         }
       },
     });
@@ -73,7 +73,7 @@ export const useTaskList = () => {
   const handleReload = async () => {
     const { data } = await refetch();
     if (data) {
-      toast.success('Dados atualizados com sucesso');
+      toast.success("Dados atualizados com sucesso");
     }
   };
 
@@ -83,44 +83,44 @@ export const useTaskList = () => {
 
     setFilter(data);
     if (currentTerm) {
-      const termFields: Filter = ['title', 'description', 'protocol'].map(
+      const termFields: Filter = ["title", "description", "protocol"].map(
         (field) => ({
           path: field,
-          operator: 'contains',
+          operator: "contains",
           value: currentTerm,
           insensitive: true,
-        }),
+        })
       );
       filterTerm.push(...termFields);
     }
 
     if (data.open) {
       const openedStatuses: Filter = [
-        'PENDING',
-        'OPEN',
-        'APPROVED',
-        'EXPIRED',
-        'EMERGENCY',
-        'SCHEDULED',
-        'IMPEDED',
+        "PENDING",
+        "OPEN",
+        "APPROVED",
+        "EXPIRED",
+        "EMERGENCY",
+        "SCHEDULED",
+        "IMPEDED",
       ].map((status) => ({
-        path: 'status',
-        operator: 'equals',
+        path: "status",
+        operator: "equals",
         value: status,
       }));
       filterStatus.push(...openedStatuses);
     }
     if (data.in_progress) {
       filterStatus.push({
-        path: 'status',
-        operator: 'equals',
-        value: 'IN_PROGRESS',
+        path: "status",
+        operator: "equals",
+        value: "IN_PROGRESS",
       });
     }
     if (data.closed) {
-      const closedStatuses: Filter = ['CLOSED', 'REJECTED'].map((status) => ({
-        path: 'status',
-        operator: 'equals',
+      const closedStatuses: Filter = ["CLOSED", "REJECTED"].map((status) => ({
+        path: "status",
+        operator: "equals",
         value: status,
       }));
       filterStatus.push(...closedStatuses);
@@ -141,63 +141,63 @@ export const useTaskList = () => {
 
       if (data?.clientId) {
         queryFilter.filter.push({
-          path: 'clientId',
+          path: "clientId",
           value: data.clientId,
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data?.typeId) {
         queryFilter.filter.push({
-          path: 'typeId',
+          path: "typeId",
           value: data.typeId,
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data?.startDate) {
         queryFilter.filter.push({
-          path: 'date',
-          operator: 'gte',
+          path: "date",
+          operator: "gte",
           value: new Date(data.startDate),
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data?.endDate) {
         queryFilter.filter.push({
-          path: 'date',
-          operator: 'lte',
+          path: "date",
+          operator: "lte",
           value: new Date(addDays(data.endDate, 1)),
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data.title) {
         queryFilter.filter.push({
-          path: 'title',
-          operator: 'contains',
+          path: "title",
+          operator: "contains",
           value: data.title,
           insensitive: true,
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data.protocol) {
         queryFilter.filter.push({
-          path: 'protocol',
-          operator: 'contains',
+          path: "protocol",
+          operator: "contains",
           value: data.protocol,
           insensitive: true,
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
 
       if (data?.userId) {
         queryFilter.filter.push({
-          path: 'responsibleId',
+          path: "responsibleId",
           value: data.userId,
-          filterGroup: 'and',
+          filterGroup: "and",
         });
       }
     }
@@ -210,7 +210,7 @@ export const useTaskList = () => {
       setShowFilter(false);
     } catch (_err) {
       console.error(_err);
-      toast.error('Erro ao aplicar filtros');
+      toast.error("Erro ao aplicar filtros");
     }
   };
 
@@ -229,13 +229,13 @@ export const useTaskList = () => {
     (task) =>
       task.title?.toLowerCase().includes(term.toLowerCase()) ||
       task.description?.toLowerCase().includes(term.toLowerCase()) ||
-      task.protocol?.toLowerCase().includes(term.toLowerCase()),
+      task.protocol?.toLowerCase().includes(term.toLowerCase())
   );
 
   return {
     tasks: filteredTasksLocal,
     viewMode,
-    toggleView: () => setViewMode((v) => (v === 'table' ? 'list' : 'table')),
+    toggleView: () => setViewMode((v) => (v === "table" ? "list" : "table")),
     openModal,
     selectedTask,
     handleOpenAdd,

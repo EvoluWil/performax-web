@@ -1,14 +1,14 @@
-import { SelectInput, TextInput } from '@/components/inputs';
-import { CloseOutlined } from '@mui/icons-material';
-import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material';
-import { Control, useFieldArray } from 'react-hook-form';
+import { SelectInput, TextInput } from "@/components/inputs";
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
   TwoColumnsContainer,
-} from '../../../../components/modal/modal-base.styles';
-import { useChecklist } from './checklist.hook';
+} from "@/components/modal";
+import { CloseOutlined } from "@mui/icons-material";
+import { Box, Button, IconButton, Tooltip, Typography } from "@mui/material";
+import { Control, useFieldArray } from "react-hook-form";
+import { useChecklist } from "./checklist.hook";
 
 export type ChecklistModalProps = {
   open: boolean;
@@ -32,10 +32,10 @@ const ModuleItems: React.FC<{ control: Control<any>; moduleIndex: number }> = ({
         <Box
           key={fieldItem.id}
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr auto' },
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr auto" },
             gap: 1,
-            alignItems: 'center',
+            alignItems: "center",
             marginTop: 1,
           }}
         >
@@ -43,7 +43,7 @@ const ModuleItems: React.FC<{ control: Control<any>; moduleIndex: number }> = ({
             label="Pergunta"
             name={`modules.${moduleIndex}.items.${itemIndex}.question` as any}
             control={control}
-            defaultValue={(fieldItem as any).question || ''}
+            defaultValue={(fieldItem as any).question || ""}
             fullWidth
           />
           <SelectInput
@@ -52,18 +52,18 @@ const ModuleItems: React.FC<{ control: Control<any>; moduleIndex: number }> = ({
               `modules.${moduleIndex}.items.${itemIndex}.expectedType` as any
             }
             control={control}
-            defaultValue={(fieldItem as any).expectedType || 'BOOLEAN'}
+            defaultValue={(fieldItem as any).expectedType || "BOOLEAN"}
             options={[
-              { label: 'escolha', value: 'BOOLEAN' },
-              { label: 'texto', value: 'TEXT' },
-              { label: 'numero', value: 'NUMBER' },
+              { label: "escolha", value: "BOOLEAN" },
+              { label: "texto", value: "TEXT" },
+              { label: "numero", value: "NUMBER" },
             ]}
             fullWidth
           />
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: { xs: 'flex-start', md: 'flex-end' },
+              display: "flex",
+              justifyContent: { xs: "flex-start", md: "flex-end" },
             }}
           >
             <Tooltip title="Remover item">
@@ -79,7 +79,7 @@ const ModuleItems: React.FC<{ control: Control<any>; moduleIndex: number }> = ({
         </Box>
       ))}
       <Button
-        onClick={() => append({ question: '', expectedType: 'BOOLEAN' })}
+        onClick={() => append({ question: "", expectedType: "BOOLEAN" })}
         variant="outlined"
         type="button"
         sx={{ my: 2 }}
@@ -121,7 +121,7 @@ export const ChecklistModal: React.FC<ChecklistModalProps> = ({
                 control={control}
                 defaultValue={modules[0].name}
                 fullWidth
-                sx={{ width: '100%', gridColumn: '1 / -1' }}
+                sx={{ width: "100%", gridColumn: "1 / -1" }}
               />
             </TwoColumnsContainer>
 
@@ -133,11 +133,11 @@ export const ChecklistModal: React.FC<ChecklistModalProps> = ({
 
         <div
           style={{
-            display: 'flex',
+            display: "flex",
             gap: 8,
             marginTop: 12,
-            justifyContent: 'flex-end',
-            width: '100%',
+            justifyContent: "flex-end",
+            width: "100%",
           }}
         >
           <Button variant="outlined" color="error" onClick={handleClose}>

@@ -1,64 +1,61 @@
-'use client';
+"use client";
 
-import { Table } from '@/components/common';
-import { ListHeader } from '@/components/common/list-header/list-header';
-import { TaskDrawer, TaskFilter } from '@/features/task/components';
-import TaskCard from '@/features/task/components/task-card/task-card';
-import { Task } from '@/features/task/types';
-import { formatDate } from '@/utils/date';
-import { DeleteOutlined, EditOutlined } from '@mui/icons-material';
-import { Box, Chip, Typography } from '@mui/material';
-import { MRT_ColumnDef } from 'material-react-table';
-import { taskStatusLabels } from '../../types/task';
-import { useTaskList } from './list.hook';
+import { Empty, ListHeader, Table } from "@/components/common";
+import { TaskCard, TaskDrawer, TaskFilter } from "@/features/task/components";
+import { Task, taskStatusLabels } from "@/features/task/types";
+import { formatDate } from "@/utils/date";
+import { DeleteOutlined, EditOutlined } from "@mui/icons-material";
+import { Box, Chip, Typography } from "@mui/material";
+import { MRT_ColumnDef } from "material-react-table";
+import { useTaskList } from "./list.hook";
 
 const columns: MRT_ColumnDef<Task>[] = [
   {
-    accessorKey: 'title',
-    header: 'Título',
+    accessorKey: "title",
+    header: "Título",
   },
   {
-    accessorKey: 'client',
-    header: 'Cliente',
+    accessorKey: "client",
+    header: "Cliente",
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
   },
   {
-    accessorKey: 'responsible',
-    header: 'Responsável',
+    accessorKey: "responsible",
+    header: "Responsável",
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
   },
   {
-    accessorKey: 'type',
-    header: 'Tipo',
+    accessorKey: "type",
+    header: "Tipo",
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
   },
   {
-    accessorKey: 'date',
-    header: 'Data prevista',
+    accessorKey: "date",
+    header: "Data prevista",
     muiTableHeadCellProps: {
-      align: 'center',
+      align: "center",
     },
     muiTableBodyCellProps: {
-      align: 'center',
+      align: "center",
     },
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
     },
   },
   {
-    accessorKey: 'status',
-    header: 'Status',
+    accessorKey: "status",
+    header: "Status",
     Cell({ cell }: any) {
       const status = cell.getValue();
       const { label, color } = taskStatusLabels[status] || {
         label: status,
-        color: 'default',
+        color: "default",
       };
       return (
         <Chip
@@ -114,7 +111,7 @@ export const TaskList = () => {
         loading={false}
       />
 
-      {viewMode === 'table' ? (
+      {viewMode === "table" ? (
         <Table
           columns={columns}
           data={tasks}
@@ -124,12 +121,12 @@ export const TaskList = () => {
           actions={[
             {
               icon: () => <EditOutlined />,
-              label: () => 'Editar tarefa',
+              label: () => "Editar tarefa",
               onClick: (task) => handleSelectTaskToEdit(task),
             },
             {
               icon: () => <DeleteOutlined />,
-              label: () => 'Excluir tarefa',
+              label: () => "Excluir tarefa",
               onClick: (task) => handleDeleteTask(task.id),
             },
           ]}
@@ -137,26 +134,29 @@ export const TaskList = () => {
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
           {tasks && tasks.length > 0 ? (
-            tasks.map((t) => (
+            tasks.map((task) => (
               <Box
-                key={t.id}
+                key={task.id}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  width: { xs: '100%', sm: 'auto' },
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  width: { xs: "100%", sm: "auto" },
                 }}
               >
                 <TaskCard
-                  task={t}
-                  onClick={() => handleSelectTaskToEdit(t)}
-                  onEdit={() => handleSelectTaskToEdit(t)}
-                  onDelete={() => handleDeleteTask(t.id)}
+                  task={task}
+                  onClick={() => handleRowClick(task)}
+                  onEdit={() => handleSelectTaskToEdit(task)}
+                  onDelete={() => handleDeleteTask(task.id)}
                 />
               </Box>
             ))
           ) : (
-            <Typography>Nenhum resultado encontrado</Typography>
+            <Empty
+              message="Nenhum resultado encontrado"
+              onReload={handleReload}
+            />
           )}
         </Box>
       )}
