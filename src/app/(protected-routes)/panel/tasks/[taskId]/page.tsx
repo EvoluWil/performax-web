@@ -3,11 +3,11 @@ import { taskService } from "@/features/task/services";
 import { QueryClient } from "@tanstack/react-query";
 
 type Props = {
-  params: { taskId: string };
+  params: Promise<{ taskId: string }>;
 };
 
 export default async function TaskDetailPage({ params }: Props) {
-  const { taskId } = params;
+  const { taskId } = await params;
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
