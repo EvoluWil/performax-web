@@ -7,20 +7,18 @@ import {
   CalendarTodayOutlined,
   PersonOutlined,
 } from "@mui/icons-material";
-import {
-  Box,
-  Chip,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Chip, Divider, Paper, Stack, Typography } from "@mui/material";
 import { Checklist } from "..";
 
-export const TaskDetailCard = ({ task }: { task: Task }) => {
+type TaskDetailCardProps = {
+  task: Task;
+  onUpdateChecklist?: (checklist: any) => void;
+};
+
+export const TaskDetailCard = ({
+  task,
+  onUpdateChecklist,
+}: TaskDetailCardProps) => {
   const status = task.status;
   const { label, color } =
     taskStatusLabels[status] || ({ label: status, color: "default" } as any);
@@ -85,7 +83,10 @@ export const TaskDetailCard = ({ task }: { task: Task }) => {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Checklist
               </Typography>
-              <Checklist checklist={task.checklist} />
+              <Checklist
+                checklist={task.checklist}
+                onSubmit={onUpdateChecklist}
+              />
             </Box>
           )}
 
@@ -95,31 +96,21 @@ export const TaskDetailCard = ({ task }: { task: Task }) => {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Arquivos
               </Typography>
-              <List dense>
-                <ListItem disableGutters>
-                  <ListItemText primary="Nenhum arquivo anexado" />
-                </ListItem>
+              <Box
+                display="flex"
+                alignItems="center"
+                mb={1}
+                gap={2}
+                flexWrap="wrap"
+              >
                 {(task.files || []).map((f: any, idx: number) => (
-                  <ListItem
-                    key={`file-${idx}`}
-                    sx={{
-                      alignItems: "center",
-                    }}
-                  >
-                    <RenderFile file={f} />
-                  </ListItem>
+                  <RenderFile key={`file-${idx}`} file={f} />
                 ))}
 
                 {(task.conclusionFiles || []).map((f: any, idx: number) => (
-                  <ListItem
-                    key={`con-${idx}`}
-                    disableGutters
-                    sx={{ alignItems: "center" }}
-                  >
-                    <RenderFile file={f} />
-                  </ListItem>
+                  <RenderFile key={`con-${idx}`} file={f} />
                 ))}
-              </List>
+              </Box>
             </Box>
           )}
         </Box>
