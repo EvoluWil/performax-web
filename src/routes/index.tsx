@@ -1,13 +1,13 @@
-import { User } from '@/types/user';
+import { User } from "@/types/user";
 import {
   ContactsOutlined,
   PeopleOutline,
   SecurityOutlined,
   Work,
-} from '@mui/icons-material';
-import { JSX } from 'react';
+} from "@mui/icons-material";
+import { JSX } from "react";
 
-type RoleWithGestor = User['role'] | 'GESTOR';
+type RoleWithGestor = User["role"] | "GESTOR";
 
 export type Route = {
   id: string;
@@ -26,25 +26,42 @@ export type SubRoute = {
 
 export const routes: Route[] = [
   {
-    id: 'Operacional',
-    icon: <Work sx={{ color: 'white' }} />,
-    path: '/panel/tasks',
-    role: ['USER', 'GESTOR'],
+    id: "Operacional",
+    icon: <Work sx={{ color: "white" }} />,
+    path: "/panel/tasks",
+    role: ["USER", "GESTOR"],
     subRoutes: [
       {
-        id: 'Tarefas',
-        path: '/panel/tasks',
-        role: ['USER'],
+        id: "Tarefas",
+        path: "/panel/tasks",
+        role: ["USER"],
         subRoutes: [
           {
-            id: 'Lista de tarefas',
-            path: '/panel/tasks',
-            role: ['USER'],
+            id: "Lista de tarefas",
+            path: "/panel/tasks",
+            role: ["USER"],
           },
           {
-            id: 'Tipos de tarefa',
-            path: '/panel/tasks/types',
-            role: ['USER'],
+            id: "Tipos de tarefa",
+            path: "/panel/tasks/types",
+            role: ["USER"],
+          },
+        ],
+      },
+      {
+        id: "Orçamentos",
+        path: "/panel/budgets",
+        role: ["USER"],
+        subRoutes: [
+          {
+            id: "Lista de orçamentos",
+            path: "/panel/budgets",
+            role: ["USER"],
+          },
+          {
+            id: "Tipos de orçamento",
+            path: "/panel/budgets/types",
+            role: ["USER"],
           },
         ],
       },
@@ -190,21 +207,21 @@ export const routes: Route[] = [
   //   ],
   // },
   {
-    id: 'Clientes',
-    icon: <ContactsOutlined sx={{ color: 'white' }} />,
-    path: '/panel/clients',
-    role: ['USER'],
+    id: "Clientes",
+    icon: <ContactsOutlined sx={{ color: "white" }} />,
+    path: "/panel/clients",
+    role: ["USER"],
   },
   {
-    id: 'Usuários',
-    icon: <PeopleOutline sx={{ color: 'white' }} />,
-    path: '/panel/users',
-    role: ['USER'],
+    id: "Usuários",
+    icon: <PeopleOutline sx={{ color: "white" }} />,
+    path: "/panel/users",
+    role: ["USER"],
   },
   {
-    id: 'Cargos',
-    icon: <SecurityOutlined sx={{ color: 'white' }} />,
-    path: '/panel/roles',
-    role: ['USER'],
+    id: "Cargos",
+    icon: <SecurityOutlined sx={{ color: "white" }} />,
+    path: "/panel/roles",
+    role: ["USER"],
   },
 ];

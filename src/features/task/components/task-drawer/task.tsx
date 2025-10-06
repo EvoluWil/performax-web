@@ -26,6 +26,7 @@ export type TaskDrawerProps = {
   open: boolean;
   onClose: () => void;
   task: Task | null;
+  onSuccess?: () => void;
 };
 
 export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {

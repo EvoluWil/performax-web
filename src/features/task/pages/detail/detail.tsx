@@ -31,6 +31,7 @@ export const TaskDetail = () => {
     handleFinalize,
     handleUpdateChecklistItem,
     taskChecklistIncomplete,
+    refetch,
   } = useTaskDetail();
 
   if (!task) {
@@ -121,7 +122,12 @@ export const TaskDetail = () => {
         />
       </Box>
       {editModalOpen && (
-        <TaskDrawer task={task} open onClose={toggleEditModal} />
+        <TaskDrawer
+          task={task}
+          open
+          onClose={toggleEditModal}
+          onSuccess={refetch}
+        />
       )}
       {impedimentModalOpen && (
         <ImpedimentModal

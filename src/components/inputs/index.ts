@@ -1,4 +1,5 @@
 export * from "./button-group/button-group";
+export * from "./currency-input/currency-input";
 export * from "./date-input/date-input";
 export * from "./date-time-input/date-input";
 export * from "./file-input/file-input";

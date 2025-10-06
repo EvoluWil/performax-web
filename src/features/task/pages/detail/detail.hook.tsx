@@ -200,6 +200,7 @@ export const useTaskDetail = () => {
     impedimentModalOpen,
     editModalOpen,
     conclusionModalOpen,
+    refetch,
     handleBack,
     handleStart,
     handleCancel,

@@ -3,15 +3,15 @@ import {
   Switch as MuiSwitch,
   SwitchProps as MuiSwitchProps,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 import {
   FieldValues,
   UseControllerProps,
   useController,
-} from 'react-hook-form';
+} from "react-hook-form";
 
 export interface SwitchStyledProps
-  extends Omit<MuiSwitchProps, 'defaultValue' | 'checked' | 'onChange'> {
+  extends Omit<MuiSwitchProps, "defaultValue" | "checked" | "onChange"> {
   label: string;
 }
 
@@ -45,8 +45,12 @@ export function Switch<T extends FieldValues>({
       display="flex"
       flexDirection="column"
       border="1px solid"
-      borderColor={error ? 'error.main' : 'divider'}
-      borderRadius={2}
+      alignItems="space-between"
+      justifyContent="center"
+      borderColor={error ? "error.main" : "grey.300"}
+      borderRadius={1}
+      width="100%"
+      height={56}
       pl={1}
     >
       <Box
@@ -54,9 +58,8 @@ export function Switch<T extends FieldValues>({
         alignItems="center"
         gap={1}
         justifyContent="space-between"
-        width={200}
       >
-        <Typography variant="body2" color={error ? 'error' : 'textSecondary'}>
+        <Typography variant="body1" color={error ? "error" : "grey.400"}>
           {label}
         </Typography>
         <MuiSwitch

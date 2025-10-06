@@ -20,6 +20,7 @@ export const useTaskDrawer = ({
   onClose,
   open,
   task: selectedTask,
+  onSuccess,
 }: TaskDrawerProps) => {
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
@@ -61,12 +62,15 @@ export const useTaskDrawer = ({
       id: task?.id,
     });
 
+    console.log("result", result);
+
     if (result) {
       toast.success(
         task ? "Tarefa atualizada com sucesso" : "Tarefa criada com sucesso"
       );
       handleClose();
       onClose();
+      if (onSuccess) onSuccess();
     }
   });
 

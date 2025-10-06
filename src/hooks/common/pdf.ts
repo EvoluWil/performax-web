@@ -17,7 +17,6 @@ pdfMake.fonts = {
 
 export const usePdfGenerator = () => {
   const { user } = useSession();
-  console.log("User in PDF Generator:", user);
 
   const getPdfHeaderUrl = async () => {
     return "/pdf-header.png";

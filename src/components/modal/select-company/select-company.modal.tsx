@@ -1,12 +1,13 @@
-import { SelectInput } from '@/components/inputs';
-import { CloseOutlined } from '@mui/icons-material';
-import { Button, Typography } from '@mui/material';
+import { Loading } from "@/components/common/loading/loading";
+import { SelectInput } from "@/components/inputs";
+import { CloseOutlined } from "@mui/icons-material";
+import { Button, Typography } from "@mui/material";
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from '../modal-base.styles';
-import { useSelectCompany } from './select-company.hook';
+} from "../modal-base.styles";
+import { useSelectCompany } from "./select-company.hook";
 
 export type SelectCompanyModalProps = {
   open: boolean;
@@ -15,7 +16,7 @@ export type SelectCompanyModalProps = {
 };
 
 export const SelectCompanyModal: React.FC<SelectCompanyModalProps> = (
-  props,
+  props
 ) => {
   const {
     companies,
@@ -23,7 +24,7 @@ export const SelectCompanyModal: React.FC<SelectCompanyModalProps> = (
     handleClose,
     handleSelectCompany,
     open,
-    isLoading,
+    loading,
   } = useSelectCompany(props);
 
   const body = (
@@ -42,10 +43,8 @@ export const SelectCompanyModal: React.FC<SelectCompanyModalProps> = (
         Selecione uma empresa para iniciar
       </Typography>
 
-      {isLoading ? (
-        <Typography variant="body2" color="textSecondary">
-          Carregando empresas...
-        </Typography>
+      {loading ? (
+        <Loading message="Carregando empresas..." />
       ) : (
         <>
           {companies?.length ? (
