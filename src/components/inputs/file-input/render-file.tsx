@@ -1,18 +1,18 @@
-import { File as IFile, imageExtensions, videoExtensions } from '@/types/file';
-import { getFileName } from '@/utils/file';
+import { File as IFile, imageExtensions, videoExtensions } from "@/types/file";
+import { getFileName } from "@/utils/file";
 import {
   Close as CloseIcon,
   InsertDriveFileOutlined,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   Box,
   CircularProgress,
   IconButton,
   Tooltip,
   Typography,
-} from '@mui/material';
-import Image from 'next/image';
-import React from 'react';
+} from "@mui/material";
+import Image from "next/image";
+import React from "react";
 
 interface RenderFileProps {
   file: IFile;
@@ -26,10 +26,10 @@ export const RenderFile: React.FC<RenderFileProps> = ({
   loading = false,
 }) => {
   const handleClick = () => {
-    window.open(file.url, '_blank');
+    window.open(file.url, "_blank");
   };
 
-  const ext = (file?.type || '').toLowerCase();
+  const ext = (file?.type || "").toLowerCase();
   const isImage = imageExtensions.includes(ext);
   const isVideo = videoExtensions.includes(ext);
 
@@ -38,29 +38,30 @@ export const RenderFile: React.FC<RenderFileProps> = ({
       onClick={handleClick}
       role="button"
       sx={{
-        position: 'relative',
-        border: '2px solid',
-        borderColor: 'primary.main',
+        position: "relative",
+        border: "2px solid",
+        borderColor: "primary.main",
         borderRadius: 2,
         width: 80,
         height: 90,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        bgcolor: 'background.paper',
-        transition: 'background-color 200ms',
-        '&:hover': { bgcolor: 'action.hover' },
-        overflow: 'hidden',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        bgcolor: "background.paper",
+        transition: "background-color 200ms",
+        "&:hover": { bgcolor: "action.hover" },
+        overflow: "hidden",
       }}
     >
       {isImage && (
         <Image
+          id={file.url}
           src={file.url}
           alt={getFileName(file)}
           fill
           sizes="112px"
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: "cover" }}
         />
       )}
 
@@ -68,25 +69,25 @@ export const RenderFile: React.FC<RenderFileProps> = ({
         <Box
           component="video"
           src={file.url}
-          sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       )}
 
       {!isImage && !isVideo && (
         <>
           <InsertDriveFileOutlined
-            sx={{ fontSize: 60, color: 'primary.main' }}
+            sx={{ fontSize: 60, color: "primary.main" }}
           />
           <Typography
             variant="caption"
             noWrap
             sx={{
-              position: 'absolute',
+              position: "absolute",
               bottom: 0,
               left: 0,
-              color: 'text.primary',
+              color: "text.primary",
               px: 0.5,
-              width: '100%',
+              width: "100%",
             }}
           >
             {getFileName(file)}
@@ -105,10 +106,10 @@ export const RenderFile: React.FC<RenderFileProps> = ({
               }}
               disabled={loading}
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 top: 4,
                 right: 4,
-                bgcolor: 'background.paper',
+                bgcolor: "background.paper",
               }}
             >
               {loading ? (

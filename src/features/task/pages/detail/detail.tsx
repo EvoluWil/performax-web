@@ -2,25 +2,35 @@
 
 import { PageTitle, SplitActions } from "@/components/common";
 import { Loading } from "@/components/common/loading/loading";
-import { TaskDetailCard, TaskDrawer } from "@/features/task/components";
+import {
+  ConclusionModal,
+  ImpedimentModal,
+  TaskDetailCard,
+  TaskDrawer,
+} from "@/features/task/components";
 import { Box, Divider } from "@mui/material";
 import { useTaskDetail } from "./detail.hook";
 
 export const TaskDetail = () => {
   const {
     task,
-    openModal,
+    impedimentModalOpen,
+    editModalOpen,
     loading,
     handleBack,
     handleStart,
     handleCancel,
     handleImpediment,
     toggleEditModal,
+    toggleImpedimentModal,
+    conclusionModalOpen,
+    toggleConclusionModal,
     handleDownloadPdf,
     handleResolved,
     handleReOpen,
     handleFinalize,
-    handleUpdateChecklist,
+    handleUpdateChecklistItem,
+    taskChecklistIncomplete,
   } = useTaskDetail();
 
   if (!task) {
@@ -57,7 +67,7 @@ export const TaskDetail = () => {
                     {
                       key: "impediment",
                       label: "Impedimento",
-                      onClick: handleImpediment,
+                      onClick: toggleImpedimentModal,
                       visible: ["IN_PROGRESS"].includes(task.status),
                     },
                     {
@@ -69,7 +79,7 @@ export const TaskDetail = () => {
                     {
                       key: "finalize",
                       label: "Finalizar",
-                      onClick: handleFinalize,
+                      onClick: toggleConclusionModal,
                       visible: ["IN_PROGRESS"].includes(task.status),
                     },
                     {
@@ -105,9 +115,29 @@ export const TaskDetail = () => {
 
         <Divider sx={{ my: 2 }} />
 
-        <TaskDetailCard task={task} onUpdateChecklist={handleUpdateChecklist} />
+        <TaskDetailCard
+          task={task}
+          onUpdateChecklistItem={handleUpdateChecklistItem}
+        />
       </Box>
-      {openModal && <TaskDrawer task={task} open onClose={toggleEditModal} />}
+      {editModalOpen && (
+        <TaskDrawer task={task} open onClose={toggleEditModal} />
+      )}
+      {impedimentModalOpen && (
+        <ImpedimentModal
+          open={impedimentModalOpen}
+          onClose={toggleImpedimentModal}
+          onSubmit={handleImpediment}
+        />
+      )}
+      {conclusionModalOpen && (
+        <ConclusionModal
+          open={conclusionModalOpen}
+          onClose={toggleConclusionModal}
+          onSubmit={handleFinalize}
+          hasIncompleteChecklist={taskChecklistIncomplete}
+        />
+      )}
     </>
   );
 };

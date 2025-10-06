@@ -3,30 +3,46 @@ import { TaskFilterDto } from "@/features/task/schemas";
 import { taskService } from "@/features/task/services";
 import { getTaskQuery } from "@/features/task/services/task.service";
 import { Task } from "@/features/task/types";
+import { useMediaQuery } from "@mui/material";
 import { addDays } from "date-fns";
 import { Filter, Query } from "nestjs-prisma-querybuilder-interface";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import swal from "sweetalert2";
+
+const defaultColumns = [
+  "title",
+  "client",
+  "responsible",
+  "type",
+  "date",
+  "status",
+];
+
+const DEFAULT_TABLE_COLUMNS_KEY = "@performax:default-columns-tasks";
 
 export const useTaskList = () => {
   const {
     data: { data: tasks },
     refetch,
+    isRefetching,
+    isPending,
+    isLoading,
+    isFetching,
   } = useTasksQuery();
   const [openModal, setOpenModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
+    useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [term, setTerm] = useState("");
   const [filter, setFilter] = useState<TaskFilterDto>({} as TaskFilterDto);
-  const [viewMode, setViewMode] = useState<"table" | "list">("table");
+  const [selectedColumnsKeys, setSelectedColumnsKeys] =
+    useState<string[]>(defaultColumns);
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
-  useState(() => {
-    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-      setViewMode("list");
-    }
-  });
+  const [viewMode, setViewMode] = useState<"table" | "list">("table");
 
   const taskMutation = useTaskMutation();
   const { push } = useRouter();
@@ -68,6 +84,14 @@ export const useTaskList = () => {
         }
       },
     });
+  };
+
+  const toggleCustomizeColumnsModal = () => {
+    setOpenCustomizeColumnsModal((prev) => !prev);
+  };
+
+  const handleUpdateColumns = (columns: string[]) => {
+    setSelectedColumnsKeys(columns);
   };
 
   const handleReload = async () => {
@@ -232,12 +256,35 @@ export const useTaskList = () => {
       task.protocol?.toLowerCase().includes(term.toLowerCase())
   );
 
+  const toggleView = () => {
+    setViewMode((v) => (v === "table" ? "list" : "table"));
+  };
+
+  useEffect(() => {
+    if (isSmallScreen && viewMode !== "list") {
+      setViewMode("list");
+    }
+  }, [isSmallScreen, viewMode]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(DEFAULT_TABLE_COLUMNS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSelectedColumnsKeys(parsed);
+      }
+    }
+  }, []);
+
+  const loading = isPending || isRefetching || isLoading || isFetching;
+
   return {
     tasks: filteredTasksLocal,
     viewMode,
-    toggleView: () => setViewMode((v) => (v === "table" ? "list" : "table")),
+    toggleView,
     openModal,
     selectedTask,
+    loading,
     handleOpenAdd,
     handleReload,
     handleSearch,
@@ -248,5 +295,11 @@ export const useTaskList = () => {
     toggleShowFilter,
     handleFilter,
     handleRowClick,
+    toggleCustomizeColumnsModal,
+    openCustomizeColumnsModal,
+    selectedColumnsKeys,
+    handleUpdateColumns,
+    defaultColumns,
+    tableKey: DEFAULT_TABLE_COLUMNS_KEY,
   };
 };

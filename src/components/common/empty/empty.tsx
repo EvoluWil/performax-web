@@ -1,14 +1,16 @@
-import { Box, Button, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { Box, Button, Typography } from "@mui/material";
+import React, { useState } from "react";
 
 type EmptyProps = {
   message?: string;
-  onReload: () => Promise<void>;
+  onReload?: () => Promise<void>;
+  showReloadButton?: boolean;
 };
 
 export const Empty: React.FC<EmptyProps> = ({
-  message = 'Nenhum dado encontrado.',
-  onReload,
+  message = "Nenhum dado encontrado.",
+  onReload = async () => {},
+  showReloadButton = true,
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -30,14 +32,16 @@ export const Empty: React.FC<EmptyProps> = ({
       <Typography variant="body1" color="grey.700">
         {message}
       </Typography>
-      <Button
-        variant="text"
-        color="primary"
-        loading={loading}
-        onClick={handleReload}
-      >
-        Tentar novamente
-      </Button>
+      {showReloadButton && (
+        <Button
+          variant="text"
+          color="primary"
+          loading={loading}
+          onClick={handleReload}
+        >
+          Tentar novamente
+        </Button>
+      )}
     </Box>
   );
 };

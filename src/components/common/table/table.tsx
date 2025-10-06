@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { ListItemIcon, MenuItem, useMediaQuery } from '@mui/material';
+import { ListItemIcon, MenuItem, useMediaQuery } from "@mui/material";
 import {
   MRT_ColumnDef,
   MaterialReactTable,
   useMaterialReactTable,
-} from 'material-react-table';
-import { JSX } from 'react';
-import { Empty } from '..';
+} from "material-react-table";
+import { JSX } from "react";
+import { Empty } from "..";
 
 export type Actions<T> = {
   icon: (data: T) => JSX.Element;
@@ -23,6 +23,7 @@ type TableProps<T> = {
   onReload?: () => Promise<void>;
   actions?: Array<Actions<T>>;
   onRowClick?: (row: T) => void;
+  loading?: boolean;
 };
 
 export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
@@ -31,9 +32,10 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
   onReload,
   emptyMessage,
   actions,
+  loading = false,
   onRowClick = () => null,
 }) => {
-  const matches = useMediaQuery('(min-width:600px)');
+  const matches = useMediaQuery("(min-width:600px)");
 
   const table = useMaterialReactTable({
     columns,
@@ -48,18 +50,18 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
     },
     muiTableHeadCellProps: {
       sx: {
-        backgroundColor: 'primary.main',
-        '*': {
-          color: 'white !important',
+        backgroundColor: "primary.main",
+        "*": {
+          color: "white !important",
         },
       },
     },
     muiBottomToolbarProps: {
       sx: {
-        backgroundColor: 'primary.main',
-        color: 'white',
-        '*': {
-          color: 'white !important',
+        backgroundColor: "primary.main",
+        color: "white",
+        "*": {
+          color: "white !important",
         },
       },
     },
@@ -68,21 +70,21 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         onRowClick(data[staticRowIndex as number]);
       },
       sx: {
-        cursor: 'pointer',
-        '&:hover': {
-          backgroundColor: 'primary.light',
+        cursor: "pointer",
+        "&:hover": {
+          backgroundColor: "primary.light",
         },
       },
     }),
     localization: {
-      sortByColumnAsc: 'Ordenar por esta coluna de forma ascendente',
-      sortByColumnDesc: 'Ordenar por esta coluna de forma descendente',
-      sortedByColumnAsc: 'Ordenado por esta coluna de forma ascendente',
-      sortedByColumnDesc: 'Ordenado por esta coluna de forma descendente',
-      rowsPerPage: matches ? 'Linhas por página' : '',
-      goToNextPage: 'Ir para a próxima página',
-      goToPreviousPage: 'Ir para a página anterior',
-      actions: 'Ações',
+      sortByColumnAsc: "Ordenar por esta coluna de forma ascendente",
+      sortByColumnDesc: "Ordenar por esta coluna de forma descendente",
+      sortedByColumnAsc: "Ordenado por esta coluna de forma ascendente",
+      sortedByColumnDesc: "Ordenado por esta coluna de forma descendente",
+      rowsPerPage: matches ? "Linhas por página" : "",
+      goToNextPage: "Ir para a próxima página",
+      goToPreviousPage: "Ir para a página anterior",
+      actions: "Ações",
     },
     initialState: {
       pagination: {
@@ -90,7 +92,7 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         pageIndex: 0,
       },
       columnPinning: {
-        right: ['mrt-row-actions'],
+        right: ["mrt-row-actions"],
       },
     },
     renderRowActionMenuItems: ({ closeMenu, staticRowIndex }) =>
@@ -98,7 +100,7 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         ?.filter((action) =>
           action?.condition
             ? action.condition(data[staticRowIndex as number])
-            : true,
+            : true
         )
         ?.map((action) => (
           <MenuItem
@@ -118,7 +120,13 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
   });
 
   if (!data.length && onReload) {
-    return <Empty message={emptyMessage} onReload={onReload} />;
+    return (
+      <Empty
+        message={loading ? "Carregando..." : emptyMessage}
+        onReload={onReload}
+        showReloadButton={!loading}
+      />
+    );
   }
 
   return <MaterialReactTable table={table} />;

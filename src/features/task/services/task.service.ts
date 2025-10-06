@@ -26,6 +26,10 @@ export const getTaskQuery: Query = {
       select: "id modules",
     },
   ],
+  filter: [
+    { path: "status", operator: "not", value: "CLOSED", filterGroup: "and" },
+    { path: "status", operator: "not", value: "REJECTED", filterGroup: "and" },
+  ],
   sort: {
     field: "date",
     criteria: "asc",

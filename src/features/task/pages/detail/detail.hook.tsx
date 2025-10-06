@@ -1,13 +1,28 @@
 "use client";
 
-import { useTaskDetailQuery, useTaskMutation } from "@/features/task/hooks";
+import {
+  useChecklistMutation,
+  useTaskDetailQuery,
+  useTaskMutation,
+} from "@/features/task/hooks";
+import { usePdfGenerator } from "@/hooks/common/pdf";
+import { useUpload } from "@/hooks/common/upload";
+import { hasIncompleteChecklist } from "@/utils/checklist";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ChecklistDto } from "../../types";
+import { useEffect, useMemo, useState } from "react";
+import swal from "sweetalert2";
+import { ConclusionSchemaType } from "../../components";
+import { ChecklistItemDto } from "../../types";
+import { generateTaskPdfObject } from "../../util/task-pdf";
 
 export const useTaskDetail = () => {
-  const [openModal, setOpenModal] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [impedimentModalOpen, setImpedimentModalOpen] = useState(false);
+  const [conclusionModalOpen, setConclusionModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const { sendFiles } = useUpload();
+  const { makeDetailPDF } = usePdfGenerator();
   const { taskId } = useParams();
   const { replace } = useRouter();
   const {
@@ -18,6 +33,7 @@ export const useTaskDetail = () => {
   } = useTaskDetailQuery(String(taskId));
 
   const taskMutation = useTaskMutation(String(taskId));
+  const checklistMutation = useChecklistMutation();
 
   const handleBack = () => {
     if (typeof window !== "undefined") {
@@ -40,39 +56,54 @@ export const useTaskDetail = () => {
 
   const handleCancel = async () => {
     try {
-      await taskMutation.mutateAsync({
-        type: "update",
-        id: task?.id,
-        data: { status: "REJECTED" },
+      await swal.fire({
+        title: "Cancelar tarefa",
+        text: "Tem certeza que deseja cancelar esta tarefa? Esta ação não pode ser desfeita.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, cancelar",
+        preConfirm: async () => {
+          await taskMutation.mutateAsync({
+            type: "update",
+            id: task?.id,
+            data: { status: "REJECTED" },
+          });
+          refetch();
+        },
       });
-      refetch();
-    } catch (err: any) {
-      window.alert("Falha ao cancelar a tarefa: " + (err?.message || err));
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleImpediment = async () => {
+  const toggleImpedimentModal = () => {
+    setImpedimentModalOpen((prev) => !prev);
+  };
+
+  const handleImpediment = async (impedimentNote: string) => {
     try {
-      await taskMutation.mutateAsync({
+      const a = await taskMutation.mutateAsync({
         type: "update",
         id: task?.id,
-        data: { status: "IMPEDED" },
+        data: { status: "IMPEDED", impedimentNote },
       });
-      refetch();
-    } catch (err: any) {
-      window.alert("Falha ao registrar impedimento: " + (err?.message || err));
+      if (a) {
+        setImpedimentModalOpen(false);
+        refetch();
+      }
+    } catch (err) {
+      throw err;
     }
   };
 
   const toggleEditModal = () => {
-    setOpenModal((prev) => !prev);
+    setEditModalOpen((prev) => !prev);
   };
 
-  const handleDownloadPdf = () => {
-    const url = `/panel/tasks/${task?.id}/pdf`;
-    if (typeof window !== "undefined") {
-      window.open(url, "_blank");
-    }
+  const handleDownloadPdf = async () => {
+    const contents = await generateTaskPdfObject(task);
+    await makeDetailPDF(`Tarefa - ${task?.title}`, contents);
+    setIsLoading(false);
   };
 
   const handleResolved = async () => {
@@ -101,24 +132,61 @@ export const useTaskDetail = () => {
     }
   };
 
-  const handleFinalize = async () => {
+  const toggleConclusionModal = () => setConclusionModalOpen((p) => !p);
+
+  const handleFinalize = async (payload: ConclusionSchemaType) => {
     try {
+      const conclusionFiles = [];
+      if (payload.files && payload.files.length > 0) {
+        const files = await sendFiles(
+          payload.files as any,
+          `tasks/${task?.id}/conclusion`
+        );
+        conclusionFiles.push(...files);
+      }
+
       await taskMutation.mutateAsync({
         type: "update",
         id: task?.id,
-        data: { status: "CLOSED" },
+        data: {
+          ...{
+            status: "CLOSED",
+            conclusionNote: payload.conclusionNote,
+            conclusionFiles: conclusionFiles,
+          },
+        },
       });
+      setConclusionModalOpen(false);
       refetch();
     } catch (err: any) {
       window.alert("Falha ao finalizar a tarefa: " + (err?.message || err));
     }
   };
 
-  const handleUpdateChecklist = async (checklist: ChecklistDto) => {
-    console.log("TODO: update checklist", checklist);
+  const handleUpdateChecklistItem = async (
+    item: ChecklistItemDto,
+    checklistId: string
+  ) => {
+    const result = await checklistMutation.mutateAsync({
+      checklistId,
+      itemId: item.id as string,
+      data: {
+        valueBoolean: item.valueBoolean,
+        valueNumber: item.valueNumber,
+        valueText: item.valueText,
+      },
+    });
+
+    if (result) {
+      refetch();
+    }
   };
 
-  const loading = taskMutation.isPending || isRefetching;
+  const loading = taskMutation.isPending || isRefetching || isLoading;
+
+  const taskChecklistIncomplete = useMemo(() => {
+    return hasIncompleteChecklist(task?.checklist);
+  }, [task]);
 
   useEffect(() => {
     if (error) {
@@ -129,16 +197,21 @@ export const useTaskDetail = () => {
   return {
     task,
     loading,
-    openModal,
+    impedimentModalOpen,
+    editModalOpen,
+    conclusionModalOpen,
     handleBack,
     handleStart,
     handleCancel,
     handleImpediment,
     toggleEditModal,
+    toggleImpedimentModal,
+    toggleConclusionModal,
     handleDownloadPdf,
     handleResolved,
     handleReOpen,
     handleFinalize,
-    handleUpdateChecklist,
+    handleUpdateChecklistItem,
+    taskChecklistIncomplete,
   };
 };

@@ -14,6 +14,7 @@ export type TaskFormDto = {
   typeId: string;
   status: string;
   internalNote?: string;
+  impedimentNote?: string;
   checklist?: ChecklistDto | null;
 };
 
@@ -27,6 +28,7 @@ export const taskFormInitialValues: TaskFormDto = {
   typeId: "",
   status: "",
   internalNote: "",
+  impedimentNote: "",
   checklist: { modules: [] },
 };
 

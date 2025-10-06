@@ -98,7 +98,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </Box>
 
         <Box>
-          <Typography variant="subtitle1" fontWeight="bold" noWrap>
+          <Typography
+            variant="subtitle1"
+            fontWeight="bold"
+            noWrap
+            maxWidth="calc(100% - 56px)"
+          >
             {task.title}
           </Typography>
           <Typography variant="body2" color="text.secondary" noWrap>

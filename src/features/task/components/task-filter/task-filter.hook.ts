@@ -74,8 +74,10 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
 
     if (selectedStatuses.includes("COMPLETED")) {
       setValue("closed", true);
+      setValue("rejected", true);
     } else {
       setValue("closed", false);
+      setValue("rejected", false);
     }
 
     handleFilter();

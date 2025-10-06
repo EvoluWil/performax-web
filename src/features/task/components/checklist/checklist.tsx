@@ -1,4 +1,7 @@
-import { ChecklistDto as ProjectChecklistDto } from "@/features/task/types";
+import {
+  ChecklistItemDto,
+  ChecklistDto as ProjectChecklistDto,
+} from "@/features/task/types";
 import DoneIcon from "@mui/icons-material/Done";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -15,91 +18,32 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { useChecklist } from "./checklist.hook";
 
 export interface ChecklistProps {
   checklist?: ProjectChecklistDto | null;
   readOnly?: boolean;
-  onSubmit?: (c: ProjectChecklistDto) => Promise<any> | void;
+  onSubmitItem: (item: ChecklistItemDto, checklistId: string) => Promise<void>;
 }
-
-const isFilled = (it: any) => {
-  const type = (it?.expectedType || "").toString().toUpperCase();
-  if (type === "BOOLEAN")
-    return it.valueBoolean !== null && it.valueBoolean !== undefined;
-  if (type === "NUMBER")
-    return (
-      it.valueNumber !== null &&
-      it.valueNumber !== undefined &&
-      !Number.isNaN(it.valueNumber)
-    );
-  if (type === "TEXT") return (it.valueText ?? "").toString().trim().length > 0;
-  return (it.valueText ?? "").toString().trim().length > 0;
-};
 
 export const Checklist: React.FC<ChecklistProps> = ({
   checklist,
   readOnly = false,
-  onSubmit,
+  onSubmitItem,
 }) => {
-  const [local, setLocal] = useState<ProjectChecklistDto>(
-    () => checklist ?? { modules: [] }
-  );
-  const initialJsonRef = useRef<string>(
-    JSON.stringify(checklist ?? { modules: [] })
-  );
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    setLocal(checklist ?? { modules: [] });
-    initialJsonRef.current = JSON.stringify(checklist ?? { modules: [] });
-  }, [checklist]);
-
-  const updateItem = (
-    modIndex: number,
-    itemIndex: number,
-    patch: Partial<any>
-  ) => {
-    setLocal((prev) => {
-      const copy = JSON.parse(
-        JSON.stringify(prev || { modules: [] })
-      ) as ProjectChecklistDto;
-      copy.modules = copy.modules || [];
-      const mod = copy.modules[modIndex];
-      if (!mod) return prev;
-      mod.items = mod.items || [];
-      const it = mod.items[itemIndex] || {};
-      mod.items[itemIndex] = { ...it, ...patch };
-
-      const itemRefAny = mod.items[itemIndex] as any;
-      if (!Object.prototype.hasOwnProperty.call(itemRefAny, "valueBoolean"))
-        itemRefAny.valueBoolean = null;
-      if (!Object.prototype.hasOwnProperty.call(itemRefAny, "valueNumber"))
-        itemRefAny.valueNumber = null;
-      if (!Object.prototype.hasOwnProperty.call(itemRefAny, "valueText"))
-        itemRefAny.valueText = null;
-
-      return copy;
-    });
-  };
+  const {
+    local,
+    updateItem,
+    isFilled,
+    isItemChanged,
+    isSubmittingItem,
+    submitItem,
+  } = useChecklist({ checklist, onSubmitItem });
 
   if (!local || !Array.isArray(local.modules) || local.modules.length === 0) {
     return <Typography variant="body2">Sem checklist</Typography>;
   }
-
-  const currentJson = JSON.stringify(local);
-  const changed = currentJson !== initialJsonRef.current;
-
-  const handleSubmit = async () => {
-    if (!local) return;
-    setSubmitting(true);
-    try {
-      await (onSubmit ? onSubmit(local) : Promise.resolve());
-      initialJsonRef.current = JSON.stringify(local);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <Stack spacing={2}>
@@ -262,6 +206,25 @@ export const Checklist: React.FC<ChecklistProps> = ({
                             </IconButton>
                           </Tooltip>
                         )}
+                        {!readOnly && isItemChanged(modIndex, itemIndex) && (
+                          <Box sx={{ ml: 1 }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => submitItem(modIndex, itemIndex)}
+                              disabled={isSubmittingItem(modIndex, itemIndex)}
+                              startIcon={
+                                isSubmittingItem(modIndex, itemIndex) ? (
+                                  <CircularProgress size={14} />
+                                ) : undefined
+                              }
+                            >
+                              {isSubmittingItem(modIndex, itemIndex)
+                                ? "Enviando"
+                                : "Salvar"}
+                            </Button>
+                          </Box>
+                        )}
                       </Box>
                     </Box>
                   </Box>
@@ -271,20 +234,6 @@ export const Checklist: React.FC<ChecklistProps> = ({
           </CardContent>
         </Card>
       ))}
-
-      {changed && !readOnly && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={16} /> : undefined}
-          >
-            {submitting ? "Salvando..." : "Salvar checklist"}
-          </Button>
-        </Box>
-      )}
     </Stack>
   );
 };

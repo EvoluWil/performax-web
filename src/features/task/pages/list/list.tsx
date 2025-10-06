@@ -1,6 +1,8 @@
 "use client";
 
 import { Empty, ListHeader, Table } from "@/components/common";
+import { Loading } from "@/components/common/loading/loading";
+import { CustomizeColumnsModal } from "@/components/modal/customize-columns/customize-columns.modal";
 import { TaskCard, TaskDrawer, TaskFilter } from "@/features/task/components";
 import { Task, taskStatusLabels } from "@/features/task/types";
 import { formatDate } from "@/utils/date";
@@ -13,6 +15,14 @@ const columns: MRT_ColumnDef<Task>[] = [
   {
     accessorKey: "title",
     header: "Título",
+  },
+  {
+    accessorKey: "protocol",
+    header: "Protocolo",
+  },
+  {
+    accessorKey: "service",
+    header: "Serviço",
   },
   {
     accessorKey: "client",
@@ -36,6 +46,17 @@ const columns: MRT_ColumnDef<Task>[] = [
     },
   },
   {
+    accessorKey: "internalNote",
+    header: "Obs. Interna",
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      if (!v) return "";
+      return typeof v === "string" && v.length > 60
+        ? `${v.slice(0, 60)}...`
+        : v;
+    },
+  },
+  {
     accessorKey: "date",
     header: "Data prevista",
     muiTableHeadCellProps: {
@@ -46,6 +67,27 @@ const columns: MRT_ColumnDef<Task>[] = [
     },
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Criada em",
+    Cell({ cell }: any) {
+      return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Atualizada em",
+    Cell({ cell }: any) {
+      return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: "completedAt",
+    header: "Concluída em",
+    Cell({ cell }: any) {
+      return cell.getValue() ? formatDate(cell.getValue()) : "-";
     },
   },
   {
@@ -67,7 +109,39 @@ const columns: MRT_ColumnDef<Task>[] = [
       );
     },
   },
+  {
+    accessorKey: "createdBy",
+    header: "Criada por",
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? "-";
+    },
+  },
+  {
+    accessorKey: "updatedBy",
+    header: "Atualizada por",
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? "-";
+    },
+  },
+  {
+    accessorKey: "files",
+    header: "Anexos",
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      return v ? v.length : 0;
+    },
+  },
+  {
+    accessorKey: "conclusionFiles",
+    header: "Anexos (Conclusão)",
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      return v ? v.length : 0;
+    },
+  },
 ];
+
+const columnsKeys = columns.map((col) => col.accessorKey as string);
 
 export const TaskList = () => {
   const {
@@ -86,10 +160,23 @@ export const TaskList = () => {
     viewMode,
     toggleView,
     handleRowClick,
+    loading,
+    toggleCustomizeColumnsModal,
+    openCustomizeColumnsModal,
+    handleUpdateColumns,
+    selectedColumnsKeys,
+    defaultColumns,
+    tableKey,
   } = useTaskList();
+
+  const columnsToShow = columns.filter((col) =>
+    selectedColumnsKeys.includes(col.accessorKey as string)
+  );
 
   return (
     <>
+      {loading && <Loading fullScreen message="Carregando tarefas..." />}
+
       <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
         TAREFAS
       </Typography>
@@ -103,6 +190,7 @@ export const TaskList = () => {
         onShowFilters={toggleShowFilter}
         viewMode={viewMode}
         onToggleView={toggleView}
+        onCustomizeColumns={toggleCustomizeColumnsModal}
       />
 
       <TaskFilter
@@ -113,11 +201,12 @@ export const TaskList = () => {
 
       {viewMode === "table" ? (
         <Table
-          columns={columns}
+          columns={columnsToShow}
           data={tasks}
           emptyMessage="Nenhum resultado encontrado"
           onReload={handleReload}
           onRowClick={handleRowClick}
+          loading={loading}
           actions={[
             {
               icon: () => <EditOutlined />,
@@ -166,6 +255,17 @@ export const TaskList = () => {
           task={selectedTask}
           open={openModal}
           onClose={handleCloseAdd}
+        />
+      )}
+
+      {openCustomizeColumnsModal && (
+        <CustomizeColumnsModal
+          open={openCustomizeColumnsModal}
+          onClose={toggleCustomizeColumnsModal}
+          onSuccess={handleUpdateColumns}
+          columns={columnsKeys}
+          tableKey={tableKey}
+          defaultColumns={defaultColumns}
         />
       )}
     </>

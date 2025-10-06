@@ -5,6 +5,7 @@ export type TaskFilterDto = {
   scheduled: boolean;
   impeded: boolean;
   in_progress: boolean;
+  rejected: boolean;
   closed: boolean;
   title: string;
   protocol: string;
@@ -16,18 +17,19 @@ export type TaskFilterDto = {
 };
 
 export const taskFilterInitialValues: TaskFilterDto = {
-  open: false,
+  open: true,
   expired: false,
   emergency: false,
   scheduled: false,
   impeded: false,
-  in_progress: false,
+  in_progress: true,
   closed: false,
-  title: '',
-  protocol: '',
-  typeId: '',
-  startDate: '',
-  endDate: '',
-  clientId: '',
-  userId: '',
+  rejected: false,
+  title: "",
+  protocol: "",
+  typeId: "",
+  startDate: "",
+  endDate: "",
+  clientId: "",
+  userId: "",
 };

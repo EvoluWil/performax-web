@@ -1,6 +1,10 @@
 import { FieldRow } from "@/components/common";
 import { RenderFile } from "@/components/inputs";
-import { Task, taskStatusLabels } from "@/features/task/types";
+import {
+  ChecklistItemDto,
+  Task,
+  taskStatusLabels,
+} from "@/features/task/types";
 import { formatDate } from "@/utils/date";
 import {
   AssignmentLateOutlined,
@@ -12,12 +16,15 @@ import { Checklist } from "..";
 
 type TaskDetailCardProps = {
   task: Task;
-  onUpdateChecklist?: (checklist: any) => void;
+  onUpdateChecklistItem: (
+    item: ChecklistItemDto,
+    checklistId: string
+  ) => Promise<void>;
 };
 
 export const TaskDetailCard = ({
   task,
-  onUpdateChecklist,
+  onUpdateChecklistItem,
 }: TaskDetailCardProps) => {
   const status = task.status;
   const { label, color } =
@@ -74,6 +81,17 @@ export const TaskDetailCard = ({
                     />
                   </>
                 )}
+
+                {task.conclusionNote && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <FieldRow
+                      props={{ flexDirection: "column" }}
+                      label="Resumo Final:"
+                      value={task.conclusionNote || "-"}
+                    />
+                  </>
+                )}
               </Box>
             </Box>
           )}
@@ -85,13 +103,12 @@ export const TaskDetailCard = ({
               </Typography>
               <Checklist
                 checklist={task.checklist}
-                onSubmit={onUpdateChecklist}
+                onSubmitItem={onUpdateChecklistItem}
               />
             </Box>
           )}
 
-          {((task.files || []).length !== 0 ||
-            (task.conclusionFiles || []).length !== 0) && (
+          {(task.files || []).length !== 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Arquivos
@@ -106,7 +123,21 @@ export const TaskDetailCard = ({
                 {(task.files || []).map((f: any, idx: number) => (
                   <RenderFile key={`file-${idx}`} file={f} />
                 ))}
-
+              </Box>
+            </Box>
+          )}
+          {(task.conclusionFiles || []).length !== 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Arquivos de fechamento
+              </Typography>
+              <Box
+                display="flex"
+                alignItems="center"
+                mb={1}
+                gap={2}
+                flexWrap="wrap"
+              >
                 {(task.conclusionFiles || []).map((f: any, idx: number) => (
                   <RenderFile key={`con-${idx}`} file={f} />
                 ))}
