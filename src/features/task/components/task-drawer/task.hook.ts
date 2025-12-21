@@ -14,6 +14,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { formatChecklist } from "../../util/format-checklist";
 import { TaskDrawerProps } from "./task";
 
 export const useTaskDrawer = ({
@@ -25,13 +26,12 @@ export const useTaskDrawer = ({
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
-  const {
-    data: { data: clients },
-  } = useClientsQuery();
+  const { data: clientsResponse } = useClientsQuery({ scopeModule: "client" });
   const { data: taskTypes } = useTaskTypesQuery();
-  const {
-    data: { data: users },
-  } = useUsersQuery();
+  const { data: usersResponse } = useUsersQuery({ scopeModule: "task" });
+
+  const clients = clientsResponse?.data || [];
+  const users = usersResponse?.data || [];
 
   const options = useMemo(() => {
     return {
@@ -56,13 +56,15 @@ export const useTaskDrawer = ({
       data.checklist = undefined;
     }
 
+    if (!task) {
+      delete data.impedimentNote;
+    }
+
     const result = await taskMutation.mutateAsync({
       type: task ? "update" : "create",
       data: data,
       id: task?.id,
     });
-
-    console.log("result", result);
 
     if (result) {
       toast.success(
@@ -115,6 +117,8 @@ export const useTaskDrawer = ({
         internalNote: task?.internalNote || "",
         responsibleId: task?.responsible?.id || "",
         status: task?.status || "",
+        recurrence: task?.recurrence || "",
+        checklist: formatChecklist(task?.checklist) || undefined,
       });
     } else {
       reset(taskFormInitialValues);
@@ -131,6 +135,7 @@ export const useTaskDrawer = ({
     options,
     defaultFiles: task?.files || [],
     editing: !!task,
+    hasRecurrence: !!task?.recurrence || task?.recurrenceMasterId,
     handleRemoveDefaultFile,
   };
 };

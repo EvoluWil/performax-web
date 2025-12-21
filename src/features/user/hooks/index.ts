@@ -1,3 +1,12 @@
-import { useUserMutation, useUsersQuery } from './queries/user.query';
+import {
+  useUserRoleMutation,
+  useUserRolesQuery,
+} from "./queries/user-role.query";
+import { useUserMutation, useUsersQuery } from "./queries/user.query";
 
-export { useUserMutation, useUsersQuery };
+export {
+  useUserMutation,
+  useUserRoleMutation,
+  useUserRolesQuery,
+  useUsersQuery,
+};

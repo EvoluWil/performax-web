@@ -2,7 +2,9 @@
 
 import { ListHeader, Table } from "@/components/common";
 import { Loading } from "@/components/common/loading/loading";
+import { Actions } from "@/components/common/table/table";
 import { CustomizeColumnsModal } from "@/components/modal/customize-columns/customize-columns.modal";
+import { useCompanyPermissions } from "@/hooks/common/permission";
 import { formatDate } from "@/utils/date";
 import { DeleteOutlined, EditOutlined } from "@mui/icons-material";
 import { Box, Chip, Typography } from "@mui/material";
@@ -98,6 +100,28 @@ export const BudgetList = () => {
     tableKey,
     handleUpdateColumns,
   } = useBudgetList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("budget", "write");
+  const canAdmin = permissionsReady && hasPermission("budget", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const tableActions: Actions<Budget>[] = [];
+
+  if (canEdit) {
+    tableActions.push({
+      icon: () => <EditOutlined />,
+      label: () => "Editar orçamento",
+      onClick: handleSelectBudgetToEdit,
+    });
+  }
+
+  if (canAdmin) {
+    tableActions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir orçamento",
+      onClick: (row) => handleDeleteBudget(row.id),
+    });
+  }
 
   const columnsToShow = columns.filter((col) =>
     selectedColumnsKeys.includes(col.accessorKey as string)
@@ -113,7 +137,7 @@ export const BudgetList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por título, descrição ou protocolo"
@@ -138,18 +162,7 @@ export const BudgetList = () => {
           onReload={handleReload}
           onRowClick={handleRowClick}
           loading={loading}
-          actions={[
-            {
-              icon: () => <EditOutlined />,
-              label: () => "Editar orçamento",
-              onClick: (row) => handleSelectBudgetToEdit(row as any),
-            },
-            {
-              icon: () => <DeleteOutlined />,
-              label: () => "Excluir orçamento",
-              onClick: (row) => handleDeleteBudget((row as any).id),
-            },
-          ]}
+          actions={tableActions}
         />
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
@@ -167,8 +180,12 @@ export const BudgetList = () => {
                 <BudgetCard
                   budget={budget}
                   onClick={() => handleRowClick(budget)}
-                  onEdit={() => handleSelectBudgetToEdit(budget as any)}
-                  onDelete={() => handleDeleteBudget(budget.id)}
+                  onEdit={
+                    canEdit ? () => handleSelectBudgetToEdit(budget) : undefined
+                  }
+                  onDelete={
+                    canAdmin ? () => handleDeleteBudget(budget.id) : undefined
+                  }
                 />
               </Box>
             ))

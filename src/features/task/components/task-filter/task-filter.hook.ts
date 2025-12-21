@@ -18,8 +18,8 @@ type Options = {
 
 export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
   const { data: taskTypesData } = useTaskTypesQuery();
-  const { data: clientsData } = useClientsQuery();
-  const { data: usersData } = useUsersQuery();
+  const { data: clientsData } = useClientsQuery({ scopeModule: "client" });
+  const { data: usersData } = useUsersQuery({ scopeModule: "task" });
   const { control, handleSubmit, setValue, watch } = useForm<TaskFilterDto>({
     defaultValues: taskFilterInitialValues,
   });

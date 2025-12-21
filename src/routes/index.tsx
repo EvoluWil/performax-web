@@ -1,4 +1,3 @@
-import { User } from "@/types/user";
 import {
   ContactsOutlined,
   PeopleOutline,
@@ -7,21 +6,25 @@ import {
 } from "@mui/icons-material";
 import { JSX } from "react";
 
-type RoleWithGestor = User["role"] | "GESTOR";
+type Module = "task" | "budget" | "client" | "user" | "role";
 
 export type Route = {
   id: string;
   icon?: JSX.Element;
   path: string;
   subRoutes?: SubRoute[];
-  role: RoleWithGestor[];
+  modules: Module[];
+  permissions: Module[];
+  scope?: "read" | "write" | "admin";
 };
 
 export type SubRoute = {
   id: string;
   path: string;
-  role: RoleWithGestor[];
   subRoutes?: SubRoute[];
+  modules: Module[];
+  permissions: Module[];
+  scope?: "read" | "write" | "admin";
 };
 
 export const routes: Route[] = [
@@ -29,39 +32,48 @@ export const routes: Route[] = [
     id: "Operacional",
     icon: <Work sx={{ color: "white" }} />,
     path: "/panel/tasks",
-    role: ["USER", "GESTOR"],
+    permissions: ["task", "budget"],
+    modules: ["task", "budget"],
     subRoutes: [
       {
         id: "Tarefas",
         path: "/panel/tasks",
-        role: ["USER"],
+        permissions: ["task"],
+        modules: ["task"],
         subRoutes: [
           {
             id: "Lista de tarefas",
             path: "/panel/tasks",
-            role: ["USER"],
+            permissions: ["task"],
+            modules: ["task"],
           },
           {
             id: "Tipos de tarefa",
             path: "/panel/tasks/types",
-            role: ["USER"],
+            permissions: ["task"],
+            scope: "write",
+            modules: ["task"],
           },
         ],
       },
       {
         id: "Orçamentos",
         path: "/panel/budgets",
-        role: ["USER"],
+        permissions: ["budget"],
+        modules: ["budget"],
         subRoutes: [
           {
             id: "Lista de orçamentos",
             path: "/panel/budgets",
-            role: ["USER"],
+            permissions: ["budget"],
+            modules: ["budget"],
           },
           {
             id: "Tipos de orçamento",
             path: "/panel/budgets/types",
-            role: ["USER"],
+            permissions: ["budget"],
+            modules: ["budget"],
+            scope: "write",
           },
         ],
       },
@@ -210,18 +222,24 @@ export const routes: Route[] = [
     id: "Clientes",
     icon: <ContactsOutlined sx={{ color: "white" }} />,
     path: "/panel/clients",
-    role: ["USER"],
+    permissions: ["client"],
+    modules: ["client"],
+    scope: "read",
   },
   {
     id: "Usuários",
     icon: <PeopleOutline sx={{ color: "white" }} />,
     path: "/panel/users",
-    role: ["USER"],
+    permissions: ["user"],
+    modules: ["user"],
+    scope: "read",
   },
   {
     id: "Cargos",
     icon: <SecurityOutlined sx={{ color: "white" }} />,
     path: "/panel/roles",
-    role: ["USER"],
+    permissions: ["role"],
+    modules: ["role"],
+    scope: "read",
   },
 ];

@@ -1,7 +1,7 @@
-import { ChevronRightOutlined } from '@mui/icons-material';
-import { Box, Fab, Typography } from '@mui/material';
-import { JSX } from 'react';
-import { DrawerStyled } from './base-drawer.styles';
+import { ChevronRightOutlined } from "@mui/icons-material";
+import { Box, Fab, Typography } from "@mui/material";
+import { JSX } from "react";
+import { DrawerStyled } from "./base-drawer.styles";
 
 interface BaseDrawerProps {
   open: boolean;
@@ -9,7 +9,7 @@ interface BaseDrawerProps {
   content: JSX.Element;
   width?: number;
   height?: string;
-  direction?: 'bottom' | 'left' | 'right' | 'top';
+  direction?: "bottom" | "left" | "right" | "top";
   title: string;
 }
 
@@ -18,7 +18,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
   setOpen,
   content,
   width = 32,
-  direction = 'right',
+  direction = "right",
   title,
 }) => {
   return (
@@ -28,7 +28,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
         anchor={direction}
         open={open}
         onClose={setOpen}
-        sx={{ position: 'relative' }}
+        sx={{ position: "relative" }}
       >
         <Box display="flex">
           <Box
@@ -40,10 +40,10 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
             <Fab
               onClick={setOpen}
               sx={{
-                borderRadius: '16px 0 0 16px',
-                bgcolor: 'white',
-                color: 'primary.main',
-                boxShadow: 'none',
+                borderRadius: "16px 0 0 16px",
+                bgcolor: "white",
+                color: "primary.main",
+                boxShadow: "none",
                 height: 64,
               }}
             >
@@ -69,10 +69,10 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
               p={2}
               display="flex"
               sx={{
-                minHeight: 'calc(100vh - 66px)',
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  display: 'none',
+                minHeight: "calc(100vh - 66px)",
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none",
                 },
               }}
             >

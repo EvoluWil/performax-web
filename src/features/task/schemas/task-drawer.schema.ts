@@ -16,6 +16,7 @@ export type TaskFormDto = {
   internalNote?: string;
   impedimentNote?: string;
   checklist?: ChecklistDto | null;
+  recurrence?: string;
 };
 
 export const taskFormInitialValues: TaskFormDto = {
@@ -30,6 +31,7 @@ export const taskFormInitialValues: TaskFormDto = {
   internalNote: "",
   impedimentNote: "",
   checklist: { modules: [] },
+  recurrence: "",
 };
 
 export const taskFormSchema = yup.object().shape({
@@ -51,4 +53,5 @@ export const taskFormSchema = yup.object().shape({
   typeId: yup.string().required("Tipo de tarefa é obrigatório"),
   status: yup.string().required(),
   checklist: ChecklistDtoSchema.notRequired(),
+  recurrence: yup.string().optional(),
 });

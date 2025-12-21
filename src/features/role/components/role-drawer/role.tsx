@@ -1,6 +1,6 @@
-import { BaseDrawer } from '@/components/drawer';
-import { ButtonGroup, Switch, TextInput } from '@/components/inputs';
-import { Permission, Role } from '@/features/role/types';
+import { BaseDrawer } from "@/components/drawer";
+import { ButtonGroup, Switch, TextInput } from "@/components/inputs";
+import { Permission, Role } from "@/features/role/types";
 import {
   Alert,
   Box,
@@ -9,8 +9,8 @@ import {
   Divider,
   Switch as MuiSwitch,
   Typography,
-} from '@mui/material';
-import { useRoleDrawer } from './role.hook';
+} from "@mui/material";
+import { useRoleDrawer } from "./role.hook";
 
 export type RoleDrawerProps = {
   open: boolean;
@@ -39,7 +39,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
       open={open}
       setOpen={handleClose}
       height="auto"
-      title={editing ? 'Editar Cargo' : 'Novo Cargo'}
+      title={editing ? "Editar Cargo" : "Novo Cargo"}
       content={
         <Box
           gap={2}
@@ -71,7 +71,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
             </Alert>
           </Box>
 
-          <Divider sx={{ width: '100%' }} />
+          <Divider sx={{ width: "100%" }} />
 
           {!isAdmin && (
             <>
@@ -84,9 +84,10 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
                 </Typography>
               </Box>
               {companyModules?.map((item) => {
-                const permission = permissions.find(
-                  (p) => p.moduleId === item.id,
+                const moduleSelected = permissions.find(
+                  (p) => p.moduleId === item.moduleId
                 );
+
                 return (
                   <Box key={item.id} width="100%">
                     <Box
@@ -100,11 +101,11 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
                         {item.module?.name}
                       </Typography>
                       <MuiSwitch
-                        checked={!!permission}
-                        onChange={() => handleUpdatePermissions(item.id)}
+                        checked={!!moduleSelected}
+                        onChange={() => handleUpdatePermissions(item.moduleId)}
                       />
                     </Box>
-                    {permission && (
+                    {moduleSelected && (
                       <Collapse in>
                         <Box p={2}>
                           <Typography variant="body2" color="textSecondary">
@@ -112,15 +113,15 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
                           </Typography>
                           <ButtonGroup
                             options={[
-                              { label: 'Leitura', value: 'READ' },
-                              { label: 'Escrita', value: 'WRITE' },
-                              { label: 'Admin', value: 'ADMIN' },
+                              { label: "Leitura", value: "READ" },
+                              { label: "Escrita", value: "WRITE" },
+                              { label: "Admin", value: "ADMIN" },
                             ]}
-                            value={permission.permission}
+                            value={moduleSelected.permission}
                             onChange={(value) =>
                               handleUpdatePermissionLevel(
-                                item.id,
-                                value as Permission['permission'],
+                                item.moduleId,
+                                value as Permission["permission"]
                               )
                             }
                           />
@@ -129,15 +130,15 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
                           </Typography>
                           <ButtonGroup
                             options={[
-                              { label: 'Individual', value: 'SELF' },
-                              { label: 'Equipe', value: 'TEAM' },
-                              { label: 'Todos', value: 'ALL' },
+                              { label: "Individual", value: "SELF" },
+                              { label: "Equipe", value: "TEAM" },
+                              { label: "Todos", value: "ALL" },
                             ]}
-                            value={permission.scope}
+                            value={moduleSelected.scope}
                             onChange={(value) =>
                               handleUpdatePermissionScope(
-                                item.id,
-                                value as Permission['scope'],
+                                item.moduleId,
+                                value as Permission["scope"]
                               )
                             }
                           />

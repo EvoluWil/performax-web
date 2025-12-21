@@ -1,6 +1,8 @@
-import { Copyright } from '@/components/common';
-import { Route, routes } from '@/routes';
-import { ChevronLeft, ExpandMore } from '@mui/icons-material';
+import { Copyright } from "@/components/common";
+import { useCompanyModules } from "@/hooks/common/module";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { Route, SubRoute, routes } from "@/routes";
+import { ChevronLeft, ExpandMore } from "@mui/icons-material";
 
 import {
   Box,
@@ -15,9 +17,9 @@ import {
   ListItemText,
   Theme,
   useMediaQuery,
-} from '@mui/material';
-import { usePathname, useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+} from "@mui/material";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
 type NavigatorProps = {
   open: boolean;
@@ -25,11 +27,69 @@ type NavigatorProps = {
 };
 
 export function Navigator({ open, onClose }: NavigatorProps) {
-  const [dropdownOpened, setDropdownOpened] = useState<string>('');
-  const isSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const [dropdownOpened, setDropdownOpened] = useState<string>("");
+  const isSm = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"));
+
+  const { hasModule, isLoading: isModulesLoading } = useCompanyModules();
+  const { hasPermission, isLoading: isPermissionsLoading } =
+    useCompanyPermissions();
 
   const { push } = useRouter();
   const pathName = usePathname();
+
+  const canAccess = useCallback(
+    (item: Route | SubRoute) => {
+      const modulesAllowed = item.modules.some((module) => hasModule(module));
+      const permissionsAllowed = item.permissions.some((permission) =>
+        hasPermission(permission, item.scope)
+      );
+
+      return modulesAllowed && permissionsAllowed;
+    },
+    [hasModule, hasPermission]
+  );
+
+  const accessibleRoutes = useMemo(() => {
+    const filterSubRoutes = (items: SubRoute[]): SubRoute[] => {
+      return items
+        .map((item) => {
+          const nested = item.subRoutes?.length
+            ? filterSubRoutes(item.subRoutes)
+            : undefined;
+          const allowed = canAccess(item);
+          const hasChildren = !!nested?.length;
+
+          if (!allowed && !hasChildren) {
+            return null;
+          }
+
+          return {
+            ...item,
+            subRoutes: nested,
+          };
+        })
+        .filter(Boolean) as SubRoute[];
+    };
+
+    return routes
+      .map((route) => {
+        const nested = route.subRoutes?.length
+          ? filterSubRoutes(route.subRoutes)
+          : undefined;
+        const allowed = canAccess(route);
+        const hasChildren = !!nested?.length;
+
+        if (!allowed && !hasChildren) {
+          return null;
+        }
+
+        return {
+          ...route,
+          subRoutes: nested,
+        };
+      })
+      .filter(Boolean) as Route[];
+  }, [canAccess]);
 
   const isSelectedPath = (route: Route) => {
     if (
@@ -56,7 +116,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
       push(route.path);
       onClose();
     } else {
-      setDropdownOpened((prev) => (prev === route.id ? '' : route.id));
+      setDropdownOpened((prev) => (prev === route.id ? "" : route.id));
     }
   };
 
@@ -67,55 +127,59 @@ export function Navigator({ open, onClose }: NavigatorProps) {
     return true;
   }, [isSm, open]);
 
+  if (isModulesLoading || isPermissionsLoading) {
+    return null;
+  }
+
   return (
     <Drawer
-      variant={isSm ? 'temporary' : 'permanent'}
+      variant={isSm ? "temporary" : "permanent"}
       open={isOpened}
       onClose={onClose}
       sx={{
         flexShrink: 0,
         zIndex: 110,
-        position: 'relative',
-        '& .MuiDrawer-paper': {
+        position: "relative",
+        "& .MuiDrawer-paper": {
           width: isSm ? 240 : 72,
-          boxSizing: 'border-box',
-          backgroundColor: 'primary.main',
-          color: 'white',
-          overflowX: 'hidden',
-          scrollbarWidth: 'none',
-          '&::-webkit-scrollbar': {
-            display: 'none',
+          boxSizing: "border-box",
+          backgroundColor: "primary.main",
+          color: "white",
+          overflowX: "hidden",
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": {
+            display: "none",
           },
-          transition: 'width 0.5s ease',
-          msOverflowStyle: 'none',
-          overflowY: 'auto',
-          '.copyright-box': {
-            display: isSm ? 'flex' : 'none',
-            justifyContent: 'center',
-            alignItems: 'center',
+          transition: "width 0.5s ease",
+          msOverflowStyle: "none",
+          overflowY: "auto",
+          ".copyright-box": {
+            display: isSm ? "flex" : "none",
+            justifyContent: "center",
+            alignItems: "center",
           },
-          '.route-name': {
-            display: isSm ? 'inline' : 'none',
+          ".route-name": {
+            display: isSm ? "inline" : "none",
           },
           svg: {
-            fontSize: isSm ? '24px' : '36px',
+            fontSize: isSm ? "24px" : "36px",
           },
-          '.route-collapse': {
-            display: isSm ? 'block' : 'none',
+          ".route-collapse": {
+            display: isSm ? "block" : "none",
           },
-          '&:hover': {
+          "&:hover": {
             width: 240,
-            '.copyright-box': {
-              display: 'flex',
+            ".copyright-box": {
+              display: "flex",
             },
-            '.route-name': {
-              display: 'inline',
+            ".route-name": {
+              display: "inline",
             },
-            '.route-collapse': {
-              display: 'block',
+            ".route-collapse": {
+              display: "block",
             },
             svg: {
-              fontSize: '24px',
+              fontSize: "24px",
             },
           },
         },
@@ -146,15 +210,15 @@ export function Navigator({ open, onClose }: NavigatorProps) {
         justifyContent="space-between"
       >
         <List disablePadding>
-          {routes.map((route) => (
+          {accessibleRoutes.map((route) => (
             <Box key={route.id}>
               <ListItem disablePadding>
                 <ListItemButton
                   onClick={() => handleSelectRoute(route)}
                   selected={isSelectedPath(route)}
                   sx={{
-                    '&.Mui-selected': {
-                      bgcolor: 'primary.light',
+                    "&.Mui-selected": {
+                      bgcolor: "primary.light",
                     },
                   }}
                 >
@@ -177,7 +241,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                   <List
                     component="div"
                     disablePadding
-                    sx={{ bgcolor: 'primary.dark' }}
+                    sx={{ bgcolor: "primary.dark" }}
                   >
                     {route.subRoutes?.map((childrenRoute) => (
                       <Box key={childrenRoute.id}>
@@ -205,13 +269,13 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                           <List
                             component="div"
                             disablePadding
-                            sx={{ bgcolor: 'primary.dark' }}
+                            sx={{ bgcolor: "primary.dark" }}
                           >
                             {childrenRoute.subRoutes?.map(
                               (childrenSubRoute) => (
                                 <ListItem
                                   key={childrenSubRoute.id}
-                                  sx={{ position: 'relative' }}
+                                  sx={{ position: "relative" }}
                                 >
                                   {isSelectedPath(childrenSubRoute) && (
                                     <Box
@@ -237,7 +301,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                                     </ListItemText>
                                   </ListItemButton>
                                 </ListItem>
-                              ),
+                              )
                             )}
                           </List>
                         </Collapse>

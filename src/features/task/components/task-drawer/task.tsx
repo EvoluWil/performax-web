@@ -5,7 +5,9 @@ import {
   SelectInput,
   TextInput,
 } from "@/components/inputs";
+import { RecurrenceModal } from "@/components/modal";
 import { ChecklistDto, Task } from "@/features/task/types";
+import { formatRRuleToText } from "@/utils/rrule";
 import { DeleteOutline } from "@mui/icons-material";
 import {
   Box,
@@ -41,12 +43,17 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
     defaultFiles,
     handleRemoveDefaultFile,
     setValue,
+    hasRecurrence,
   } = useTaskDrawer(props);
   const [openChecklist, setOpenChecklist] = useState(false);
+  const [openRecurrence, setOpenRecurrence] = useState(false);
   const checklist = useWatch({ control, name: "checklist" }) as
     | ChecklistDto
     | null
     | undefined;
+  const recurrence =
+    (useWatch({ control, name: "recurrence" }) as string) || "";
+  const dateValue = useWatch({ control, name: "date" });
   const expectedTypeLabels: Record<string, string> = {
     BOOLEAN: "Escolha",
     TEXT: "Texto",
@@ -123,121 +130,245 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
 
             <Divider sx={{ width: "100%" }} />
 
-            {Array.isArray(checklist?.modules) &&
-            checklist!.modules.length > 0 ? (
-              <List sx={{ width: "100%" }}>
-                {checklist!.modules.map((modGroup: any, modIdx: number) => (
-                  <Box
-                    key={modIdx}
-                    sx={{
-                      border: "1px solid #eee",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <ListItem
-                      secondaryAction={
-                        <IconButton
-                          edge="end"
-                          aria-label="delete-module-group"
-                          onClick={() => {
-                            const existing = checklist || { modules: [] };
-                            const modules = Array.isArray(existing.modules)
-                              ? [...existing.modules]
-                              : [];
-                            modules.splice(modIdx, 1);
-                            setValue("checklist" as any, {
-                              ...existing,
-                              modules,
-                            });
-                          }}
-                        >
-                          <DeleteOutline />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemText
-                        primary={modGroup.name || `Módulo ${modIdx + 1}`}
-                      />
-                    </ListItem>
-
-                    {Array.isArray(modGroup.items) && (
-                      <List sx={{ pl: 4 }}>
-                        {modGroup.items.map((item: any, idx: number) => (
-                          <ListItem
-                            key={idx}
-                            secondaryAction={
-                              <IconButton
-                                edge="end"
-                                aria-label="delete-item"
-                                onClick={() => {
-                                  const existing = checklist || { modules: [] };
-                                  const modules = Array.isArray(
-                                    existing.modules
-                                  )
-                                    ? [...existing.modules]
-                                    : [];
-                                  const target = modules[modIdx] || {
-                                    items: [],
-                                  };
-                                  const items = Array.isArray(target.items)
-                                    ? [...target.items]
-                                    : [];
-                                  items.splice(idx, 1);
-                                  modules[modIdx] = { ...target, items };
-                                  setValue("checklist" as any, {
-                                    ...existing,
-                                    modules,
-                                  });
-                                }}
-                              >
-                                <DeleteOutline />
-                              </IconButton>
-                            }
-                          >
-                            <ListItemText
-                              primary={item.question || "Sem pergunta"}
-                              secondary={
-                                expectedTypeLabels[item.expectedType] ||
-                                item.expectedType ||
-                                ""
-                              }
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    )}
-                  </Box>
-                ))}
-              </List>
-            ) : (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                textAlign="center"
-                sx={{ width: "100%", py: 2 }}
-              >
-                Nenhum checklist adicionado
-              </Typography>
-            )}
-
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => setOpenChecklist(true)}
-              fullWidth
+            <Box
+              p={2}
+              width="100%"
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              border={({ palette }) => `1px solid ${palette.primary.main}`}
+              borderRadius={1}
             >
-              Adicionar checklist
-            </Button>
+              <Typography
+                variant="h6"
+                textAlign="left"
+                color="primary"
+                width="100%"
+              >
+                Recorrência
+              </Typography>
 
-            <FileInput
-              label="Adicionar arquivos"
-              name="files"
-              control={control}
-              multiple
-              defaultFiles={defaultFiles}
-              onRemoveDefaultFile={handleRemoveDefaultFile}
-            />
+              {(hasRecurrence || !editing) && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    alignItems: "center",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setOpenRecurrence(true)}
+                    fullWidth
+                  >
+                    {hasRecurrence ? "Editar" : "Definir"} recorrência
+                  </Button>
+                  {hasRecurrence && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      fullWidth
+                      onClick={() => setValue("recurrence", "")}
+                    >
+                      Limpar recorrência
+                    </Button>
+                  )}
+                </Box>
+              )}
+
+              {recurrence && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    p: 2,
+                    backgroundColor: ({ palette }) =>
+                      palette.mode === "light"
+                        ? palette.grey[50]
+                        : palette.grey[900],
+                    borderRadius: 1,
+                    border: ({ palette }) => `1px solid ${palette.grey[300]}`,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    color="primary"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                  >
+                    Recorrência configurada:
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.primary"
+                    sx={{ fontStyle: "italic" }}
+                  >
+                    {formatRRuleToText(recurrence)}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            <Divider sx={{ width: "100%" }} />
+
+            <Box
+              p={2}
+              width="100%"
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              border={({ palette }) => `1px solid ${palette.primary.main}`}
+              borderRadius={1}
+            >
+              <Typography
+                variant="h6"
+                textAlign="left"
+                color="primary"
+                width="100%"
+              >
+                Checklist
+              </Typography>
+              {Array.isArray(checklist?.modules) &&
+              checklist!.modules.length > 0 ? (
+                <List sx={{ width: "100%" }}>
+                  {checklist!.modules.map((modGroup: any, modIdx: number) => (
+                    <Box
+                      key={modIdx}
+                      sx={{
+                        border: "1px solid #eee",
+                        borderRadius: 1,
+                        mb: 1,
+                      }}
+                    >
+                      <ListItem
+                        secondaryAction={
+                          <IconButton
+                            edge="end"
+                            aria-label="delete-module-group"
+                            onClick={() => {
+                              const existing = checklist || { modules: [] };
+                              const modules = Array.isArray(existing.modules)
+                                ? [...existing.modules]
+                                : [];
+                              modules.splice(modIdx, 1);
+                              setValue("checklist", {
+                                ...existing,
+                                modules,
+                              });
+                            }}
+                          >
+                            <DeleteOutline />
+                          </IconButton>
+                        }
+                      >
+                        <ListItemText
+                          primary={modGroup.name || `Módulo ${modIdx + 1}`}
+                        />
+                      </ListItem>
+
+                      {Array.isArray(modGroup.items) && (
+                        <List sx={{ pl: 4 }}>
+                          {modGroup.items.map((item: any, idx: number) => (
+                            <ListItem
+                              key={idx}
+                              secondaryAction={
+                                <IconButton
+                                  edge="end"
+                                  aria-label="delete-item"
+                                  onClick={() => {
+                                    const existing = checklist || {
+                                      modules: [],
+                                    };
+                                    const modules = Array.isArray(
+                                      existing.modules
+                                    )
+                                      ? [...existing.modules]
+                                      : [];
+                                    const target = modules[modIdx] || {
+                                      items: [],
+                                    };
+                                    const items = Array.isArray(target.items)
+                                      ? [...target.items]
+                                      : [];
+                                    items.splice(idx, 1);
+                                    modules[modIdx] = { ...target, items };
+                                    setValue("checklist" as any, {
+                                      ...existing,
+                                      modules,
+                                    });
+                                  }}
+                                >
+                                  <DeleteOutline />
+                                </IconButton>
+                              }
+                            >
+                              <ListItemText
+                                primary={item.question || "Sem pergunta"}
+                                secondary={
+                                  expectedTypeLabels[item.expectedType] ||
+                                  item.expectedType ||
+                                  ""
+                                }
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )}
+                    </Box>
+                  ))}
+                </List>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  textAlign="center"
+                  sx={{ width: "100%", py: 2 }}
+                >
+                  Nenhum checklist adicionado
+                </Typography>
+              )}
+
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => setOpenChecklist(true)}
+                fullWidth
+              >
+                Adicionar checklist
+              </Button>
+            </Box>
+
+            <Divider sx={{ width: "100%" }} />
+
+            <Box
+              p={2}
+              width="100%"
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              border={({ palette }) => `1px solid ${palette.primary.main}`}
+              borderRadius={1}
+            >
+              <Typography
+                variant="h6"
+                textAlign="left"
+                color="primary"
+                width="100%"
+              >
+                Anexos
+              </Typography>
+
+              <FileInput
+                label="Adicionar arquivos"
+                name="files"
+                control={control}
+                multiple
+                defaultFiles={defaultFiles}
+                onRemoveDefaultFile={handleRemoveDefaultFile}
+              />
+            </Box>
 
             <Divider sx={{ width: "100%" }} />
 
@@ -284,11 +415,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
           const payloadModules = Array.isArray(payload.modules)
             ? payload.modules
             : [];
-          setValue("checklist" as any, {
+          setValue("checklist", {
             ...existing,
             modules: [...existingModules, ...payloadModules],
           });
           setOpenChecklist(false);
+        }}
+      />
+
+      <RecurrenceModal
+        open={openRecurrence}
+        onClose={() => setOpenRecurrence(false)}
+        initialRRule={recurrence || undefined}
+        dtstart={dateValue ? new Date(dateValue) : undefined}
+        onSubmit={(rrule) => {
+          setValue("recurrence", rrule);
+          setOpenRecurrence(false);
         }}
       />
     </>

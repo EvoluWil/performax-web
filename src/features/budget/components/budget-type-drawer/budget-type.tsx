@@ -1,6 +1,7 @@
 import { BaseDrawer } from "@/components/drawer";
-import { Switch, TextInput } from "@/components/inputs";
+import { ButtonGroup, TextInput } from "@/components/inputs";
 import { Box, Button } from "@mui/material";
+import { Controller } from "react-hook-form";
 import { BudgetType } from "../../types/budget-type";
 import { useBudgetTypeDrawer } from "./budget-type.hook";
 
@@ -35,10 +36,22 @@ export const BudgetTypeDrawer: React.FC<BudgetTypeDrawerProps> = (props) => {
             name="name"
             control={control}
           />
-          <Switch
-            label="Necessita aprovação?"
+          <Controller
             name="needApprove"
             control={control}
+            render={({ field }) => (
+              <ButtonGroup
+                label="Necessita aprovação?"
+                value={field.value ? "true" : "false"}
+                onChange={(value) => field.onChange(value === "true")}
+                options={[
+                  { value: "true", label: "Sim" },
+                  { value: "false", label: "Não" },
+                ]}
+                variant="outlined"
+                sx={{ width: "100%" }}
+              />
+            )}
           />
 
           <Box

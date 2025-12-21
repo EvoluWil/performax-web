@@ -21,7 +21,7 @@ import {
 import React, { useState } from "react";
 
 type ListHeaderProps = {
-  onAdd: () => void;
+  onAdd?: () => void;
   onReload: () => Promise<void>;
   onSearch: (search: string) => Promise<void> | void;
   onShowFilters?: () => void;
@@ -84,15 +84,17 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
             sx={{ width: { xs: "100%", md: "auto" } }}
             gap={1}
           >
-            <Button
-              variant="contained"
-              onClick={onAdd}
-              sx={{
-                whiteSpace: "nowrap",
-              }}
-            >
-              {addTitle}
-            </Button>
+            {onAdd && (
+              <Button
+                variant="contained"
+                onClick={onAdd}
+                sx={{
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {addTitle}
+              </Button>
+            )}
             <Box display="flex" alignItems="center" gap={1}>
               <Tooltip title="Atualizar">
                 <IconButton onClick={handleReload}>

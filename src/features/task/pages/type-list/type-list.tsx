@@ -1,8 +1,10 @@
 "use client";
 
 import { ListHeader, Table } from "@/components/common";
+import { Actions } from "@/components/common/table/table";
 import { TaskTypeDrawer } from "@/features/task/components";
 import { TaskType } from "@/features/task/types";
+import { useCompanyPermissions } from "@/hooks/common/permission";
 import { DeleteOutlined } from "@mui/icons-material";
 import { Typography } from "@mui/material";
 import { MRT_ColumnDef } from "material-react-table";
@@ -27,6 +29,20 @@ export const TaskTypeList = () => {
     handleDeleteTaskType,
     handleSelectTaskTypeToEdit,
   } = useTaskTypeList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("task", "write");
+  const canAdmin = permissionsReady && hasPermission("task", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const actions: Actions<TaskType>[] = [];
+
+  if (canAdmin) {
+    actions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir tipo de tarefa",
+      onClick: (taskType) => handleDeleteTaskType(taskType.id),
+    });
+  }
 
   return (
     <>
@@ -35,7 +51,7 @@ export const TaskTypeList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -47,14 +63,8 @@ export const TaskTypeList = () => {
         data={taskTypes}
         emptyMessage="Nenhum resultado encontrado"
         onReload={handleReload}
-        onRowClick={handleSelectTaskTypeToEdit}
-        actions={[
-          {
-            icon: () => <DeleteOutlined />,
-            label: () => "Excluir tipo de tarefa",
-            onClick: (taskType) => handleDeleteTaskType(taskType.id),
-          },
-        ]}
+        onRowClick={canEdit ? handleSelectTaskTypeToEdit : () => null}
+        actions={actions}
       />
 
       {openModal && (

@@ -1,3 +1,3 @@
-import { userService } from './user.service';
+import { getUserQuery, userService } from "./user.service";
 
-export { userService };
+export { getUserQuery, userService };

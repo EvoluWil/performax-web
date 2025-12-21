@@ -1,6 +1,6 @@
-import { MenuItem } from '@mui/material';
-import { FieldValues, UseControllerProps } from 'react-hook-form';
-import { TextInput, TextInputStyledProps } from '../text-input/text-input';
+import { MenuItem } from "@mui/material";
+import { FieldValues, UseControllerProps } from "react-hook-form";
+import { TextInput, TextInputStyledProps } from "../text-input/text-input";
 
 export type Option<T = FieldValues> = {
   label: string;
@@ -10,6 +10,7 @@ export type Option<T = FieldValues> = {
 
 type SelectStyledProps = {
   options: Option[];
+  multiple?: boolean;
 } & TextInputStyledProps;
 
 export type SelectProps<T extends FieldValues> = SelectStyledProps &

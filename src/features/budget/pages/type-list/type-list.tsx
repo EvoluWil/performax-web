@@ -1,6 +1,8 @@
 "use client";
 
 import { ListHeader, Table } from "@/components/common";
+import { Actions } from "@/components/common/table/table";
+import { useCompanyPermissions } from "@/hooks/common/permission";
 import { DeleteOutlined } from "@mui/icons-material";
 import { Typography } from "@mui/material";
 import { MRT_ColumnDef } from "material-react-table";
@@ -25,6 +27,20 @@ export const BudgetTypeList = () => {
     handleDeleteBudgetType,
     handleSelectBudgetTypeToEdit,
   } = useBudgetTypeList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("budget", "write");
+  const canAdmin = permissionsReady && hasPermission("budget", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const actions: Actions<BudgetType>[] = [];
+
+  if (canAdmin) {
+    actions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir tipo de orçamento",
+      onClick: (type) => handleDeleteBudgetType(type.id),
+    });
+  }
 
   return (
     <>
@@ -33,7 +49,7 @@ export const BudgetTypeList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -45,14 +61,8 @@ export const BudgetTypeList = () => {
         data={budgetTypes || []}
         emptyMessage="Nenhum resultado encontrado"
         onReload={handleReload}
-        onRowClick={handleSelectBudgetTypeToEdit}
-        actions={[
-          {
-            icon: () => <DeleteOutlined />,
-            label: () => "Excluir tipo de orçamento",
-            onClick: (type) => handleDeleteBudgetType(type.id),
-          },
-        ]}
+        onRowClick={canEdit ? handleSelectBudgetTypeToEdit : () => null}
+        actions={actions}
       />
 
       {openModal && (

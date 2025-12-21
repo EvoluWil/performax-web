@@ -1,16 +1,16 @@
-'use client';
-import { SelectCompanyModal } from '@/components/modal';
-import { UpdatePassword } from '@/features/auth/components';
-import { useSession } from '@/providers/auth';
-import { companyService } from '@/services/company.service';
+"use client";
+import { SelectCompanyModal } from "@/components/modal";
+import { UpdatePassword } from "@/features/auth/components";
+import { useSession } from "@/providers/auth";
+import { companyService } from "@/services/company.service";
 import {
   BusinessOutlined,
   LockResetOutlined,
   LogoutOutlined,
-} from '@mui/icons-material';
-import { Avatar, Box, Button, Menu, MenuItem, Typography } from '@mui/material';
-import { signOut } from 'next-auth/react';
-import React, { useEffect, useState } from 'react';
+} from "@mui/icons-material";
+import { Avatar, Box, Button, Menu, MenuItem, Typography } from "@mui/material";
+import { signOut } from "next-auth/react";
+import React, { useEffect, useState } from "react";
 
 export const HeaderUser = () => {
   const [started, setStarted] = useState(false);
@@ -29,7 +29,7 @@ export const HeaderUser = () => {
 
   const handleSignOut = () => {
     signOut({
-      callbackUrl: '/auth/sign-in',
+      callbackUrl: "/auth/sign-in",
     });
     handleClose();
   };
@@ -71,8 +71,8 @@ export const HeaderUser = () => {
         component={Button}
         sx={{
           boxShadow: {
-            xs: 'none',
-            sm: '2px 2px 6px rgba(0, 0, 0, 0.1)',
+            xs: "none",
+            sm: "2px 2px 6px rgba(0, 0, 0, 0.1)",
           },
           borderRadius: 2,
         }}
@@ -80,19 +80,19 @@ export const HeaderUser = () => {
         <Avatar
           alt="User Avatar"
           sx={{
-            color: 'primary.main',
-            position: 'relative',
-            backgroundColor: 'grey.100',
+            color: "primary.main",
+            position: "relative",
+            backgroundColor: "grey.100",
             width: { xs: 36, sm: 54 },
             height: { xs: 36, sm: 54 },
           }}
         >
           <Typography variant="h6" zIndex={1}>
-            {user?.name[0] || 'P'}
+            {user?.name[0] || "P"}
           </Typography>
         </Avatar>
         <Box
-          display={{ xs: 'none', sm: 'flex' }}
+          display={{ xs: "none", sm: "flex" }}
           flexDirection="column"
           alignItems="flex-start"
         >
@@ -101,7 +101,7 @@ export const HeaderUser = () => {
           </Typography>
           {!!company && (
             <Typography variant="caption" color="grey.300">
-              {company ? company.name : 'Selecione uma empresa'}
+              {company ? company.name : "Selecione uma empresa"}
             </Typography>
           )}
         </Box>

@@ -1,12 +1,42 @@
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { applyScopedFilter } from "@/utils/query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { BudgetFormDto } from "../../schemas/budget-drawer.schema";
-import { budgetService } from "../../services/budget.service";
+import { budgetService, getBudgetQuery } from "../../services/budget.service";
 import type { Budget } from "../../types/budget";
 
 export function useBudgetsQuery() {
+  const { getScopedUserIds } = useCompanyPermissions();
+
+  const scopedUserIds = useMemo(
+    () => getScopedUserIds("budget"),
+    [getScopedUserIds]
+  );
+
+  const scopedQuery = useMemo(() => {
+    const baseQuery = {
+      ...getBudgetQuery,
+      filter: getBudgetQuery.filter ? [...getBudgetQuery.filter] : [],
+    };
+
+    return applyScopedFilter(baseQuery, scopedUserIds, {
+      field: "responsibleId",
+      operator: "in",
+    });
+  }, [scopedUserIds]);
+
+  const enabled = scopedQuery !== null;
+
   return useQuery({
-    queryKey: ["budgets"],
-    queryFn: async () => budgetService.get(),
+    queryKey: ["budgets", scopedQuery ?? "no-access"],
+    queryFn: async () => {
+      if (!scopedQuery) {
+        return { data: [], count: 0 };
+      }
+      return budgetService.get(scopedQuery);
+    },
+    enabled,
     initialData: { count: 0, data: [] },
     refetchOnWindowFocus: false,
   });

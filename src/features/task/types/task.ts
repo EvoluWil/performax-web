@@ -62,6 +62,8 @@ export type Task = {
   responsibleId: string;
   responsible: User;
   checklist: ChecklistDto;
+  recurrenceMasterId: string;
+  recurrence: string;
   files: File[];
   conclusionFiles: File[];
 };

@@ -1,21 +1,53 @@
-import { UserFormDto } from '@/features/user/schemas';
-import { userService } from '@/features/user/services';
-import { User } from '@/types/user';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { UserFormDto } from "@/features/user/schemas";
+import { getUserQuery, userService } from "@/features/user/services";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { User } from "@/types/user";
+import { applyScopedFilter } from "@/utils/query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 type UserMutationInput = {
-  type: 'create' | 'update' | 'delete';
+  type: "create" | "update" | "delete";
   id?: string;
   data?: UserFormDto;
 };
 
-export function useUsersQuery() {
+type UsersQueryOptions = {
+  scopeModule?: string;
+};
+
+export function useUsersQuery(options: UsersQueryOptions = {}) {
+  const scopeModule = options.scopeModule ?? "user";
+  const { getScopedUserIds } = useCompanyPermissions();
+
+  const scopedUserIds = useMemo(
+    () => getScopedUserIds(scopeModule),
+    [getScopedUserIds, scopeModule]
+  );
+
+  const scopedQuery = useMemo(() => {
+    const baseQuery = {
+      ...getUserQuery,
+      filter: getUserQuery.filter ? [...getUserQuery.filter] : [],
+    };
+
+    return applyScopedFilter(baseQuery, scopedUserIds, {
+      field: "id",
+      operator: "in",
+    });
+  }, [scopedUserIds]);
+
+  const enabled = scopedQuery !== null;
+
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ["users", scopeModule, scopedQuery ?? "no-access"],
     queryFn: async () => {
-      const users = await userService.get();
-      return users;
+      if (!scopedQuery) {
+        return { data: [], count: 0 };
+      }
+      return userService.get(scopedQuery);
     },
+    enabled,
     initialData: { data: [], count: 0 },
     refetchOnWindowFocus: false,
   });
@@ -26,14 +58,14 @@ export const useUserMutation = () => {
 
   const mutationFn = async (input: UserMutationInput): Promise<User> => {
     switch (input.type) {
-      case 'create':
+      case "create":
         return userService.create(input?.data as UserFormDto);
-      case 'update':
+      case "update":
         return userService.update(
           input?.id as string,
-          input?.data as UserFormDto,
+          input?.data as UserFormDto
         );
-      case 'delete':
+      case "delete":
         return userService.delete(input?.id as string);
     }
   };
@@ -41,7 +73,7 @@ export const useUserMutation = () => {
   return useMutation<User, Error, UserMutationInput>({
     mutationFn,
     onSuccess: () => {
-      queryUser.invalidateQueries({ queryKey: ['users'] });
+      queryUser.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

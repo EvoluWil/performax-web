@@ -1,27 +1,23 @@
-import { useRoleMutation } from '@/features/role/hooks';
+import { useRoleMutation } from "@/features/role/hooks";
 import {
   RoleFormDto,
   roleFormInitialValues,
   roleFormSchema,
-} from '@/features/role/schemas';
-import { Permission } from '@/features/role/types';
-import { useCompanyModulesQuery } from '@/hooks/queries/company-modules.query';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
-import { RoleDrawerProps } from './role';
+} from "@/features/role/schemas";
+import { Permission } from "@/features/role/types";
+import { useCompanyModulesQuery } from "@/hooks/queries/company-modules.query";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { RoleDrawerProps } from "./role";
 
 export const useRoleDrawer = ({ onClose, open, role }: RoleDrawerProps) => {
   const { data: companyModules } = useCompanyModulesQuery();
   const roleMutation = useRoleMutation();
 
   const [permissions, setPermissions] = useState<Permission[]>(
-    role?.permissions?.map((p) => ({
-      moduleId: p.moduleId,
-      permission: p.permission,
-      scope: p.scope,
-    })) || [],
+    () => role?.permissions?.map((p) => ({ ...p })) || []
   );
 
   const { control, handleSubmit, reset, watch } = useForm<RoleFormDto>({
@@ -29,18 +25,18 @@ export const useRoleDrawer = ({ onClose, open, role }: RoleDrawerProps) => {
     resolver: yupResolver(roleFormSchema),
   });
 
-  const isAdmin = watch('isAdmin');
+  const isAdmin = watch("isAdmin");
 
   const handleRole = handleSubmit(async (data: RoleFormDto) => {
     const result = await roleMutation.mutateAsync({
-      type: role ? 'update' : 'create',
+      type: role ? "update" : "create",
       data: { ...data, permissions: isAdmin ? [] : permissions },
       id: role?.id,
     });
 
     if (result) {
       toast.success(
-        role ? 'Cargo atualizado com sucesso' : 'Cargo criado com sucesso',
+        role ? "Cargo atualizado com sucesso" : "Cargo criado com sucesso"
       );
       handleClose();
       onClose();
@@ -58,24 +54,40 @@ export const useRoleDrawer = ({ onClose, open, role }: RoleDrawerProps) => {
       if (isSelected) {
         return prev.filter((p) => p.moduleId !== moduleId);
       }
-      return [...prev, { moduleId, permission: 'READ', scope: 'SELF' }];
+      const moduleData = companyModules?.find(
+        (item) => item.moduleId === moduleId
+      )?.module;
+
+      if (!moduleData) {
+        return prev;
+      }
+
+      return [
+        ...prev,
+        {
+          moduleId,
+          permission: "READ",
+          scope: "SELF",
+          module: moduleData,
+        },
+      ];
     });
   };
 
   const handleUpdatePermissionLevel = (
     moduleId: string,
-    permission: Permission['permission'],
+    permission: Permission["permission"]
   ) => {
     setPermissions((prev) => {
       return prev.map((p) =>
-        p.moduleId === moduleId ? { ...p, permission } : p,
+        p.moduleId === moduleId ? { ...p, permission } : p
       );
     });
   };
 
   const handleUpdatePermissionScope = (
     moduleId: string,
-    scope: Permission['scope'],
+    scope: Permission["scope"]
   ) => {
     setPermissions((prev) => {
       return prev.map((p) => (p.moduleId === moduleId ? { ...p, scope } : p));
@@ -89,8 +101,10 @@ export const useRoleDrawer = ({ onClose, open, role }: RoleDrawerProps) => {
         description: role.description,
         isAdmin: role.isAdmin,
       });
+      setPermissions(role.permissions?.map((p) => ({ ...p })) || []);
     } else {
       reset(roleFormInitialValues);
+      setPermissions([]);
     }
   }, [role, reset]);
 

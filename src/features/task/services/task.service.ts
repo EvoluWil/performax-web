@@ -7,7 +7,7 @@ import { Query } from "nestjs-prisma-querybuilder-interface";
 
 export const getTaskQuery: Query = {
   select:
-    "title description status date files internalNote createdAt protocol completedAt",
+    "title description status date files internalNote createdAt protocol completedAt recurrenceMasterId recurrence",
   populate: [
     {
       path: "client",
@@ -34,6 +34,7 @@ export const getTaskQuery: Query = {
     field: "date",
     criteria: "asc",
   },
+  limit: 30,
 };
 
 class TaskService extends BaseCompanyService {

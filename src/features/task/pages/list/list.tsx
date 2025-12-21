@@ -2,9 +2,11 @@
 
 import { Empty, ListHeader, Table } from "@/components/common";
 import { Loading } from "@/components/common/loading/loading";
+import { Actions } from "@/components/common/table/table";
 import { CustomizeColumnsModal } from "@/components/modal/customize-columns/customize-columns.modal";
 import { TaskCard, TaskDrawer, TaskFilter } from "@/features/task/components";
 import { Task, taskStatusLabels } from "@/features/task/types";
+import { useCompanyPermissions } from "@/hooks/common/permission";
 import { formatDate } from "@/utils/date";
 import { DeleteOutlined, EditOutlined } from "@mui/icons-material";
 import { Box, Chip, Typography } from "@mui/material";
@@ -19,10 +21,6 @@ const columns: MRT_ColumnDef<Task>[] = [
   {
     accessorKey: "protocol",
     header: "Protocolo",
-  },
-  {
-    accessorKey: "service",
-    header: "Serviço",
   },
   {
     accessorKey: "client",
@@ -168,6 +166,28 @@ export const TaskList = () => {
     defaultColumns,
     tableKey,
   } = useTaskList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("task", "write");
+  const canAdmin = permissionsReady && hasPermission("task", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const tableActions: Actions<Task>[] = [];
+
+  if (canEdit) {
+    tableActions.push({
+      icon: () => <EditOutlined />,
+      label: () => "Editar tarefa",
+      onClick: (task) => handleSelectTaskToEdit(task),
+    });
+  }
+
+  if (canAdmin) {
+    tableActions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir tarefa",
+      onClick: (task) => handleDeleteTask(task.id),
+    });
+  }
 
   const columnsToShow = columns.filter((col) =>
     selectedColumnsKeys.includes(col.accessorKey as string)
@@ -182,7 +202,7 @@ export const TaskList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por titulo, descrição ou protocolo"
@@ -207,18 +227,7 @@ export const TaskList = () => {
           onReload={handleReload}
           onRowClick={handleRowClick}
           loading={loading}
-          actions={[
-            {
-              icon: () => <EditOutlined />,
-              label: () => "Editar tarefa",
-              onClick: (task) => handleSelectTaskToEdit(task),
-            },
-            {
-              icon: () => <DeleteOutlined />,
-              label: () => "Excluir tarefa",
-              onClick: (task) => handleDeleteTask(task.id),
-            },
-          ]}
+          actions={tableActions}
         />
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
@@ -236,8 +245,12 @@ export const TaskList = () => {
                 <TaskCard
                   task={task}
                   onClick={() => handleRowClick(task)}
-                  onEdit={() => handleSelectTaskToEdit(task)}
-                  onDelete={() => handleDeleteTask(task.id)}
+                  onEdit={
+                    canEdit ? () => handleSelectTaskToEdit(task) : undefined
+                  }
+                  onDelete={
+                    canAdmin ? () => handleDeleteTask(task.id) : undefined
+                  }
                 />
               </Box>
             ))

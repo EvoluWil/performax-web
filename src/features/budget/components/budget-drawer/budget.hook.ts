@@ -30,15 +30,18 @@ export const useBudgetDrawer = ({
   const budget = selectedBudget || null;
   const [loading, setLoading] = useState(false);
 
-  const {
-    data: { data: clients },
-  } = useClientsQuery();
+  const { data: clientsResponse } = useClientsQuery({ scopeModule: "client" });
 
   const { data: budgetTypes } = useBudgetTypesQuery();
 
-  const {
-    data: { data: users },
-  } = useUsersQuery();
+  const { data: usersResponse } = useUsersQuery({ scopeModule: "budget" });
+
+  const { clients, users } = useMemo(() => {
+    return {
+      clients: clientsResponse?.data || [],
+      users: usersResponse?.data || [],
+    };
+  }, [clientsResponse, usersResponse]);
 
   const options = useMemo(() => {
     return {

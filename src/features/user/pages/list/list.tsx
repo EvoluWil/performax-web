@@ -1,35 +1,75 @@
-'use client';
+"use client";
 
-import { Table } from '@/components/common';
-import { ListHeader } from '@/components/common/list-header/list-header';
-import { UserDrawer } from '@/features/user/components';
-import { User } from '@/types/user';
-import { formatCpf } from '@/utils/cpf';
-import { DeleteOutlined } from '@mui/icons-material';
-import { Typography } from '@mui/material';
-import { MRT_ColumnDef } from 'material-react-table';
-import { useUserList } from './list.hook';
+import { Table } from "@/components/common";
+import { ListHeader } from "@/components/common/list-header/list-header";
+import { Actions } from "@/components/common/table/table";
+import {
+  UserClientsDrawer,
+  UserDrawer,
+  UserRoleDrawer,
+  UserSubordinatesDrawer,
+} from "@/features/user/components";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { User } from "@/types/user";
+import { formatCpf } from "@/utils/cpf";
+import {
+  AddModeratorOutlined,
+  DeleteOutlined,
+  GroupAddOutlined,
+  HandshakeOutlined,
+} from "@mui/icons-material";
+import { Typography } from "@mui/material";
+import { MRT_ColumnDef } from "material-react-table";
+import { useUserList } from "./list.hook";
+
+const resolveRoleLabel = (data: User & { isOwner?: boolean }) => {
+  if (data.isOwner) {
+    return "Proprietário";
+  }
+
+  const userRole = data.companyUser?.[0]?.role;
+
+  if (userRole) {
+    return (userRole as any).name || "Usuário";
+  }
+
+  return "Sem cargo";
+};
 
 const columns: MRT_ColumnDef<User>[] = [
   {
-    accessorKey: 'name',
-    header: 'Nome',
+    accessorKey: "name",
+    header: "Nome",
   },
   {
-    accessorKey: 'email',
-    header: 'E-mail',
+    accessorKey: "email",
+    header: "E-mail",
   },
   {
-    accessorKey: 'cpf',
-    header: 'CPF',
+    accessorKey: "cpf",
+    header: "CPF",
     muiTableHeadCellProps: {
-      align: 'center',
+      align: "center",
     },
     muiTableBodyCellProps: {
-      align: 'center',
+      align: "center",
     },
     Cell({ cell }: any) {
       return formatCpf(cell.getValue());
+    },
+  },
+  {
+    id: "role",
+    accessorFn: (row) => resolveRoleLabel(row as User & { isOwner?: boolean }),
+    header: "Função",
+    muiTableHeadCellProps: {
+      align: "center",
+    },
+    muiTableBodyCellProps: {
+      align: "center",
+    },
+    Cell({ cell }: any) {
+      return cell.getValue();
     },
   },
 ];
@@ -38,14 +78,61 @@ export const UserList = () => {
   const {
     users,
     openModal,
+    openRoleModal,
+    openSubordinatesModal,
+    openClientsModal,
     selectedUser,
+    selectedUserForRole,
+    selectedUserForSubordinates,
+    selectedUserForClients,
     handleOpenAdd,
     handleReload,
     handleSearch,
     handleCloseAdd,
+    handleCloseRoleModal,
+    handleCloseSubordinatesModal,
+    handleCloseClientsModal,
     handleDeleteUser,
+    handleUpdateUserRole,
+    handleUpdateUserSubordinates,
+    handleUpdateUserClients,
     handleSelectUserToEdit,
   } = useUserList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("user", "write");
+  const canAdmin = permissionsReady && hasPermission("user", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const actions: Actions<User>[] = [];
+
+  if (canAdmin) {
+    actions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir usuário",
+      onClick: (user) => handleDeleteUser(user.id),
+    });
+  }
+
+  if (canEdit) {
+    actions.push(
+      {
+        icon: () => <AddModeratorOutlined />,
+        label: (user) =>
+          user.companyUser?.length ? "Alterar cargo" : "Adicionar cargo",
+        onClick: handleUpdateUserRole,
+      },
+      {
+        icon: () => <GroupAddOutlined />,
+        label: () => "Gerenciar subordinados",
+        onClick: handleUpdateUserSubordinates,
+      },
+      {
+        icon: () => <HandshakeOutlined />,
+        label: () => "Gerenciar clientes",
+        onClick: handleUpdateUserClients,
+      }
+    );
+  }
 
   return (
     <>
@@ -54,7 +141,7 @@ export const UserList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome, CPF ou e-mail"
@@ -66,14 +153,8 @@ export const UserList = () => {
         data={users}
         emptyMessage="Nenhum resultado encontrado"
         onReload={handleReload}
-        onRowClick={handleSelectUserToEdit}
-        actions={[
-          {
-            icon: () => <DeleteOutlined />,
-            label: () => 'Excluir usuário',
-            onClick: (user) => handleDeleteUser(user.id),
-          },
-        ]}
+        onRowClick={canEdit ? handleSelectUserToEdit : () => null}
+        actions={actions}
       />
 
       {openModal && (
@@ -81,6 +162,30 @@ export const UserList = () => {
           user={selectedUser}
           open={openModal}
           onClose={handleCloseAdd}
+        />
+      )}
+
+      {openRoleModal && (
+        <UserRoleDrawer
+          user={selectedUserForRole}
+          open={openRoleModal}
+          onClose={handleCloseRoleModal}
+        />
+      )}
+
+      {openSubordinatesModal && (
+        <UserSubordinatesDrawer
+          user={selectedUserForSubordinates}
+          open={openSubordinatesModal}
+          onClose={handleCloseSubordinatesModal}
+        />
+      )}
+
+      {openClientsModal && (
+        <UserClientsDrawer
+          user={selectedUserForClients}
+          open={openClientsModal}
+          onClose={handleCloseClientsModal}
         />
       )}
     </>

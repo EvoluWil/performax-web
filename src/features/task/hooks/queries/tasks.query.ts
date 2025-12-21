@@ -1,7 +1,11 @@
 import { TaskFormDto } from "@/features/task/schemas";
 import { taskService } from "@/features/task/services";
+import { getTaskQuery } from "@/features/task/services/task.service";
 import { Task } from "@/features/task/types";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { applyScopedFilter } from "@/utils/query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 type TaskMutationInput = {
   type: "create" | "update" | "delete";
@@ -10,12 +14,36 @@ type TaskMutationInput = {
 };
 
 export function useTasksQuery() {
+  const { getScopedUserIds } = useCompanyPermissions();
+
+  const scopedUserIds = useMemo(
+    () => getScopedUserIds("task"),
+    [getScopedUserIds]
+  );
+
+  const scopedQuery = useMemo(() => {
+    const baseQuery = {
+      ...getTaskQuery,
+      filter: getTaskQuery.filter ? [...getTaskQuery.filter] : [],
+    };
+
+    return applyScopedFilter(baseQuery, scopedUserIds, {
+      field: "responsibleId",
+      operator: "in",
+    });
+  }, [scopedUserIds]);
+
+  const enabled = scopedQuery !== null;
+
   return useQuery({
-    queryKey: ["tasks"],
+    queryKey: ["tasks", scopedQuery ?? "no-access"],
     queryFn: async () => {
-      const tasks = await taskService.get();
-      return tasks;
+      if (!scopedQuery) {
+        return { data: [], count: 0 };
+      }
+      return taskService.get(scopedQuery);
     },
+    enabled,
     initialData: { data: [], count: 0 },
     refetchOnWindowFocus: false,
   });

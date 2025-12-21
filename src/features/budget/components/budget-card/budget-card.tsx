@@ -63,39 +63,45 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
           position: "relative",
         }}
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            zIndex: 2,
-            display: "flex",
-            gap: 0.5,
-          }}
-        >
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onEdit) onEdit(budget);
-              }}
-            >
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onDelete) onDelete(budget);
-              }}
-            >
-              <DeleteOutline fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        {(onEdit || onDelete) && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              zIndex: 2,
+              display: "flex",
+              gap: 0.5,
+            }}
+          >
+            {onEdit && (
+              <Tooltip title="Editar">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(budget);
+                  }}
+                >
+                  <EditOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {onDelete && (
+              <Tooltip title="Excluir">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(budget);
+                  }}
+                >
+                  <DeleteOutline fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        )}
 
         <Box>
           <Typography variant="subtitle1" fontWeight="bold" noWrap>

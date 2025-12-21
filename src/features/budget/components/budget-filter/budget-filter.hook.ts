@@ -18,8 +18,8 @@ type Options = {
 
 export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
   const { data: budgetTypesData } = useBudgetTypesQuery();
-  const { data: clientsData } = useClientsQuery();
-  const { data: usersData } = useUsersQuery();
+  const { data: clientsData } = useClientsQuery({ scopeModule: "client" });
+  const { data: usersData } = useUsersQuery({ scopeModule: "budget" });
   const { control, handleSubmit, setValue, watch } = useForm<BudgetFilterDto>({
     defaultValues: budgetFilterInitialValues,
   });

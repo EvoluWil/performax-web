@@ -1,19 +1,19 @@
-import { File as IFile } from '@/types/file';
-import { AttachFileOutlined } from '@mui/icons-material';
+import { File as IFile } from "@/types/file";
+import { AttachFileOutlined } from "@mui/icons-material";
 import {
   Box,
   Button,
   Divider,
   FormHelperText,
   Typography,
-} from '@mui/material';
-import { useState } from 'react';
+} from "@mui/material";
+import { useState } from "react";
 import {
   FieldValues,
   UseControllerProps,
   useController,
-} from 'react-hook-form';
-import { RenderFile } from './render-file';
+} from "react-hook-form";
+import { RenderFile } from "./render-file";
 
 export interface FileInputBaseProps {
   onRemoveDefaultFile: (file: IFile) => Promise<void>;
@@ -37,7 +37,7 @@ export function FileInput<T extends FieldValues>({
   multiple = false,
   onRemoveDefaultFile,
   accept,
-  label = 'Adicionar arquivos',
+  label = "Adicionar arquivos",
 }: FileInputProps<T>) {
   const [loading, setLoading] = useState(false);
   const {
@@ -70,8 +70,6 @@ export function FileInput<T extends FieldValues>({
 
   return (
     <Box width="100%" display="flex" flexDirection="column">
-      <Divider sx={{ my: 2 }} />
-
       <Box
         display="flex"
         gap={2}
@@ -82,7 +80,7 @@ export function FileInput<T extends FieldValues>({
       >
         {value?.map((file, index) => {
           const url = URL.createObjectURL(file);
-          const type = file.name.split('.').pop() || '';
+          const type = file.name.split(".").pop() || "";
           return (
             <RenderFile
               file={{ url, type }}
@@ -130,7 +128,7 @@ export function FileInput<T extends FieldValues>({
         color="primary"
         component="label"
         fullWidth
-        sx={{ maxWidth: 320, alignSelf: 'center' }}
+        sx={{ maxWidth: 320, alignSelf: "center" }}
         startIcon={<AttachFileOutlined />}
         disabled={disabled || isSubmitting}
       >
@@ -144,7 +142,7 @@ export function FileInput<T extends FieldValues>({
             if (files?.length) {
               handleAddFile(files[0]);
             }
-            if (target) target.value = '';
+            if (target) target.value = "";
           }}
           multiple={multiple}
         />

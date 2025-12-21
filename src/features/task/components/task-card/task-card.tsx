@@ -59,43 +59,45 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           position: "relative",
         }}
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            zIndex: 2,
-            display: "flex",
-            gap: 0.5,
-          }}
-        >
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onEdit) {
-                  onEdit(task);
-                }
-              }}
-            >
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onDelete) {
-                  onDelete(task);
-                }
-              }}
-            >
-              <DeleteOutline fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        {(onEdit || onDelete) && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              zIndex: 2,
+              display: "flex",
+              gap: 0.5,
+            }}
+          >
+            {onEdit && (
+              <Tooltip title="Editar">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(task);
+                  }}
+                >
+                  <EditOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {onDelete && (
+              <Tooltip title="Excluir">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(task);
+                  }}
+                >
+                  <DeleteOutline fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+        )}
 
         <Box>
           <Typography

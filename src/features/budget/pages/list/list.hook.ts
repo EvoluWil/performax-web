@@ -1,7 +1,9 @@
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { applyScopedFilter } from "@/utils/query";
 import { useMediaQuery } from "@mui/material";
 import { Filter, Query } from "nestjs-prisma-querybuilder-interface";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import swal from "sweetalert2";
 import { useBudgetsQuery } from "../../hooks/queries/budgets.query";
@@ -42,10 +44,25 @@ export const useBudgetList = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
+  const { getScopedUserIds } = useCompanyPermissions();
+
+  const scopedBudgetUserIds = useMemo(
+    () => getScopedUserIds("budget"),
+    [getScopedUserIds]
+  );
+
+  const hasBudgetAccess =
+    scopedBudgetUserIds === null || scopedBudgetUserIds.length > 0;
+
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
   const { push } = useRouter();
 
   const handleReload = async () => {
+    if (!hasBudgetAccess) {
+      toast.info("Você não possui permissão para visualizar orçamentos.");
+      return;
+    }
+
     const { data } = await refetch();
     if (data) toast.success("Dados atualizados com sucesso");
   };
@@ -197,8 +214,29 @@ export const useBudgetList = () => {
       }
     }
 
+    if (!hasBudgetAccess) {
+      setFilteredBudgets([]);
+      setShowFilter(false);
+      return;
+    }
+
     try {
-      const result = await budgetService.get(queryFilter as any);
+      const scopedQuery = applyScopedFilter(
+        queryFilter as Query,
+        scopedBudgetUserIds,
+        {
+          field: "responsibleId",
+          operator: "in",
+        }
+      );
+
+      if (!scopedQuery) {
+        setFilteredBudgets([]);
+        setShowFilter(false);
+        return;
+      }
+
+      const result = await budgetService.get(scopedQuery as any);
       setFilteredBudgets(result?.data || []);
       setShowFilter(false);
     } catch (e) {
@@ -228,8 +266,14 @@ export const useBudgetList = () => {
 
   const loading = isPending || isRefetching || isLoading || isFetching;
 
+  const currentBudgets = hasBudgetAccess
+    ? filter
+      ? filteredBudgets
+      : budgets
+    : [];
+
   return {
-    budgets: (filter ? filteredBudgets : budgets)?.filter(
+    budgets: (currentBudgets || []).filter(
       (b) =>
         b.title?.toLowerCase().includes(term.toLowerCase()) ||
         b.description?.toLowerCase().includes(term.toLowerCase()) ||

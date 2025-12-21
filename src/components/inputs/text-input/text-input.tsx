@@ -2,20 +2,21 @@ import {
   InputAdornment,
   OutlinedTextFieldProps,
   TextField,
-} from '@mui/material';
-import { JSX } from 'react';
+} from "@mui/material";
+import { JSX } from "react";
 import {
   FieldValues,
   UseControllerProps,
   useController,
-} from 'react-hook-form';
+} from "react-hook-form";
 
-type OutlinedTextInputPropsEdit = Omit<OutlinedTextFieldProps, 'variant'>;
+type OutlinedTextInputPropsEdit = Omit<OutlinedTextFieldProps, "variant">;
 
 export interface TextInputStyledProps extends OutlinedTextInputPropsEdit {
   icon?: JSX.Element;
   onCallback?: (value: string) => void;
-  variant?: 'outlined' | 'standard' | 'filled';
+  variant?: "outlined" | "standard" | "filled";
+  multiple?: boolean;
 }
 
 export type TextInputProps<T extends FieldValues> = TextInputStyledProps &
@@ -31,7 +32,8 @@ export function TextInput<T extends FieldValues>({
   disabled,
   onCallback,
   select = false,
-  variant = 'outlined',
+  variant = "outlined",
+  multiple = false,
   ...rest
 }: TextInputProps<T>) {
   const {
@@ -45,7 +47,7 @@ export function TextInput<T extends FieldValues>({
     rules,
     shouldUnregister,
   });
-
+  const isMultiple = select && multiple;
   return (
     <TextField
       fullWidth
@@ -56,7 +58,7 @@ export function TextInput<T extends FieldValues>({
       disabled={disabled || isSubmitting}
       required={!!rules?.required}
       sx={{
-        '*': {
+        "*": {
           zIndex: 1,
         },
       }}
@@ -69,6 +71,9 @@ export function TextInput<T extends FieldValues>({
         }
       }}
       slotProps={{
+        select: {
+          multiple: isMultiple,
+        },
         input: {
           startAdornment: icon ? (
             <InputAdornment
@@ -76,16 +81,16 @@ export function TextInput<T extends FieldValues>({
               sx={
                 select && !field.value
                   ? {
-                      position: 'relative',
-                      '&:after': {
+                      position: "relative",
+                      "&:after": {
                         content: `"${rest?.placeholder}"`,
-                        position: 'absolute',
+                        position: "absolute",
                         top: select ? 0 : -12,
                         left: 32,
                       },
                     }
                   : {
-                      color: disabled ? 'text.disabled' : 'primary.main',
+                      color: disabled ? "text.disabled" : "primary.main",
                     }
               }
             >

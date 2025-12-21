@@ -1,34 +1,36 @@
-'use client';
+"use client";
 
-import { Table } from '@/components/common';
-import { ListHeader } from '@/components/common/list-header/list-header';
-import { RoleDrawer } from '@/features/role/components';
-import { Role } from '@/features/role/types';
-import { DeleteOutlined } from '@mui/icons-material';
-import { Typography } from '@mui/material';
-import { MRT_ColumnDef } from 'material-react-table';
-import { useRoleList } from './list.hook';
+import { Table } from "@/components/common";
+import { ListHeader } from "@/components/common/list-header/list-header";
+import { Actions } from "@/components/common/table/table";
+import { RoleDrawer } from "@/features/role/components";
+import { Role } from "@/features/role/types";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { DeleteOutlined } from "@mui/icons-material";
+import { Typography } from "@mui/material";
+import { MRT_ColumnDef } from "material-react-table";
+import { useRoleList } from "./list.hook";
 
 const columns: MRT_ColumnDef<Role>[] = [
   {
-    accessorKey: 'name',
-    header: 'Título',
+    accessorKey: "name",
+    header: "Título",
   },
   {
-    accessorKey: 'description',
-    header: 'Descrição',
+    accessorKey: "description",
+    header: "Descrição",
   },
   {
-    accessorKey: 'createdAt',
-    header: 'Criado em',
+    accessorKey: "createdAt",
+    header: "Criado em",
     muiTableHeadCellProps: {
-      align: 'center',
+      align: "center",
     },
     muiTableBodyCellProps: {
-      align: 'center',
+      align: "center",
     },
     Cell({ cell }: any) {
-      return new Date(cell.getValue()).toLocaleDateString('pt-BR');
+      return new Date(cell.getValue()).toLocaleDateString("pt-BR");
     },
   },
 ];
@@ -45,6 +47,20 @@ export const RoleList = () => {
     handleDeleteRole,
     handleSelectRoleToEdit,
   } = useRoleList();
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission("role", "write");
+  const canAdmin = permissionsReady && hasPermission("role", "admin");
+  const canEdit = canWrite || canAdmin;
+
+  const actions: Actions<Role>[] = [];
+
+  if (canAdmin) {
+    actions.push({
+      icon: () => <DeleteOutlined />,
+      label: () => "Excluir cargo",
+      onClick: (role) => handleDeleteRole(role.id),
+    });
+  }
 
   return (
     <>
@@ -53,7 +69,7 @@ export const RoleList = () => {
       </Typography>
 
       <ListHeader
-        onAdd={handleOpenAdd}
+        onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome ou descrição"
@@ -65,14 +81,8 @@ export const RoleList = () => {
         data={roles}
         emptyMessage="Nenhum resultado encontrado"
         onReload={handleReload}
-        onRowClick={handleSelectRoleToEdit}
-        actions={[
-          {
-            icon: () => <DeleteOutlined />,
-            label: () => 'Excluir cargo',
-            onClick: (role) => handleDeleteRole(role.id),
-          },
-        ]}
+        onRowClick={canEdit ? handleSelectRoleToEdit : () => null}
+        actions={actions}
       />
 
       {openModal && (

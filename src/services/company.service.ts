@@ -1,7 +1,7 @@
-import { Company } from '@/types/company';
-import { getCookie, setCookie } from 'cookies-next';
+import { Company } from "@/types/company";
+import { getCookie, setCookie } from "cookies-next";
 
-const DEFAULT_COMPANY_COOKIE_NAME = '@performax:default-company';
+const DEFAULT_COMPANY_COOKIE_NAME = "@performax:default-company";
 
 class CompanyService {
   setDefaultCompany(company: Company) {

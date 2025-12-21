@@ -3,16 +3,19 @@ import {
   ButtonGroupProps as BaseButtonGroupProps,
   Button,
   ButtonProps,
-} from '@mui/material';
-import { v4 as uuid } from 'uuid';
-import { Option } from '../select-input/select-input';
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import { v4 as uuid } from "uuid";
+import { Option } from "../select-input/select-input";
 
 type ButtonGroupProps = BaseButtonGroupProps & {
   value: string | string[];
-  onChange: (value: Option['value'] | Option['value'][]) => void;
+  onChange: (value: Option["value"] | Option["value"][]) => void;
   options: Option[];
   buttonProps?: ButtonProps;
   multiple?: boolean;
+  label?: string;
 };
 
 export const ButtonGroup: React.FC<ButtonGroupProps> = ({
@@ -21,9 +24,10 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   options,
   multiple = false,
   buttonProps,
+  label,
   ...rest
 }) => {
-  const handleChange = (optionValue: Option['value']) => {
+  const handleChange = (optionValue: Option["value"]) => {
     if (multiple) {
       if (Array.isArray(value)) {
         if (value.includes(optionValue)) {
@@ -39,20 +43,20 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
     }
   };
 
-  const isSelected = (optionValue: Option['value']) => {
+  const isSelected = (optionValue: Option["value"]) => {
     if (multiple) {
       return Array.isArray(value) && value.includes(optionValue);
     }
     return value === optionValue;
   };
 
-  return (
+  const buttonGroup = (
     <BaseButtonGroup size="small" fullWidth {...rest}>
       {options.map((option) => (
         <Button
           key={uuid()}
           fullWidth
-          variant={isSelected(option.value) ? 'contained' : 'outlined'}
+          variant={isSelected(option.value) ? "contained" : "outlined"}
           onClick={() => handleChange(option.value)}
           {...buttonProps}
         >
@@ -61,4 +65,26 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
       ))}
     </BaseButtonGroup>
   );
+
+  if (label) {
+    return (
+      <FormControl fullWidth>
+        <InputLabel
+          shrink
+          sx={{
+            position: "relative",
+            transform: "none",
+            fontSize: "0.75rem",
+            color: "rgba(0, 0, 0, 0.6)",
+            marginBottom: 1,
+          }}
+        >
+          {label}
+        </InputLabel>
+        {buttonGroup}
+      </FormControl>
+    );
+  }
+
+  return buttonGroup;
 };

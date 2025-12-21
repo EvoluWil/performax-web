@@ -3,11 +3,13 @@ import { TaskFilterDto } from "@/features/task/schemas";
 import { taskService } from "@/features/task/services";
 import { getTaskQuery } from "@/features/task/services/task.service";
 import { Task } from "@/features/task/types";
+import { useCompanyPermissions } from "@/hooks/common/permission";
+import { applyScopedFilter } from "@/utils/query";
 import { useMediaQuery } from "@mui/material";
 import { addDays } from "date-fns";
 import { Filter, Query } from "nestjs-prisma-querybuilder-interface";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import swal from "sweetalert2";
 
@@ -31,6 +33,7 @@ export const useTaskList = () => {
     isLoading,
     isFetching,
   } = useTasksQuery();
+  const { getScopedUserIds } = useCompanyPermissions();
   const [openModal, setOpenModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
@@ -47,6 +50,14 @@ export const useTaskList = () => {
   const taskMutation = useTaskMutation();
   const { push } = useRouter();
   const [filteredTasks, setFilteredTasks] = useState<Task[] | null>(null);
+
+  const scopedTaskUserIds = useMemo(
+    () => getScopedUserIds("task"),
+    [getScopedUserIds]
+  );
+
+  const hasTaskAccess =
+    scopedTaskUserIds === null || scopedTaskUserIds.length > 0;
 
   const handleOpenAdd = async () => {
     setOpenModal(true);
@@ -95,6 +106,11 @@ export const useTaskList = () => {
   };
 
   const handleReload = async () => {
+    if (!hasTaskAccess) {
+      toast.info("Você não possui permissão para visualizar tarefas.");
+      return;
+    }
+
     const { data } = await refetch();
     if (data) {
       toast.success("Dados atualizados com sucesso");
@@ -226,8 +242,29 @@ export const useTaskList = () => {
       }
     }
 
+    if (!hasTaskAccess) {
+      setFilteredTasks([]);
+      setShowFilter(false);
+      return;
+    }
+
     try {
-      const result = await taskService.get(queryFilter as any);
+      const scopedQuery = applyScopedFilter(
+        queryFilter as Query,
+        scopedTaskUserIds,
+        {
+          field: "responsibleId",
+          operator: "in",
+        }
+      );
+
+      if (!scopedQuery) {
+        setFilteredTasks([]);
+        setShowFilter(false);
+        return;
+      }
+
+      const result = await taskService.get(scopedQuery as any);
       if (result && result.data) {
         setFilteredTasks(result.data || []);
       }
@@ -248,7 +285,7 @@ export const useTaskList = () => {
   };
 
   const filteredTasksLocal = (
-    filteredTasks?.length ? filteredTasks : tasks
+    hasTaskAccess ? (filteredTasks?.length ? filteredTasks : tasks) : []
   )?.filter(
     (task) =>
       task.title?.toLowerCase().includes(term.toLowerCase()) ||
