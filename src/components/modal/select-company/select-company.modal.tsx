@@ -1,13 +1,13 @@
-import { Loading } from "@/components/common/loading/loading";
-import { SelectInput } from "@/components/inputs";
-import { CloseOutlined } from "@mui/icons-material";
-import { Button, Typography } from "@mui/material";
+import { Loading } from '@/components/common/loading/loading';
+import { SelectInput } from '@/components/inputs';
+import { CloseOutlined } from '@mui/icons-material';
+import { Button, Typography } from '@mui/material';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from "../modal-base.styles";
-import { useSelectCompany } from "./select-company.hook";
+} from '../modal-base.styles';
+import { useSelectCompany } from './select-company.hook';
 
 export type SelectCompanyModalProps = {
   open: boolean;
