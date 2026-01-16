@@ -6,8 +6,12 @@ export function useUserCompaniesQuery() {
     queryKey: ['users-companies'],
     queryFn: async () => {
       const user = await authService.getMe();
-      const userCompanies = user.companies || [];
-      return userCompanies;
+      const employeeCompanies =
+        user.companyUser
+          ?.map((item) => item.company)
+          ?.filter((company) => company.ownerId !== user.id) || [];
+      const companies = user.companies || [];
+      return [...employeeCompanies, ...companies];
     },
     initialData: [],
   });
