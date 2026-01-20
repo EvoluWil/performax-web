@@ -1,25 +1,30 @@
-import { useSession } from "@/providers/auth";
-import { getBase64 } from "@/utils/base64";
-import pdfMake from "pdfmake/build/pdfmake";
-import { Content, TDocumentDefinitions } from "pdfmake/interfaces";
+import { useSession } from '@/providers/auth';
+import { companyService } from '@/services/company.service';
+import { getBase64 } from '@/utils/base64';
+import pdfMake from 'pdfmake/build/pdfmake';
+import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 
 pdfMake.fonts = {
   Roboto: {
     normal:
-      "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf",
-    bold: "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf",
+      'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
+    bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
     italics:
-      "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf",
+      'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
     bolditalics:
-      "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf",
+      'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf',
   },
 };
 
 export const usePdfGenerator = () => {
   const { user } = useSession();
+  const company = companyService.getDefaultCompany();
 
   const getPdfHeaderUrl = async () => {
-    return "/pdf-header.png";
+    if (company?.whiteLabel?.banner) {
+      return company.whiteLabel.banner;
+    }
+    return '/pdf-header.png';
   };
 
   const makeDetailPDF = async (title: string, contents: Content[]) => {
@@ -30,18 +35,18 @@ export const usePdfGenerator = () => {
         {
           image: logoImage,
           width: 300,
-          alignment: "center",
+          alignment: 'center',
         },
         {
           text: title,
-          style: "header",
-          alignment: "center",
+          style: 'header',
+          alignment: 'center',
           margin: [0, 10],
         },
       ],
       footer: {
         text: `Gerado por: ${user?.name} - ${new Date().toLocaleString()}`,
-        alignment: "center",
+        alignment: 'center',
         fontSize: 10,
       },
       styles: {

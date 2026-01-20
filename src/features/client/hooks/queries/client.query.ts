@@ -1,14 +1,14 @@
-import { ClientFormDto } from "@/features/client/schemas";
-import { clientService } from "@/features/client/services";
-import { getClientQuery } from "@/features/client/services/client.service";
-import { Client } from "@/features/client/types";
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { applyScopedFilter } from "@/utils/query";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { ClientFormDto } from '@/features/client/schemas';
+import { clientService } from '@/features/client/services';
+import { getClientQuery } from '@/features/client/services/client.service';
+import { Client } from '@/features/client/types';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { applyScopedFilter } from '@/utils/query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 type ClientMutationInput = {
-  type: "create" | "update" | "delete";
+  type: 'create' | 'update' | 'delete';
   id?: string;
   data?: ClientFormDto;
 };
@@ -18,12 +18,12 @@ type ClientsQueryOptions = {
 };
 
 export function useClientsQuery(options: ClientsQueryOptions = {}) {
-  const scopeModule = options.scopeModule ?? "client";
-  const { getScopedUserIds } = useCompanyPermissions();
+  const scopeModule = options.scopeModule ?? 'client';
+  const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedUserIds = useMemo(
     () => getScopedUserIds(scopeModule),
-    [getScopedUserIds, scopeModule]
+    [getScopedUserIds, scopeModule],
   );
 
   const scopedQuery = useMemo(() => {
@@ -32,16 +32,15 @@ export function useClientsQuery(options: ClientsQueryOptions = {}) {
       filter: getClientQuery.filter ? [...getClientQuery.filter] : [],
     };
 
-    return applyScopedFilter(baseQuery, scopedUserIds, {
-      field: "userIds",
-      operator: "hasSome",
+    return applyScopedFilter(baseQuery, scopedUserIds, userId, {
+      field: 'userIds',
+      operator: 'hasSome',
     });
-  }, [scopedUserIds]);
-
+  }, [scopedUserIds, userId]);
   const enabled = scopedQuery !== null;
 
   return useQuery({
-    queryKey: ["clients", scopeModule, scopedQuery ?? "no-access"],
+    queryKey: ['clients', scopeModule, scopedQuery ?? 'no-access'],
     queryFn: async () => {
       if (!scopedQuery) {
         return { data: [], count: 0 };
@@ -59,14 +58,14 @@ export const useClientMutation = () => {
 
   const mutationFn = async (input: ClientMutationInput): Promise<Client> => {
     switch (input.type) {
-      case "create":
+      case 'create':
         return clientService.create(input?.data as ClientFormDto);
-      case "update":
+      case 'update':
         return clientService.update(
           input?.id as string,
-          input?.data as ClientFormDto
+          input?.data as ClientFormDto,
         );
-      case "delete":
+      case 'delete':
         return clientService.delete(input?.id as string);
     }
   };
@@ -74,7 +73,7 @@ export const useClientMutation = () => {
   return useMutation<Client, Error, ClientMutationInput>({
     mutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 };

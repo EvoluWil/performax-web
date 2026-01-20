@@ -1,12 +1,12 @@
-import { Role } from "@/features/role/types";
-import { Permission } from "@/features/role/types/permission";
-import { useMeQuery } from "@/hooks/queries/me.query";
-import { useSession } from "@/providers/auth";
-import { companyService } from "@/services/company.service";
-import { Company } from "@/types/company";
-import { useCallback, useMemo } from "react";
+import { Role } from '@/features/role/types';
+import { Permission } from '@/features/role/types/permission';
+import { useMeQuery } from '@/hooks/queries/me.query';
+import { useSession } from '@/providers/auth';
+import { companyService } from '@/services/company.service';
+import { Company } from '@/types/company';
+import { useCallback, useMemo } from 'react';
 
-type PermissionScope = "read" | "write" | "admin";
+type PermissionScope = 'read' | 'write' | 'admin';
 
 const scopeRank: Record<PermissionScope, number> = {
   read: 0,
@@ -14,13 +14,13 @@ const scopeRank: Record<PermissionScope, number> = {
   admin: 2,
 };
 
-const permissionRank: Record<Permission["permission"], number> = {
+const permissionRank: Record<Permission['permission'], number> = {
   READ: 0,
   WRITE: 1,
   ADMIN: 2,
 };
 
-const moduleScopeRank: Record<Permission["scope"], number> = {
+const moduleScopeRank: Record<Permission['scope'], number> = {
   SELF: 0,
   TEAM: 1,
   ALL: 2,
@@ -44,7 +44,7 @@ export const useCompanyPermissions = () => {
 
     if (defaultCompanyId) {
       const matched = companies.find(
-        (item) => item.companyId === defaultCompanyId
+        (item) => item.companyId === defaultCompanyId,
       );
       if (matched) {
         return matched;
@@ -73,7 +73,7 @@ export const useCompanyPermissions = () => {
     if (data?.id) {
       return data.id;
     }
-    return "";
+    return '';
   }, [currentCompanyUser, data]);
 
   const subordinateIds = useMemo<string[]>(() => {
@@ -83,7 +83,7 @@ export const useCompanyPermissions = () => {
       return [];
     }
     return rawIds
-      .map((value) => (value != null ? String(value) : ""))
+      .map((value) => (value != null ? String(value) : ''))
       .filter((value) => !!value && value !== currentUserId);
   }, [currentCompanyUser, currentUserId]);
 
@@ -109,7 +109,7 @@ export const useCompanyPermissions = () => {
       }
 
       if (isAdmin) {
-        return "ALL" as Permission["scope"];
+        return 'ALL' as Permission['scope'];
       }
 
       const normalizedKey = moduleKey.trim().toLowerCase();
@@ -131,11 +131,11 @@ export const useCompanyPermissions = () => {
           : current;
       }, matchedScopes[0]);
     },
-    [getModuleIdentifiers, isAdmin, permissions]
+    [getModuleIdentifiers, isAdmin, permissions],
   );
 
   const hasPermission = useCallback(
-    (permissionKey: string, scope: PermissionScope = "read") => {
+    (permissionKey: string, scope: PermissionScope = 'read') => {
       if (!permissionKey) {
         return false;
       }
@@ -158,7 +158,7 @@ export const useCompanyPermissions = () => {
         return currentPermissionLevel >= requiredScope;
       });
     },
-    [getModuleIdentifiers, isAdmin, permissions]
+    [getModuleIdentifiers, isAdmin, permissions],
   );
 
   const getScopedUserIds = useCallback(
@@ -169,7 +169,7 @@ export const useCompanyPermissions = () => {
         return [] as string[];
       }
 
-      if (scope === "ALL") {
+      if (scope === 'ALL') {
         return null;
       }
 
@@ -179,7 +179,7 @@ export const useCompanyPermissions = () => {
         ids.add(currentUserId);
       }
 
-      if (scope === "TEAM") {
+      if (scope === 'TEAM') {
         subordinateIds.forEach((id) => {
           if (id) {
             ids.add(id);
@@ -189,7 +189,7 @@ export const useCompanyPermissions = () => {
 
       return Array.from(ids);
     },
-    [currentUserId, getModuleScope, subordinateIds]
+    [currentUserId, getModuleScope, subordinateIds],
   );
 
   const isReady = !isLoading && !isFetching && !isRefetching;
@@ -209,5 +209,6 @@ export const useCompanyPermissions = () => {
     isRefetching,
     isReady,
     refetch,
+    userId: user?.id || '',
   };
 };

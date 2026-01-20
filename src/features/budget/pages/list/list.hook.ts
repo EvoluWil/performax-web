@@ -1,26 +1,26 @@
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { applyScopedFilter } from "@/utils/query";
-import { useMediaQuery } from "@mui/material";
-import { Filter, Query } from "nestjs-prisma-querybuilder-interface";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import swal from "sweetalert2";
-import { useBudgetsQuery } from "../../hooks/queries/budgets.query";
-import { BudgetFilterDto } from "../../schemas/budget-filter.schema";
-import { budgetService, getBudgetQuery } from "../../services/budget.service";
-import { Budget } from "../../types/budget";
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { applyScopedFilter } from '@/utils/query';
+import { useMediaQuery } from '@mui/material';
+import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
+import swal from 'sweetalert2';
+import { useBudgetsQuery } from '../../hooks/queries/budgets.query';
+import { BudgetFilterDto } from '../../schemas/budget-filter.schema';
+import { budgetService, getBudgetQuery } from '../../services/budget.service';
+import { Budget } from '../../types/budget';
 
 const defaultColumns = [
-  "protocol",
-  "title",
-  "client",
-  "responsible",
-  "value",
-  "status",
+  'protocol',
+  'title',
+  'client',
+  'responsible',
+  'value',
+  'status',
 ];
 
-const DEFAULT_TABLE_COLUMNS_KEY = "@performax:default-columns-budgets";
+const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-budgets';
 
 export const useBudgetList = () => {
   const {
@@ -32,39 +32,39 @@ export const useBudgetList = () => {
     isFetching,
   } = useBudgetsQuery();
 
-  const [term, setTerm] = useState("");
+  const [term, setTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useState<BudgetFilterDto | null>(null);
   const [selectedColumnsKeys, setSelectedColumnsKeys] =
     useState<string[]>(defaultColumns);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
     useState(false);
-  const [viewMode, setViewMode] = useState<"table" | "list">("table");
+  const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
   const [filteredBudgets, setFilteredBudgets] = useState<Budget[] | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
-  const { getScopedUserIds } = useCompanyPermissions();
+  const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedBudgetUserIds = useMemo(
-    () => getScopedUserIds("budget"),
-    [getScopedUserIds]
+    () => getScopedUserIds('budget'),
+    [getScopedUserIds],
   );
 
   const hasBudgetAccess =
     scopedBudgetUserIds === null || scopedBudgetUserIds.length > 0;
 
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const { push } = useRouter();
 
   const handleReload = async () => {
     if (!hasBudgetAccess) {
-      toast.info("Você não possui permissão para visualizar orçamentos.");
+      toast.info('Você não possui permissão para visualizar orçamentos.');
       return;
     }
 
     const { data } = await refetch();
-    if (data) toast.success("Dados atualizados com sucesso");
+    if (data) toast.success('Dados atualizados com sucesso');
   };
 
   const handleRowClick = (row: Budget) => {
@@ -85,15 +85,15 @@ export const useBudgetList = () => {
 
   const handleDeleteBudget = async (id: string) => {
     swal.fire({
-      title: "Tem certeza que deseja excluir este orçamento?",
-      icon: "warning",
+      title: 'Tem certeza que deseja excluir este orçamento?',
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: "Sim, excluir",
-      cancelButtonText: "Cancelar",
+      confirmButtonText: 'Sim, excluir',
+      cancelButtonText: 'Cancelar',
       preConfirm: async () => {
         const result = await budgetService.delete(id);
         if (result) {
-          toast.success("Orçamento excluído com sucesso");
+          toast.success('Orçamento excluído com sucesso');
           await refetch();
         }
       },
@@ -110,30 +110,30 @@ export const useBudgetList = () => {
     const termFilter: Filter = [];
 
     if (currentTerm) {
-      const termFields: Filter = ["title", "description", "protocol"].map(
+      const termFields: Filter = ['title', 'description', 'protocol'].map(
         (field) => ({
           path: field,
-          operator: "contains",
+          operator: 'contains',
           value: currentTerm,
           insensitive: true,
-        })
+        }),
       );
       termFilter.push(...termFields);
     }
 
     // status toggles
     const selectedStatuses: string[] = [];
-    if (data.pending) selectedStatuses.push("PENDING", "APPROVED");
-    if (data.financial) selectedStatuses.push("CHARGED", "PAID", "FINANCIAL");
-    if (data.closed) selectedStatuses.push("COMPLETED", "REJECTED");
+    if (data.pending) selectedStatuses.push('PENDING', 'APPROVED');
+    if (data.financial) selectedStatuses.push('CHARGED', 'PAID', 'FINANCIAL');
+    if (data.closed) selectedStatuses.push('COMPLETED', 'REJECTED');
     if (selectedStatuses.length) {
       const statusesOr: Filter = selectedStatuses.map(
         (s) =>
           ({
-            path: "status",
-            operator: "equals",
+            path: 'status',
+            operator: 'equals',
             value: s,
-          } as any)
+          }) as any,
       );
       statusFilter.push(...statusesOr);
     }
@@ -153,63 +153,63 @@ export const useBudgetList = () => {
 
       if (data?.clientId) {
         queryFilter.filter.push({
-          path: "clientId",
+          path: 'clientId',
           value: data.clientId,
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data?.typeId) {
         queryFilter.filter.push({
-          path: "typeId",
+          path: 'typeId',
           value: data.typeId,
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data?.startDate) {
         queryFilter.filter.push({
-          path: "createdAt",
-          operator: "gte",
+          path: 'createdAt',
+          operator: 'gte',
           value: new Date(data.startDate),
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data?.endDate) {
         queryFilter.filter.push({
-          path: "createdAt",
-          operator: "lte",
+          path: 'createdAt',
+          operator: 'lte',
           value: new Date(data.endDate),
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data.title) {
         queryFilter.filter.push({
-          path: "title",
-          operator: "contains",
+          path: 'title',
+          operator: 'contains',
           value: data.title,
           insensitive: true,
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data.protocol) {
         queryFilter.filter.push({
-          path: "protocol",
-          operator: "contains",
+          path: 'protocol',
+          operator: 'contains',
           value: data.protocol,
           insensitive: true,
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
 
       if (data?.userId) {
         queryFilter.filter.push({
-          path: "responsibleId",
+          path: 'responsibleId',
           value: data.userId,
-          filterGroup: "and",
+          filterGroup: 'and',
         });
       }
     }
@@ -224,10 +224,11 @@ export const useBudgetList = () => {
       const scopedQuery = applyScopedFilter(
         queryFilter as Query,
         scopedBudgetUserIds,
+        userId,
         {
-          field: "responsibleId",
-          operator: "in",
-        }
+          field: 'responsibleId',
+          operator: 'in',
+        },
       );
 
       if (!scopedQuery) {
@@ -241,7 +242,7 @@ export const useBudgetList = () => {
       setShowFilter(false);
     } catch (e) {
       console.error(e);
-      toast.error("Erro ao aplicar filtros");
+      toast.error('Erro ao aplicar filtros');
     }
   };
 
@@ -251,14 +252,14 @@ export const useBudgetList = () => {
   };
 
   const toggleView = () =>
-    setViewMode((v) => (v === "table" ? "list" : "table"));
+    setViewMode((v) => (v === 'table' ? 'list' : 'table'));
 
   useEffect(() => {
-    if (isSmallScreen && viewMode !== "list") setViewMode("list");
+    if (isSmallScreen && viewMode !== 'list') setViewMode('list');
   }, [isSmallScreen, viewMode]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(DEFAULT_TABLE_COLUMNS_KEY);
       if (stored) setSelectedColumnsKeys(JSON.parse(stored));
     }
@@ -277,7 +278,7 @@ export const useBudgetList = () => {
       (b) =>
         b.title?.toLowerCase().includes(term.toLowerCase()) ||
         b.description?.toLowerCase().includes(term.toLowerCase()) ||
-        b.protocol?.toLowerCase().includes(term.toLowerCase())
+        b.protocol?.toLowerCase().includes(term.toLowerCase()),
     ),
     viewMode,
     toggleView,

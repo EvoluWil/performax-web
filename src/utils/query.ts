@@ -1,9 +1,9 @@
-import { Query } from "nestjs-prisma-querybuilder-interface";
+import { Query } from 'nestjs-prisma-querybuilder-interface';
 
 type ScopedFilterOptions = {
   field: string;
-  operator?: "in" | "hasSome";
-  filterGroup?: "and" | "or";
+  operator?: 'in' | 'hasSome';
+  filterGroup?: 'and' | 'or';
 };
 
 /**
@@ -12,7 +12,8 @@ type ScopedFilterOptions = {
 export const applyScopedFilter = (
   baseQuery: Query,
   scopedUserIds: string[] | null,
-  { field, operator = "in", filterGroup = "and" }: ScopedFilterOptions
+  userId: string = '',
+  { field, operator = 'in', filterGroup = 'and' }: ScopedFilterOptions,
 ): Query | null => {
   const query: Query = {
     ...baseQuery,
@@ -34,7 +35,7 @@ export const applyScopedFilter = (
   query.filter.push({
     path: field,
     operator,
-    value: scopedUserIds,
+    value: [...scopedUserIds, userId]?.join(';'),
     filterGroup,
   });
 

@@ -20,10 +20,24 @@ export type CompanyModule = {
   company: Company;
 };
 
+export type CompanyWhiteLabel = {
+  id: string;
+  name: string;
+  logo: string;
+  banner: string;
+  primaryColor: string;
+  secondaryColor: string;
+  createdAt: Date;
+  updatedAt: Date;
+  companyId: string;
+  company: Company;
+};
+
 export type Company = {
   id: string;
   name: string;
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
+  whiteLabel?: CompanyWhiteLabel;
 };
