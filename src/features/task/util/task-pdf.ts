@@ -1,11 +1,11 @@
-import { Task, taskStatusLabels } from "@/features/task/types";
-import { imageExtensions } from "@/types/file";
-import { base64ByElement } from "@/utils/base64";
-import { formatCnpj } from "@/utils/cnpj";
-import { getFileName } from "@/utils/file";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { TDocumentDefinitions } from "pdfmake/interfaces";
+import { Task, taskStatusLabels } from '@/features/task/types';
+import { imageExtensions } from '@/types/file';
+import { base64ByElement } from '@/utils/base64';
+import { formatCnpj } from '@/utils/cnpj';
+import { getFileName } from '@/utils/file';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 export const generateTaskPdfObject = async (task: Task | null) => {
   if (!task) return [];
@@ -48,20 +48,20 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     }
   }
 
-  const content: TDocumentDefinitions["content"] = [
+  const content: TDocumentDefinitions['content'] = [
     {
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
               text: `DADOS DA TAREFA: ${task.title?.toUpperCase()}`,
-              alignment: "center",
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
-              borderColor: ["#000", "#000", "#000", "#f2f2f2"],
+              fillColor: '#f2f2f2',
+              borderColor: ['#000', '#000', '#000', '#f2f2f2'],
             },
           ],
         ],
@@ -70,7 +70,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     {
       table: {
         headerRows: 1,
-        widths: ["*", "*"],
+        widths: ['*', '*'],
         body: [
           [
             {
@@ -86,16 +86,16 @@ export const generateTaskPdfObject = async (task: Task | null) => {
             {
               text: `CRIADA EM: ${format(
                 new Date(task.createdAt),
-                "dd/MM/yyyy - HH:mm",
-                { locale: ptBR }
+                'dd/MM/yyyy - HH:mm',
+                { locale: ptBR },
               )}`,
               fontSize: 10,
             },
             {
               text: `ULTIMA ATUALIZAÇÃO: ${format(
                 new Date(task.updatedAt),
-                "dd/MM/yyyy - HH:mm",
-                { locale: ptBR }
+                'dd/MM/yyyy - HH:mm',
+                { locale: ptBR },
               )}`,
               fontSize: 10,
             },
@@ -121,8 +121,8 @@ export const generateTaskPdfObject = async (task: Task | null) => {
             {
               text: `DATA PREVISTA: ${format(
                 new Date(task.date),
-                "dd/MM/yyyy - HH:mm",
-                { locale: ptBR }
+                'dd/MM/yyyy - HH:mm',
+                { locale: ptBR },
               )}`,
               fontSize: 10,
               colSpan: 2,
@@ -135,21 +135,35 @@ export const generateTaskPdfObject = async (task: Task | null) => {
               colSpan: 2,
             },
           ],
+          [
+            {
+              text: `VALOR: ${
+                task.value && task.value > 0
+                  ? task.value.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })
+                  : '-'
+              }`,
+              fontSize: 10,
+              colSpan: 2,
+            },
+          ],
         ],
       },
     },
     {
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
-              text: "DESCRIÇÃO DA TAREFA",
-              alignment: "center",
+              text: 'DESCRIÇÃO DA TAREFA',
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
+              fillColor: '#f2f2f2',
             },
           ],
           [
@@ -169,28 +183,28 @@ export const generateTaskPdfObject = async (task: Task | null) => {
   content.push({
     table: {
       headerRows: 0,
-      widths: ["*", "*"],
+      widths: ['*', '*'],
       body: [
         [
           {
-            text: `TIPO: ${task.type?.name ?? task.typeId ?? "-"}`,
+            text: `TIPO: ${task.type?.name ?? task.typeId ?? '-'}`,
             fontSize: 10,
           },
           {
             text: `CONCLUÍDA: ${
               task.completedAt
-                ? format(new Date(task.completedAt), "dd/MM/yyyy - HH:mm", {
+                ? format(new Date(task.completedAt), 'dd/MM/yyyy - HH:mm', {
                     locale: ptBR,
                   })
-                : "-"
+                : '-'
             }`,
             fontSize: 10,
           },
         ],
         [
-          { text: `CRIADA POR: ${task.createdBy?.name ?? "-"}`, fontSize: 10 },
+          { text: `CRIADA POR: ${task.createdBy?.name ?? '-'}`, fontSize: 10 },
           {
-            text: `ATUALIZADA POR: ${task.updatedBy?.name ?? "-"}`,
+            text: `ATUALIZADA POR: ${task.updatedBy?.name ?? '-'}`,
             fontSize: 10,
           },
         ],
@@ -206,11 +220,11 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     task.checklist.modules.length > 0
   ) {
     content.push({
-      text: "CHECKLIST",
-      alignment: "center",
+      text: 'CHECKLIST',
+      alignment: 'center',
       fontSize: 12,
       bold: true,
-      fillColor: "#f2f2f2",
+      fillColor: '#f2f2f2',
       margin: [0, 20, 0, 6],
     } as any);
     for (const mod of task.checklist.modules) {
@@ -222,28 +236,28 @@ export const generateTaskPdfObject = async (task: Task | null) => {
       } as any);
       const rows: any[] = [];
       for (const it of mod.items || []) {
-        let value = "-";
-        const t = (it.expectedType || "").toString().toUpperCase();
-        if (t === "BOOLEAN")
+        let value = '-';
+        const t = (it.expectedType || '').toString().toUpperCase();
+        if (t === 'BOOLEAN')
           value =
             it.valueBoolean === null || it.valueBoolean === undefined
-              ? "Sem resposta"
+              ? 'Sem resposta'
               : it.valueBoolean
-              ? "Sim"
-              : "Não";
-        else if (t === "NUMBER")
+                ? 'Sim'
+                : 'Não';
+        else if (t === 'NUMBER')
           value =
             it.valueNumber === null || it.valueNumber === undefined
-              ? ""
+              ? ''
               : String(it.valueNumber);
-        else value = it.valueText ?? "";
+        else value = it.valueText ?? '';
         rows.push([
           { text: it.question, fontSize: 10 },
           { text: value, fontSize: 10 },
         ]);
       }
       content.push({
-        table: { headerRows: 0, widths: ["*", 120], body: rows },
+        table: { headerRows: 0, widths: ['*', 120], body: rows },
       } as any);
     }
   }
@@ -253,15 +267,15 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     content.push({
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
-              text: "RESUMO DE CONCLUSÃO",
-              alignment: "center",
+              text: 'RESUMO DE CONCLUSÃO',
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
+              fillColor: '#f2f2f2',
             },
           ],
           [{ text: task.conclusionNote, fontSize: 10, margin: 10 }],
@@ -275,15 +289,15 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     content.push({
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
-              text: "OBSERVAÇÕES",
-              alignment: "center",
+              text: 'OBSERVAÇÕES',
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
+              fillColor: '#f2f2f2',
             },
           ],
           [
@@ -299,19 +313,19 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     });
   }
 
-  if (task.impedimentNote && task.status === "IMPEDED") {
+  if (task.impedimentNote && task.status === 'IMPEDED') {
     content.push({
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
-              text: "MOTIVO DO IMPEDIMENTO",
-              alignment: "center",
+              text: 'MOTIVO DO IMPEDIMENTO',
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
+              fillColor: '#f2f2f2',
             },
           ],
           [
@@ -332,15 +346,15 @@ export const generateTaskPdfObject = async (task: Task | null) => {
       {
         table: {
           headerRows: 1,
-          widths: ["*"],
+          widths: ['*'],
           body: [
             [
               {
-                text: "ARQUIVOS ANEXADOS",
-                alignment: "center",
+                text: 'ARQUIVOS ANEXADOS',
+                alignment: 'center',
                 fontSize: 12,
                 bold: true,
-                fillColor: "#f2f2f2",
+                fillColor: '#f2f2f2',
               },
             ],
           ],
@@ -360,13 +374,13 @@ export const generateTaskPdfObject = async (task: Task | null) => {
             };
           } else {
             return {
-              text: file.name?.substring(0, 10) + "." + file.type,
+              text: file.name?.substring(0, 10) + '.' + file.type,
               link: file.url,
-              style: "subtitle",
+              style: 'subtitle',
               bold: true,
               margin: [0, 30],
-              color: "#0000EE",
-              decoration: "underline",
+              color: '#0000EE',
+              decoration: 'underline',
             };
           }
         }),
@@ -378,15 +392,15 @@ export const generateTaskPdfObject = async (task: Task | null) => {
     content.push({
       table: {
         headerRows: 1,
-        widths: ["*"],
+        widths: ['*'],
         body: [
           [
             {
-              text: "SERVIÇO REALIZADO",
-              alignment: "center",
+              text: 'SERVIÇO REALIZADO',
+              alignment: 'center',
               fontSize: 12,
               bold: true,
-              fillColor: "#f2f2f2",
+              fillColor: '#f2f2f2',
             },
           ],
           [
@@ -407,15 +421,15 @@ export const generateTaskPdfObject = async (task: Task | null) => {
       {
         table: {
           headerRows: 1,
-          widths: ["*"],
+          widths: ['*'],
           body: [
             [
               {
-                text: "ARQUIVOS DA EXECUÇÃO ANEXADOS",
-                alignment: "center",
+                text: 'ARQUIVOS DA EXECUÇÃO ANEXADOS',
+                alignment: 'center',
                 fontSize: 12,
                 bold: true,
-                fillColor: "#f2f2f2",
+                fillColor: '#f2f2f2',
               },
             ],
           ],
@@ -435,13 +449,13 @@ export const generateTaskPdfObject = async (task: Task | null) => {
             };
           } else {
             return {
-              text: file.name?.substring(0, 10) + "." + file.type,
+              text: file.name?.substring(0, 10) + '.' + file.type,
               link: file.url,
-              style: "subtitle",
+              style: 'subtitle',
               bold: true,
               margin: [0, 30],
-              color: "#0000EE",
-              decoration: "underline",
+              color: '#0000EE',
+              decoration: 'underline',
             };
           }
         }),

@@ -1,24 +1,24 @@
-import { FieldRow } from "@/components/common";
-import { RenderFile } from "@/components/inputs";
+import { FieldRow } from '@/components/common';
+import { RenderFile } from '@/components/inputs';
 import {
   ChecklistItemDto,
   Task,
   taskStatusLabels,
-} from "@/features/task/types";
-import { formatDate } from "@/utils/date";
+} from '@/features/task/types';
+import { formatDate } from '@/utils/date';
 import {
   AssignmentLateOutlined,
   CalendarTodayOutlined,
   PersonOutlined,
-} from "@mui/icons-material";
-import { Box, Chip, Divider, Paper, Stack, Typography } from "@mui/material";
-import { Checklist } from "..";
+} from '@mui/icons-material';
+import { Box, Chip, Divider, Paper, Stack, Typography } from '@mui/material';
+import { Checklist } from '..';
 
 type TaskDetailCardProps = {
   task: Task;
   onUpdateChecklistItem: (
     item: ChecklistItemDto,
-    checklistId: string
+    checklistId: string,
   ) => Promise<void>;
 };
 
@@ -28,14 +28,17 @@ export const TaskDetailCard = ({
 }: TaskDetailCardProps) => {
   const status = task.status;
   const { label, color } =
-    taskStatusLabels[status] || ({ label: status, color: "default" } as any);
+    taskStatusLabels[status] || ({ label: status, color: 'default' } as any);
+
+  const formatCurrency = (n?: number) =>
+    (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <Box>
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
           gap: 3,
         }}
       >
@@ -54,8 +57,8 @@ export const TaskDetailCard = ({
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
             Descrição
           </Typography>
-          <Typography px={2} variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
-            {task.description || "-"}
+          <Typography px={2} variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+            {task.description || '-'}
           </Typography>
 
           {(!!task.impedimentNote || !!task.internalNote) && (
@@ -66,18 +69,18 @@ export const TaskDetailCard = ({
               <Box px={2}>
                 {task.internalNote && (
                   <FieldRow
-                    props={{ flexDirection: "column" }}
+                    props={{ flexDirection: 'column' }}
                     label="Nota Interna:"
-                    value={task.internalNote || "-"}
+                    value={task.internalNote || '-'}
                   />
                 )}
                 {task.impedimentNote && (
                   <>
                     <Divider sx={{ my: 2 }} />
                     <FieldRow
-                      props={{ flexDirection: "column" }}
+                      props={{ flexDirection: 'column' }}
                       label="Nota de Impedimento:"
-                      value={task.impedimentNote || "-"}
+                      value={task.impedimentNote || '-'}
                     />
                   </>
                 )}
@@ -86,9 +89,9 @@ export const TaskDetailCard = ({
                   <>
                     <Divider sx={{ my: 2 }} />
                     <FieldRow
-                      props={{ flexDirection: "column" }}
+                      props={{ flexDirection: 'column' }}
                       label="Resumo Final:"
-                      value={task.conclusionNote || "-"}
+                      value={task.conclusionNote || '-'}
                     />
                   </>
                 )}
@@ -147,13 +150,12 @@ export const TaskDetailCard = ({
         </Box>
 
         <Box>
-          <Paper variant="outlined" sx={{ p: 2, bgcolor: "background.paper" }}>
+          <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
             <Stack spacing={1}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AssignmentLateOutlined color="action" />
                 <Typography variant="subtitle2">Detalhes</Typography>
               </Box>
-
               <FieldRow
                 label="Status:"
                 value={
@@ -166,14 +168,18 @@ export const TaskDetailCard = ({
                 }
               />
               <FieldRow label="Protocolo:" value={task.protocol} />
-              <FieldRow label="Tipo:" value={task.type?.name ?? task.typeId} />
+              <FieldRow
+                label="Tipo:"
+                value={task.type?.name ?? task.typeId}
+              />{' '}
+              {task.value > 0 && (
+                <FieldRow label="Valor:" value={formatCurrency(task.value)} />
+              )}{' '}
               <Divider />
-
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonOutlined color="action" />
                 <Typography variant="subtitle2">Envolvidos</Typography>
               </Box>
-
               <FieldRow
                 label="Cliente:"
                 value={task.client?.name ?? task.clientId}
@@ -192,14 +198,11 @@ export const TaskDetailCard = ({
                   value={task.updatedBy?.name}
                 />
               )}
-
               <Divider />
-
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CalendarTodayOutlined color="action" />
                 <Typography variant="subtitle2">Datas</Typography>
               </Box>
-
               <FieldRow label="Data prevista:" value={formatDate(task.date)} />
               <FieldRow label="Criada em:" value={formatDate(task.createdAt)} />
               <FieldRow
@@ -208,7 +211,7 @@ export const TaskDetailCard = ({
               />
               <FieldRow
                 label="Concluída em:"
-                value={task.completedAt ? formatDate(task.completedAt) : "-"}
+                value={task.completedAt ? formatDate(task.completedAt) : '-'}
               />
             </Stack>
           </Paper>

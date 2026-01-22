@@ -42,6 +42,7 @@ export type Task = {
   internalNote: string;
   impedimentNote: string;
   conclusionNote: string;
+  value: number;
   status: TaskStatusEnum;
   date: Date;
   createdAt: Date;

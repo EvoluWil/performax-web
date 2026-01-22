@@ -1,7 +1,7 @@
-import { Task, taskStatusLabels } from "@/features/task/types";
-import { formatDate } from "@/utils/date";
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
-import EditOutlined from "@mui/icons-material/EditOutlined";
+import { Task, taskStatusLabels } from '@/features/task/types';
+import { formatDate } from '@/utils/date';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import EditOutlined from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Card,
@@ -10,8 +10,8 @@ import {
   IconButton,
   Tooltip,
   Typography,
-} from "@mui/material";
-import React from "react";
+} from '@mui/material';
+import React from 'react';
 
 type TaskCardProps = {
   task: Task;
@@ -29,8 +29,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const status = task.status;
   const { label, color } = taskStatusLabels[status] || {
     label: status,
-    color: "default",
+    color: 'default',
   };
+
+  const formatCurrency = (n?: number) =>
+    (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <Card
@@ -39,34 +42,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       sx={{
         mb: 2,
         mx: 1,
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column",
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
         minWidth: 300,
         maxWidth: 450,
-        width: "100%",
-        aspectRatio: "4 / 2",
+        width: '100%',
+        aspectRatio: '4 / 2',
         borderLeft: `6px solid ${color}`,
-        overflow: "hidden",
+        overflow: 'hidden',
       }}
     >
       <CardContent
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
-          position: "relative",
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          height: '100%',
+          position: 'relative',
         }}
       >
         {(onEdit || onDelete) && (
           <Box
             sx={{
-              position: "absolute",
+              position: 'absolute',
               top: 8,
               right: 8,
               zIndex: 2,
-              display: "flex",
+              display: 'flex',
               gap: 0.5,
             }}
           >
@@ -111,6 +114,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <Typography variant="body2" color="text.secondary" noWrap>
             {task.client?.name} • {task.responsible?.name}
           </Typography>
+          {task.value > 0 && (
+            <Typography variant="body2" color="primary" fontWeight="bold">
+              {formatCurrency(task.value)}
+            </Typography>
+          )}
         </Box>
 
         <Box textAlign="right">

@@ -1,21 +1,21 @@
-import { useClientsQuery } from "@/features/client/hooks";
-import { useTaskMutation, useTaskTypesQuery } from "@/features/task/hooks";
+import { useClientsQuery } from '@/features/client/hooks';
+import { useTaskMutation, useTaskTypesQuery } from '@/features/task/hooks';
 import {
   TaskFormDto,
   taskFormInitialValues,
   taskFormSchema,
-} from "@/features/task/schemas";
-import { Task } from "@/features/task/types";
-import { useUsersQuery } from "@/features/user/hooks";
-import { useUpload } from "@/hooks/common/upload";
-import { File } from "@/types/file";
-import { formatterSelectOptions } from "@/utils/select";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { formatChecklist } from "../../util/format-checklist";
-import { TaskDrawerProps } from "./task";
+} from '@/features/task/schemas';
+import { Task } from '@/features/task/types';
+import { useUsersQuery } from '@/features/user/hooks';
+import { useUpload } from '@/hooks/common/upload';
+import { File } from '@/types/file';
+import { formatterSelectOptions } from '@/utils/select';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { formatChecklist } from '../../util/format-checklist';
+import { TaskDrawerProps } from './task';
 
 export const useTaskDrawer = ({
   onClose,
@@ -26,18 +26,18 @@ export const useTaskDrawer = ({
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
-  const { data: clientsResponse } = useClientsQuery({ scopeModule: "client" });
+  const { data: clientsResponse } = useClientsQuery({ scopeModule: 'client' });
   const { data: taskTypes } = useTaskTypesQuery();
-  const { data: usersResponse } = useUsersQuery({ scopeModule: "task" });
+  const { data: usersResponse } = useUsersQuery({ scopeModule: 'task' });
 
   const clients = clientsResponse?.data || [];
   const users = usersResponse?.data || [];
 
   const options = useMemo(() => {
     return {
-      clients: formatterSelectOptions(clients, "id", "name"),
-      types: formatterSelectOptions(taskTypes, "id", "name"),
-      users: formatterSelectOptions(users, "id", "name"),
+      clients: formatterSelectOptions(clients, 'id', 'name'),
+      types: formatterSelectOptions(taskTypes, 'id', 'name'),
+      users: formatterSelectOptions(users, 'id', 'name'),
     };
   }, [clients, taskTypes, users]);
 
@@ -61,14 +61,14 @@ export const useTaskDrawer = ({
     }
 
     const result = await taskMutation.mutateAsync({
-      type: task ? "update" : "create",
+      type: task ? 'update' : 'create',
       data: data,
       id: task?.id,
     });
 
     if (result) {
       toast.success(
-        task ? "Tarefa atualizada com sucesso" : "Tarefa criada com sucesso"
+        task ? 'Tarefa atualizada com sucesso' : 'Tarefa criada com sucesso',
       );
       handleClose();
       onClose();
@@ -79,25 +79,25 @@ export const useTaskDrawer = ({
   const handleRemoveDefaultFile = async (file: File) => {
     try {
       const result = await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         data: {
           files: task?.files?.filter((f) => f.url !== file.url) || [],
         } as TaskFormDto,
         id: task?.id,
       });
       if (result) {
-        await deleteFile(file?.url || "");
+        await deleteFile(file?.url || '');
         setTask(
           (prev) =>
             ({
               ...prev,
               files: prev?.files?.filter((f) => f.url !== file.url) || [],
-            } as Task)
+            }) as Task,
         );
-        toast.success("Arquivo removido com sucesso");
+        toast.success('Arquivo removido com sucesso');
       }
     } catch {
-      toast.error("Erro ao remover arquivo");
+      toast.error('Erro ao remover arquivo');
     }
   };
 
@@ -109,15 +109,16 @@ export const useTaskDrawer = ({
   useEffect(() => {
     if (task) {
       reset({
-        title: task?.title || "",
-        description: task?.description || "",
-        date: (new Date(task?.date) as any) || "",
-        clientId: task?.client?.id || "",
-        typeId: task?.type?.id || "",
-        internalNote: task?.internalNote || "",
-        responsibleId: task?.responsible?.id || "",
-        status: task?.status || "",
-        recurrence: task?.recurrence || "",
+        title: task?.title || '',
+        description: task?.description || '',
+        date: (new Date(task?.date) as any) || '',
+        value: task?.value || 0,
+        clientId: task?.client?.id || '',
+        typeId: task?.type?.id || '',
+        internalNote: task?.internalNote || '',
+        responsibleId: task?.responsible?.id || '',
+        status: task?.status || '',
+        recurrence: task?.recurrence || '',
         checklist: formatChecklist(task?.checklist) || undefined,
       });
     } else {

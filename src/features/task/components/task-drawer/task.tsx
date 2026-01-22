@@ -1,14 +1,15 @@
-import { BaseDrawer } from "@/components/drawer";
+import { BaseDrawer } from '@/components/drawer';
 import {
+  CurrencyInput,
   DateTimeInput,
   FileInput,
   SelectInput,
   TextInput,
-} from "@/components/inputs";
-import { RecurrenceModal } from "@/components/modal";
-import { ChecklistDto, Task } from "@/features/task/types";
-import { formatRRuleToText } from "@/utils/rrule";
-import { DeleteOutline } from "@mui/icons-material";
+} from '@/components/inputs';
+import { RecurrenceModal } from '@/components/modal';
+import { ChecklistDto, Task } from '@/features/task/types';
+import { formatRRuleToText } from '@/utils/rrule';
+import { DeleteOutline } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -18,11 +19,11 @@ import {
   ListItem,
   ListItemText,
   Typography,
-} from "@mui/material";
-import { useState } from "react";
-import { useWatch } from "react-hook-form";
-import { ChecklistModal } from "..";
-import { useTaskDrawer } from "./task.hook";
+} from '@mui/material';
+import { useState } from 'react';
+import { useWatch } from 'react-hook-form';
+import { ChecklistModal } from '..';
+import { useTaskDrawer } from './task.hook';
 
 export type TaskDrawerProps = {
   open: boolean;
@@ -47,17 +48,17 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
   } = useTaskDrawer(props);
   const [openChecklist, setOpenChecklist] = useState(false);
   const [openRecurrence, setOpenRecurrence] = useState(false);
-  const checklist = useWatch({ control, name: "checklist" }) as
+  const checklist = useWatch({ control, name: 'checklist' }) as
     | ChecklistDto
     | null
     | undefined;
   const recurrence =
-    (useWatch({ control, name: "recurrence" }) as string) || "";
-  const dateValue = useWatch({ control, name: "date" });
+    (useWatch({ control, name: 'recurrence' }) as string) || '';
+  const dateValue = useWatch({ control, name: 'date' });
   const expectedTypeLabels: Record<string, string> = {
-    BOOLEAN: "Escolha",
-    TEXT: "Texto",
-    NUMBER: "Número",
+    BOOLEAN: 'Escolha',
+    TEXT: 'Texto',
+    NUMBER: 'Número',
   };
   return (
     <>
@@ -65,7 +66,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
         open={open}
         setOpen={handleClose}
         height="auto"
-        title={editing ? "Editar Tarefa" : "Nova Tarefa"}
+        title={editing ? 'Editar Tarefa' : 'Nova Tarefa'}
         content={
           <Box
             gap={2}
@@ -91,14 +92,15 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               minRows={3}
             />
             <DateTimeInput label="Data e Hora" name="date" control={control} />
+            <CurrencyInput label="Valor" name="value" control={control} />
             <SelectInput
               label="Status"
               name="status"
               control={control}
               options={[
-                { value: "OPEN", label: "Aberta" },
-                { value: "EMERGENCY", label: "Emerência" },
-                { value: "SCHEDULED", label: "Agendada" },
+                { value: 'OPEN', label: 'Aberta' },
+                { value: 'EMERGENCY', label: 'Emerência' },
+                { value: 'SCHEDULED', label: 'Agendada' },
               ]}
             />
             <SelectInput
@@ -128,7 +130,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               minRows={3}
             />
 
-            <Divider sx={{ width: "100%" }} />
+            <Divider sx={{ width: '100%' }} />
 
             <Box
               p={2}
@@ -151,11 +153,11 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               {(hasRecurrence || !editing) && (
                 <Box
                   sx={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: 1,
-                    alignItems: "center",
+                    alignItems: 'center',
                   }}
                 >
                   <Button
@@ -164,14 +166,14 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                     onClick={() => setOpenRecurrence(true)}
                     fullWidth
                   >
-                    {hasRecurrence ? "Editar" : "Definir"} recorrência
+                    {hasRecurrence ? 'Editar' : 'Definir'} recorrência
                   </Button>
                   {hasRecurrence && (
                     <Button
                       variant="outlined"
                       color="primary"
                       fullWidth
-                      onClick={() => setValue("recurrence", "")}
+                      onClick={() => setValue('recurrence', '')}
                     >
                       Limpar recorrência
                     </Button>
@@ -182,10 +184,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               {recurrence && (
                 <Box
                   sx={{
-                    width: "100%",
+                    width: '100%',
                     p: 2,
                     backgroundColor: ({ palette }) =>
-                      palette.mode === "light"
+                      palette.mode === 'light'
                         ? palette.grey[50]
                         : palette.grey[900],
                     borderRadius: 1,
@@ -203,7 +205,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                   <Typography
                     variant="body2"
                     color="text.primary"
-                    sx={{ fontStyle: "italic" }}
+                    sx={{ fontStyle: 'italic' }}
                   >
                     {formatRRuleToText(recurrence)}
                   </Typography>
@@ -211,7 +213,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               )}
             </Box>
 
-            <Divider sx={{ width: "100%" }} />
+            <Divider sx={{ width: '100%' }} />
 
             <Box
               p={2}
@@ -232,12 +234,12 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               </Typography>
               {Array.isArray(checklist?.modules) &&
               checklist!.modules.length > 0 ? (
-                <List sx={{ width: "100%" }}>
+                <List sx={{ width: '100%' }}>
                   {checklist!.modules.map((modGroup: any, modIdx: number) => (
                     <Box
                       key={modIdx}
                       sx={{
-                        border: "1px solid #eee",
+                        border: '1px solid #eee',
                         borderRadius: 1,
                         mb: 1,
                       }}
@@ -253,7 +255,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                                 ? [...existing.modules]
                                 : [];
                               modules.splice(modIdx, 1);
-                              setValue("checklist", {
+                              setValue('checklist', {
                                 ...existing,
                                 modules,
                               });
@@ -282,7 +284,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                                       modules: [],
                                     };
                                     const modules = Array.isArray(
-                                      existing.modules
+                                      existing.modules,
                                     )
                                       ? [...existing.modules]
                                       : [];
@@ -294,7 +296,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                                       : [];
                                     items.splice(idx, 1);
                                     modules[modIdx] = { ...target, items };
-                                    setValue("checklist" as any, {
+                                    setValue('checklist' as any, {
                                       ...existing,
                                       modules,
                                     });
@@ -305,11 +307,11 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                               }
                             >
                               <ListItemText
-                                primary={item.question || "Sem pergunta"}
+                                primary={item.question || 'Sem pergunta'}
                                 secondary={
                                   expectedTypeLabels[item.expectedType] ||
                                   item.expectedType ||
-                                  ""
+                                  ''
                                 }
                               />
                             </ListItem>
@@ -324,7 +326,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                   variant="body2"
                   color="text.secondary"
                   textAlign="center"
-                  sx={{ width: "100%", py: 2 }}
+                  sx={{ width: '100%', py: 2 }}
                 >
                   Nenhum checklist adicionado
                 </Typography>
@@ -340,7 +342,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               </Button>
             </Box>
 
-            <Divider sx={{ width: "100%" }} />
+            <Divider sx={{ width: '100%' }} />
 
             <Box
               p={2}
@@ -370,7 +372,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               />
             </Box>
 
-            <Divider sx={{ width: "100%" }} />
+            <Divider sx={{ width: '100%' }} />
 
             <Box
               mt="auto"
@@ -415,7 +417,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
           const payloadModules = Array.isArray(payload.modules)
             ? payload.modules
             : [];
-          setValue("checklist", {
+          setValue('checklist', {
             ...existing,
             modules: [...existingModules, ...payloadModules],
           });
@@ -429,7 +431,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
         initialRRule={recurrence || undefined}
         dtstart={dateValue ? new Date(dateValue) : undefined}
         onSubmit={(rrule) => {
-          setValue("recurrence", rrule);
+          setValue('recurrence', rrule);
           setOpenRecurrence(false);
         }}
       />

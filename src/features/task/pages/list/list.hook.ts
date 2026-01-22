@@ -46,6 +46,7 @@ export const useTaskList = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
+  const [filterLoading, setFilterLoading] = useState(false);
 
   const taskMutation = useTaskMutation();
   const { push } = useRouter();
@@ -118,6 +119,7 @@ export const useTaskList = () => {
   };
 
   const handleFilter = async (data: TaskFilterDto, currentTerm = term) => {
+    setFilterLoading(true);
     const filterStatus: Filter = [];
     const filterTerm: Filter = [];
 
@@ -240,6 +242,15 @@ export const useTaskList = () => {
           filterGroup: 'and',
         });
       }
+
+      if (data?.withValue) {
+        queryFilter.filter.push({
+          path: 'value',
+          operator: 'gt',
+          value: 0,
+          filterGroup: 'and',
+        });
+      }
     }
 
     if (!hasTaskAccess) {
@@ -273,6 +284,8 @@ export const useTaskList = () => {
     } catch (_err) {
       console.error(_err);
       toast.error('Erro ao aplicar filtros');
+    } finally {
+      setFilterLoading(false);
     }
   };
 
@@ -323,6 +336,7 @@ export const useTaskList = () => {
     openModal,
     selectedTask,
     loading,
+    filterLoading,
     handleOpenAdd,
     handleReload,
     handleSearch,
