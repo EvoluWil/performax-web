@@ -1,12 +1,22 @@
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter } from '@/utils/query';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 import type { BudgetFormDto } from '../../schemas/budget-drawer.schema';
 import { budgetService, getBudgetQuery } from '../../services/budget.service';
 import type { Budget } from '../../types/budget';
 
-export function useBudgetsQuery() {
+type BudgetsQueryOptions = {
+  pageSize?: number;
+};
+
+export function useBudgetsQuery(options: BudgetsQueryOptions = {}) {
+  const { pageSize = getBudgetQuery.limit ?? 30 } = options;
   const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedUserIds = useMemo(
@@ -14,32 +24,44 @@ export function useBudgetsQuery() {
     [getScopedUserIds],
   );
 
-  const scopedQuery = useMemo(() => {
+  const baseScopedQuery = useMemo(() => {
     const baseQuery = {
       ...getBudgetQuery,
       filter: getBudgetQuery.filter ? [...getBudgetQuery.filter] : [],
+      limit: pageSize,
     };
 
     return applyScopedFilter(baseQuery, scopedUserIds, userId, {
       field: 'responsibleId',
       operator: 'in',
     });
-  }, [scopedUserIds, userId]);
+  }, [scopedUserIds, userId, pageSize]);
 
-  const enabled = scopedQuery !== null;
+  const enabled = baseScopedQuery !== null;
 
-  return useQuery({
-    queryKey: ['budgets', scopedQuery ?? 'no-access'],
-    queryFn: async () => {
-      if (!scopedQuery) {
+  const query = useInfiniteQuery({
+    queryKey: ['budgets', baseScopedQuery ?? 'no-access'],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!baseScopedQuery) {
         return { data: [], count: 0 };
       }
-      return budgetService.get(scopedQuery);
+      return budgetService.get({ ...baseScopedQuery, page: pageParam });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => {
+      const fetched = pages.length * pageSize;
+      return fetched < lastPage.count ? pages.length + 1 : undefined;
     },
     enabled,
-    initialData: { count: 0, data: [] },
     refetchOnWindowFocus: false,
+    select: (data) => {
+      const budgets = data.pages.flatMap((p) => p.data);
+      const total = data.pages[0]?.count ?? 0;
+      return { ...data, budgets, count: total };
+    },
   });
+
+  return query;
 }
 
 export function useBudgetDetailQuery(budgetId: string) {

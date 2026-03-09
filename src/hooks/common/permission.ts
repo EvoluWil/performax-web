@@ -4,6 +4,7 @@ import { useMeQuery } from '@/hooks/queries/me.query';
 import { useSession } from '@/providers/auth';
 import { companyService } from '@/services/company.service';
 import { Company } from '@/types/company';
+import { UserRoleEnum } from '@/types/user';
 import { useCallback, useMemo } from 'react';
 
 type PermissionScope = 'read' | 'write' | 'admin';
@@ -63,8 +64,9 @@ export const useCompanyPermissions = () => {
   }, [companyRole]);
 
   const isOwner = user?.id === ownerId;
+  const isSystemAdmin = user?.role === UserRoleEnum.SYSTEM_ADMIN;
 
-  const isAdmin = !!companyRole?.isAdmin || isOwner;
+  const isAdmin = !!companyRole?.isAdmin || isOwner || isSystemAdmin;
 
   const currentUserId = useMemo(() => {
     if (currentCompanyUser?.userId) {

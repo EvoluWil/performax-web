@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import { Table } from "@/components/common";
-import { ListHeader } from "@/components/common/list-header/list-header";
-import { Actions } from "@/components/common/table/table";
-import { ClientDrawer } from "@/features/client/components";
-import { Client } from "@/features/client/types";
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { formatCnpj } from "@/utils/cnpj";
-import { DeleteOutlined } from "@mui/icons-material";
-import { Typography } from "@mui/material";
-import { MRT_ColumnDef } from "material-react-table";
-import { useClientList } from "./list.hook";
+import { Table } from '@/components/common';
+import { ListHeader } from '@/components/common/list-header/list-header';
+import { Actions } from '@/components/common/table/table';
+import { ClientDrawer } from '@/features/client/components';
+import { Client } from '@/features/client/types';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { formatCnpj } from '@/utils/cnpj';
+import { DeleteOutlined } from '@mui/icons-material';
+import { Typography } from '@mui/material';
+import { MRT_ColumnDef } from 'material-react-table';
+import { useClientList } from './list.hook';
 
 const columns: MRT_ColumnDef<Client>[] = [
   {
-    accessorKey: "name",
-    header: "Nome",
+    accessorKey: 'name',
+    header: 'Nome',
   },
   {
-    accessorKey: "address",
-    header: "Endereço",
+    accessorKey: 'address',
+    header: 'Endereço',
   },
   {
-    accessorKey: "cnpj",
-    header: "CNPJ",
+    accessorKey: 'cnpj',
+    header: 'CNPJ',
     muiTableHeadCellProps: {
-      align: "center",
+      align: 'center',
     },
     muiTableBodyCellProps: {
-      align: "center",
+      align: 'center',
     },
     Cell({ cell }: any) {
       return formatCnpj(cell.getValue());
@@ -47,10 +47,13 @@ export const ClientList = () => {
     handleCloseAdd,
     handleDeleteClient,
     handleSelectClientToEdit,
+    handlePaginationChange,
+    pagination,
+    count,
   } = useClientList();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission("client", "write");
-  const canAdmin = permissionsReady && hasPermission("client", "admin");
+  const canWrite = permissionsReady && hasPermission('client', 'write');
+  const canAdmin = permissionsReady && hasPermission('client', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<Client>[] = [];
@@ -58,7 +61,7 @@ export const ClientList = () => {
   if (canAdmin) {
     actions.push({
       icon: () => <DeleteOutlined />,
-      label: () => "Excluir cliente",
+      label: () => 'Excluir cliente',
       onClick: (client) => handleDeleteClient(client.id),
     });
   }
@@ -84,6 +87,9 @@ export const ClientList = () => {
         onReload={handleReload}
         onRowClick={canEdit ? handleSelectClientToEdit : () => null}
         actions={actions}
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
+        rowCount={count}
       />
 
       {openModal && (

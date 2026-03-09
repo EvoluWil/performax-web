@@ -11,6 +11,7 @@ export const getClientQuery: Query = {
     field: 'name',
     criteria: 'asc',
   },
+  limit: 30,
 };
 
 class ClientService extends BaseCompanyService {

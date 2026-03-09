@@ -47,7 +47,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
       {open && (
         <Paper variant="outlined" sx={{ p: 2, overflowX: 'auto', my: 2 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom>
-            Filtros para tarefas
+            Filtros para ordens de serviço
           </Typography>
           <Divider sx={{ mb: 2 }} />
 
@@ -66,13 +66,13 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
               <TextInput
                 name="protocol"
                 control={control}
-                label="Protocolo da tarefa"
-                placeholder="Digite parte do protocolo da tarefa"
+                label="Protocolo da OS"
+                placeholder="Digite parte do protocolo da OS"
               />
               <SelectInput
                 name="typeId"
                 control={control}
-                label="Tipo de tarefa"
+                label="Tipo de OS"
                 options={options.types}
               />
             </Box>
@@ -118,7 +118,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
               <Switch
                 name="withValue"
                 control={control}
-                label="Apenas tarefas com valor"
+                label="Apenas OS com valor"
               />
             </Box>
           </Box>

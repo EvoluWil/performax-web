@@ -4,7 +4,11 @@ import { getTaskQuery } from '@/features/task/services/task.service';
 import { Task } from '@/features/task/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter } from '@/utils/query';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 type TaskMutationInput = {
@@ -13,7 +17,12 @@ type TaskMutationInput = {
   data?: Partial<TaskFormDto>;
 };
 
-export function useTasksQuery() {
+type TasksQueryOptions = {
+  pageSize?: number;
+};
+
+export function useTasksQuery(options: TasksQueryOptions = {}) {
+  const { pageSize = getTaskQuery.limit ?? 30 } = options;
   const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedUserIds = useMemo(
@@ -21,32 +30,44 @@ export function useTasksQuery() {
     [getScopedUserIds],
   );
 
-  const scopedQuery = useMemo(() => {
+  const baseScopedQuery = useMemo(() => {
     const baseQuery = {
       ...getTaskQuery,
       filter: getTaskQuery.filter ? [...getTaskQuery.filter] : [],
+      limit: pageSize,
     };
 
     return applyScopedFilter(baseQuery, scopedUserIds, userId, {
       field: 'responsibleId',
       operator: 'in',
     });
-  }, [scopedUserIds, userId]);
+  }, [scopedUserIds, userId, pageSize]);
 
-  const enabled = scopedQuery !== null;
+  const enabled = baseScopedQuery !== null;
 
-  return useQuery({
-    queryKey: ['tasks', scopedQuery ?? 'no-access'],
-    queryFn: async () => {
-      if (!scopedQuery) {
+  const query = useInfiniteQuery({
+    queryKey: ['tasks', baseScopedQuery ?? 'no-access'],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!baseScopedQuery) {
         return { data: [], count: 0 };
       }
-      return taskService.get(scopedQuery);
+      return taskService.get({ ...baseScopedQuery, page: pageParam });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => {
+      const fetched = pages.length * pageSize;
+      return fetched < lastPage.count ? pages.length + 1 : undefined;
     },
     enabled,
-    initialData: { data: [], count: 0 },
     refetchOnWindowFocus: false,
+    select: (data) => {
+      const tasks = data.pages.flatMap((p) => p.data);
+      const total = data.pages[0]?.count ?? 0;
+      return { ...data, tasks, count: total };
+    },
   });
+
+  return query;
 }
 
 export const useTaskMutation = (taskId?: string) => {

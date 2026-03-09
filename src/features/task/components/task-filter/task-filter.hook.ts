@@ -1,14 +1,14 @@
-import { Option } from "@/components/inputs/select-input/select-input";
-import { useClientsQuery } from "@/features/client/hooks";
-import { useTaskTypesQuery } from "@/features/task/hooks";
+import { Option } from '@/components/inputs/select-input/select-input';
+import { useClientsQuery } from '@/features/client/hooks';
+import { useTaskTypesQuery } from '@/features/task/hooks';
 import {
   TaskFilterDto,
   taskFilterInitialValues,
-} from "@/features/task/schemas";
-import { useUsersQuery } from "@/features/user/hooks";
-import { formatterSelectOptions } from "@/utils/select";
-import { useMemo } from "react";
-import { useForm } from "react-hook-form";
+} from '@/features/task/schemas';
+import { useUsersQuery } from '@/features/user/hooks';
+import { formatterSelectOptions } from '@/utils/select';
+import { useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 
 type Options = {
   types: Option[];
@@ -18,66 +18,66 @@ type Options = {
 
 export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
   const { data: taskTypesData } = useTaskTypesQuery();
-  const { data: clientsData } = useClientsQuery({ scopeModule: "client" });
-  const { data: usersData } = useUsersQuery({ scopeModule: "task" });
+  const { data: clientsQueryData } = useClientsQuery({
+    scopeModule: 'client',
+    pageSize: 1000,
+  });
+  const clientsList = clientsQueryData?.clients ?? [];
+  const { data: usersData } = useUsersQuery({ scopeModule: 'task' });
   const { control, handleSubmit, setValue, watch } = useForm<TaskFilterDto>({
     defaultValues: taskFilterInitialValues,
   });
 
-  const [open, inProgress, closed] = watch(["open", "in_progress", "closed"]);
+  const [open, inProgress, closed] = watch(['open', 'in_progress', 'closed']);
 
   const statusFilters = useMemo(() => {
     const statuses: string[] = [];
-    if (open) statuses.push("OPEN");
-    if (inProgress) statuses.push("IN_PROGRESS");
-    if (closed) statuses.push("COMPLETED");
+    if (open) statuses.push('OPEN');
+    if (inProgress) statuses.push('IN_PROGRESS');
+    if (closed) statuses.push('COMPLETED');
     return statuses;
   }, [open, inProgress, closed]);
 
   const options: Options = useMemo(() => {
-    const types = formatterSelectOptions(taskTypesData || [], "id", "name");
-    const clients = formatterSelectOptions(
-      clientsData?.data || [],
-      "id",
-      "name"
-    );
-    const users = formatterSelectOptions(usersData?.data || [], "id", "name");
+    const types = formatterSelectOptions(taskTypesData || [], 'id', 'name');
+    const clients = formatterSelectOptions(clientsList || [], 'id', 'name');
+    const users = formatterSelectOptions(usersData?.users || [], 'id', 'name');
     return { types, clients, users };
-  }, [taskTypesData, clientsData, usersData]);
+  }, [taskTypesData, clientsList, usersData]);
 
   const hasUserFilter = true;
 
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
     if (selectedStatuses.length === 0) {
-      setValue("open", false);
-      setValue("in_progress", false);
-      setValue("closed", false);
+      setValue('open', false);
+      setValue('in_progress', false);
+      setValue('closed', false);
     }
-    if (selectedStatuses.includes("OPEN")) {
-      setValue("open", true);
-      setValue("expired", true);
-      setValue("emergency", true);
-      setValue("scheduled", true);
-      setValue("impeded", true);
+    if (selectedStatuses.includes('OPEN')) {
+      setValue('open', true);
+      setValue('expired', true);
+      setValue('emergency', true);
+      setValue('scheduled', true);
+      setValue('impeded', true);
     } else {
-      setValue("open", false);
-      setValue("expired", false);
-      setValue("emergency", false);
-      setValue("scheduled", false);
-      setValue("impeded", false);
+      setValue('open', false);
+      setValue('expired', false);
+      setValue('emergency', false);
+      setValue('scheduled', false);
+      setValue('impeded', false);
     }
-    if (selectedStatuses.includes("IN_PROGRESS")) {
-      setValue("in_progress", true);
+    if (selectedStatuses.includes('IN_PROGRESS')) {
+      setValue('in_progress', true);
     } else {
-      setValue("in_progress", false);
+      setValue('in_progress', false);
     }
 
-    if (selectedStatuses.includes("COMPLETED")) {
-      setValue("closed", true);
-      setValue("rejected", true);
+    if (selectedStatuses.includes('COMPLETED')) {
+      setValue('closed', true);
+      setValue('rejected', true);
     } else {
-      setValue("closed", false);
-      setValue("rejected", false);
+      setValue('closed', false);
+      setValue('rejected', false);
     }
 
     handleFilter();

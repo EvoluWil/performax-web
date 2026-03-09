@@ -1,12 +1,13 @@
 import {
+  AppRegistration,
   ContactsOutlined,
   PeopleOutline,
   SecurityOutlined,
   Work,
-} from "@mui/icons-material";
-import { JSX } from "react";
+} from '@mui/icons-material';
+import { JSX } from 'react';
 
-type Module = "task" | "budget" | "client" | "user" | "role";
+type Module = 'task' | 'budget' | 'client' | 'user' | 'role';
 
 export type Route = {
   id: string;
@@ -15,7 +16,7 @@ export type Route = {
   subRoutes?: SubRoute[];
   modules: Module[];
   permissions: Module[];
-  scope?: "read" | "write" | "admin";
+  scope?: 'read' | 'write' | 'admin';
 };
 
 export type SubRoute = {
@@ -24,58 +25,28 @@ export type SubRoute = {
   subRoutes?: SubRoute[];
   modules: Module[];
   permissions: Module[];
-  scope?: "read" | "write" | "admin";
+  scope?: 'read' | 'write' | 'admin';
 };
 
 export const routes: Route[] = [
   {
-    id: "Operacional",
-    icon: <Work sx={{ color: "white" }} />,
-    path: "/panel/tasks",
-    permissions: ["task", "budget"],
-    modules: ["task", "budget"],
+    id: 'Operacional',
+    icon: <Work sx={{ color: 'white' }} />,
+    path: '/panel/tasks',
+    permissions: ['task', 'budget'],
+    modules: ['task', 'budget'],
     subRoutes: [
       {
-        id: "Tarefas",
-        path: "/panel/tasks",
-        permissions: ["task"],
-        modules: ["task"],
-        subRoutes: [
-          {
-            id: "Lista de tarefas",
-            path: "/panel/tasks",
-            permissions: ["task"],
-            modules: ["task"],
-          },
-          {
-            id: "Tipos de tarefa",
-            path: "/panel/tasks/types",
-            permissions: ["task"],
-            scope: "write",
-            modules: ["task"],
-          },
-        ],
+        id: 'Ordens de Serviço',
+        path: '/panel/tasks',
+        permissions: ['task'],
+        modules: ['task'],
       },
       {
-        id: "Orçamentos",
-        path: "/panel/budgets",
-        permissions: ["budget"],
-        modules: ["budget"],
-        subRoutes: [
-          {
-            id: "Lista de orçamentos",
-            path: "/panel/budgets",
-            permissions: ["budget"],
-            modules: ["budget"],
-          },
-          {
-            id: "Tipos de orçamento",
-            path: "/panel/budgets/types",
-            permissions: ["budget"],
-            modules: ["budget"],
-            scope: "write",
-          },
-        ],
+        id: 'Orçamentos',
+        path: '/panel/budgets',
+        permissions: ['budget'],
+        modules: ['budget'],
       },
       // {
       //   id: 'Lançamentos',
@@ -140,106 +111,52 @@ export const routes: Route[] = [
   //     },
   //   ],
   // },
-  // {
-  //   id: 'Cadastros',
-  //   icon: <AppRegistration sx={{ color: 'white' }} />,
-  //   path: '/panel/register/users',
-  //   role: ['USER', 'ADMIN', 'COORDINATOR', 'ATTENDANT', 'FINANCIAL'],
-  //   subRoutes: [
-  //     {
-  //       id: 'Usuários',
-  //       path: '/panel/register/users',
-  //       role: ['COORDINATOR', 'ADMIN'],
-  //     },
-  //     {
-  //       id: 'Clientes',
-  //       path: '/panel/register/clients',
-  //       role: ['USER', 'ADMIN', 'COORDINATOR', 'ATTENDANT', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Empresas',
-  //       path: '/panel/register/companies',
-  //       role: ['COORDINATOR', 'ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Gestores',
-  //       path: '/panel/register/gestor',
-  //       role: ['COORDINATOR', 'ADMIN'],
-  //     },
-  //     {
-  //       id: 'Funcionários',
-  //       path: '/panel/register/employees',
-  //       role: ['COORDINATOR', 'ADMIN'],
-  //     },
-  //     {
-  //       id: 'Bancos',
-  //       path: '/panel/register/banks',
-  //       role: ['ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Métodos de pagamento',
-  //       path: '/panel/register/payment-methods',
-  //       role: ['ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Favorecidos',
-  //       path: '/panel/register/financial-favored',
-  //       role: ['ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Categorias de lançamentos financeiros',
-  //       path: '/panel/register/financial-categories',
-  //       role: ['ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Tipos de lançamento financeiro',
-  //       path: '/panel/register/financial-types',
-  //       role: ['ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Tipos de lançamento',
-  //       path: '/panel/register/entry-types',
-  //       role: ['COORDINATOR', 'ADMIN'],
-  //     },
-  //     {
-  //       id: 'Tipos de ocorrência',
-  //       path: '/panel/register/occurrence-types',
-  //       role: ['USER', 'ADMIN', 'COORDINATOR', 'ATTENDANT', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Tipos de orçamento',
-  //       path: '/panel/register/budget-types',
-  //       role: ['COORDINATOR', 'ADMIN', 'FINANCIAL'],
-  //     },
-  //     {
-  //       id: 'Tipos de tarefa',
-  //       path: '/panel/register/task-types',
-  //       role: ['COORDINATOR', 'ADMIN'],
-  //     },
-  //   ],
-  // },
   {
-    id: "Clientes",
-    icon: <ContactsOutlined sx={{ color: "white" }} />,
-    path: "/panel/clients",
-    permissions: ["client"],
-    modules: ["client"],
-    scope: "read",
+    id: 'Cadastros',
+    icon: <AppRegistration sx={{ color: 'white' }} />,
+    path: '/panel/register',
+    permissions: ['task', 'budget'],
+    modules: ['task', 'budget'],
+    scope: 'write',
+    subRoutes: [
+      {
+        id: 'Tipos de OS',
+        path: '/panel/tasks/types',
+        permissions: ['task'],
+        scope: 'write',
+        modules: ['task'],
+      },
+      {
+        id: 'Tipos de orçamento',
+        path: '/panel/budgets/types',
+        permissions: ['budget'],
+        modules: ['budget'],
+        scope: 'write',
+      },
+    ],
   },
   {
-    id: "Usuários",
-    icon: <PeopleOutline sx={{ color: "white" }} />,
-    path: "/panel/users",
-    permissions: ["user"],
-    modules: ["user"],
-    scope: "read",
+    id: 'Clientes',
+    icon: <ContactsOutlined sx={{ color: 'white' }} />,
+    path: '/panel/clients',
+    permissions: ['client'],
+    modules: ['client'],
+    scope: 'read',
   },
   {
-    id: "Cargos",
-    icon: <SecurityOutlined sx={{ color: "white" }} />,
-    path: "/panel/roles",
-    permissions: ["role"],
-    modules: ["role"],
-    scope: "read",
+    id: 'Usuários',
+    icon: <PeopleOutline sx={{ color: 'white' }} />,
+    path: '/panel/users',
+    permissions: ['user'],
+    modules: ['user'],
+    scope: 'read',
+  },
+  {
+    id: 'Cargos',
+    icon: <SecurityOutlined sx={{ color: 'white' }} />,
+    path: '/panel/roles',
+    permissions: ['role'],
+    modules: ['role'],
+    scope: 'read',
   },
 ];

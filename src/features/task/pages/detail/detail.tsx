@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import { PageTitle, SplitActions } from "@/components/common";
-import { Loading } from "@/components/common/loading/loading";
+import { PageTitle, SplitActions } from '@/components/common';
+import { Loading } from '@/components/common/loading/loading';
+import { PdfPreviewModal } from '@/components/modal';
 import {
   ConclusionModal,
   ImpedimentModal,
   TaskDetailCard,
   TaskDrawer,
-} from "@/features/task/components";
-import { Box, Divider } from "@mui/material";
-import { useTaskDetail } from "./detail.hook";
+} from '@/features/task/components';
+import { Box, Divider } from '@mui/material';
+import { useTaskDetail } from './detail.hook';
 
 export const TaskDetail = () => {
   const {
@@ -32,6 +33,13 @@ export const TaskDetail = () => {
     handleUpdateChecklistItem,
     taskChecklistIncomplete,
     refetch,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
   } = useTaskDetail();
 
   if (!task) {
@@ -40,70 +48,70 @@ export const TaskDetail = () => {
 
   return (
     <>
-      {loading && <Loading fullScreen message="Atualizando tarefa..." />}
+      {loading && <Loading fullScreen message="Atualizando OS..." />}
       <Box>
         <PageTitle
-          title="Detalhe da Tarefa"
+          title="Detalhe da OS"
           onBack={handleBack}
           actions={[
             {
-              key: "actions-menu",
+              key: 'actions-menu',
               node: (
                 <SplitActions
                   primaryLabel="Ações"
                   actions={[
                     {
-                      key: "start",
-                      label: "Iniciar",
+                      key: 'start',
+                      label: 'Iniciar',
                       onClick: handleStart,
                       visible: [
-                        "PENDING",
-                        "OPEN",
-                        "SCHEDULED",
-                        "EMERGENCY",
-                        "APPROVED",
-                        "EXPIRED",
+                        'PENDING',
+                        'OPEN',
+                        'SCHEDULED',
+                        'EMERGENCY',
+                        'APPROVED',
+                        'EXPIRED',
                       ].includes(task.status),
                     },
                     {
-                      key: "impediment",
-                      label: "Impedimento",
+                      key: 'impediment',
+                      label: 'Impedimento',
                       onClick: toggleImpedimentModal,
-                      visible: ["IN_PROGRESS"].includes(task.status),
+                      visible: ['IN_PROGRESS'].includes(task.status),
                     },
                     {
-                      key: "edit",
-                      label: "Editar",
+                      key: 'edit',
+                      label: 'Editar',
                       onClick: toggleEditModal,
-                      visible: !["CLOSED"].includes(task.status),
+                      visible: !['CLOSED'].includes(task.status),
                     },
                     {
-                      key: "finalize",
-                      label: "Finalizar",
+                      key: 'finalize',
+                      label: 'Finalizar',
                       onClick: toggleConclusionModal,
-                      visible: ["IN_PROGRESS"].includes(task.status),
+                      visible: ['IN_PROGRESS'].includes(task.status),
                     },
                     {
-                      key: "cancel",
-                      label: "Cancelar",
+                      key: 'cancel',
+                      label: 'Cancelar',
                       onClick: handleCancel,
-                      visible: !["CLOSED", "REJECTED"].includes(task.status),
+                      visible: !['CLOSED', 'REJECTED'].includes(task.status),
                     },
                     {
-                      key: "re-open",
-                      label: "Reabrir",
+                      key: 're-open',
+                      label: 'Reabrir',
                       onClick: handleReOpen,
-                      visible: ["CLOSED"].includes(task.status),
+                      visible: ['CLOSED'].includes(task.status),
                     },
                     {
-                      key: "resolved",
-                      label: "Resolver impedimento",
+                      key: 'resolved',
+                      label: 'Resolver impedimento',
                       onClick: handleResolved,
-                      visible: ["IMPEDED"].includes(task.status),
+                      visible: ['IMPEDED'].includes(task.status),
                     },
                     {
-                      key: "download",
-                      label: "Baixar PDF",
+                      key: 'download',
+                      label: 'Baixar PDF',
                       onClick: handleDownloadPdf,
                       visible: true,
                     },
@@ -144,6 +152,15 @@ export const TaskDetail = () => {
           hasIncompleteChecklist={taskChecklistIncomplete}
         />
       )}
+      <PdfPreviewModal
+        open={pdfModalOpen}
+        onClose={closePdfModal}
+        pdfBlobUrl={pdfBlobUrl}
+        pdfStorageUrl={pdfStorageUrl}
+        pdfUploading={pdfUploading}
+        title={pdfTitle}
+        onDownload={downloadPdf}
+      />
     </>
   );
 };

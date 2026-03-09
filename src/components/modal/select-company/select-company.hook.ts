@@ -36,7 +36,7 @@ export const useSelectCompany = ({
       companyService.setDefaultCompany(company);
       onSuccess();
       onClose();
-      window.location.reload();
+      window.location.href = '/panel';
       toast.success('Empresa selecionada com sucesso!');
     })();
   };

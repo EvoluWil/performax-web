@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { FileInput } from "@/components/inputs/file-input/file-input";
-import { TextInput } from "@/components/inputs/text-input/text-input";
+import { FileInput } from '@/components/inputs/file-input/file-input';
+import { TextInput } from '@/components/inputs/text-input/text-input';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from "@/components/modal/modal-base.styles";
-import { CloseOutlined } from "@mui/icons-material";
-import { Alert, Box, Button, Divider, Typography } from "@mui/material";
-import React from "react";
-import { useConclusion } from "./conclusion.hook";
-import { ConclusionSchemaType } from "./conclusion.schema";
+} from '@/components/modal/modal-base.styles';
+import { CloseOutlined } from '@mui/icons-material';
+import { Alert, Box, Button, Divider, Typography } from '@mui/material';
+import React from 'react';
+import { useConclusion } from './conclusion.hook';
+import { ConclusionSchemaType } from './conclusion.schema';
 
 type ConclusionModalProps = {
   open: boolean;
@@ -41,15 +41,15 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
         </CloseButtonStyled>
 
         <Box>
-          <Typography variant="h6">Finalizar tarefa</Typography>
+          <Typography variant="h6">Finalizar OS</Typography>
           <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
             Envie um resumo final e, opcionalmente, arquivos que devem ser
-            anexados ao encerramento da tarefa.
+            anexados ao encerramento da OS.
           </Typography>
 
           {hasIncompleteChecklist && (
             <Alert severity="warning" sx={{ mt: 2 }}>
-              Existem itens do checklist incompletos. Ao finalizar a tarefa,
+              Existem itens do checklist incompletos. Ao finalizar a OS,
               confirme que isso é intencional.
             </Alert>
           )}
@@ -80,7 +80,7 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
         <Divider />
 
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}
         >
           <Button
             variant="outlined"
@@ -97,7 +97,7 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
             disabled={loading}
             loading={loading}
           >
-            Finalizar tarefa
+            Finalizar OS
           </Button>
         </Box>
       </ModalContainer>

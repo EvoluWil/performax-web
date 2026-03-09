@@ -1,3 +1,4 @@
+import { Pagination } from '@/components/common/table/table';
 import {
   useRoleMutation,
   useRolesQuery,
@@ -12,6 +13,7 @@ export const useRoleList = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [term, setTerm] = useState('');
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
 
   const roleMutation = useRoleMutation();
 
@@ -50,6 +52,7 @@ export const useRoleList = () => {
   };
 
   const handleReload = async () => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     const { data } = await refetch();
     if (data) {
       toast.success('Dados atualizados com sucesso');
@@ -58,6 +61,7 @@ export const useRoleList = () => {
 
   const handleSearch = async (search: string) => {
     setTerm(search);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   };
 
   const filteredRoles = roles?.filter(
@@ -66,8 +70,23 @@ export const useRoleList = () => {
       role.description?.toLowerCase().includes(term.toLowerCase()),
   );
 
+  const handlePaginationChange = (newPagination: Pagination) => {
+    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+    setPagination(newPagination);
+  };
+
+  const count = filteredRoles?.length ?? 0;
+
+  const paginatedRoles = filteredRoles?.slice(
+    pagination.pageIndex * pagination.pageSize,
+    (pagination.pageIndex + 1) * pagination.pageSize,
+  );
+
   return {
-    roles: filteredRoles,
+    roles: paginatedRoles,
+    count,
+    pagination,
+    handlePaginationChange,
     openModal,
     selectedRole,
     handleOpenAdd,

@@ -1,6 +1,6 @@
-import { BaseDrawer } from "@/components/drawer";
-import { SelectInput } from "@/components/inputs";
-import { formatCnpj } from "@/utils/cnpj";
+import { BaseDrawer } from '@/components/drawer';
+import { SelectInput } from '@/components/inputs';
+import { formatCnpj } from '@/utils/cnpj';
 import {
   Box,
   Button,
@@ -8,11 +8,11 @@ import {
   ListItem,
   ListItemText,
   Typography,
-} from "@mui/material";
+} from '@mui/material';
 import {
   UserClientsDrawerProps,
   useUserClientsDrawer,
-} from "./user-clients-drawer.hook";
+} from './user-clients-drawer.hook';
 
 export type { UserClientsDrawerProps };
 
@@ -47,7 +47,7 @@ export const UserClientsDrawer: React.FC<UserClientsDrawerProps> = (props) => {
           justifyContent="center"
           flexDirection="column"
           flex={1}
-          maxWidth={316}
+          width="100%"
         >
           <SelectInput
             name="clientIds"
@@ -69,10 +69,10 @@ export const UserClientsDrawer: React.FC<UserClientsDrawerProps> = (props) => {
                     key={client.id}
                     sx={{
                       border: 1,
-                      borderColor: "divider",
+                      borderColor: 'divider',
                       borderRadius: 1,
                       mb: 1,
-                      backgroundColor: "background.paper",
+                      backgroundColor: 'background.paper',
                     }}
                   >
                     <ListItemText
@@ -88,9 +88,9 @@ export const UserClientsDrawer: React.FC<UserClientsDrawerProps> = (props) => {
           {selectedClients.length === 0 && (
             <Box
               sx={{
-                textAlign: "center",
+                textAlign: 'center',
                 py: 4,
-                color: "text.secondary",
+                color: 'text.secondary',
               }}
             >
               <Typography variant="body2">

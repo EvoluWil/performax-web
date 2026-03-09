@@ -1,3 +1,4 @@
+import { Pagination } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
@@ -23,14 +24,22 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-budgets';
 
 export const useBudgetList = () => {
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [filteredCount, setFilteredCount] = useState(0);
+
   const {
-    data: { data: budgets },
+    data,
     refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isRefetching,
     isPending,
     isLoading,
     isFetching,
-  } = useBudgetsQuery();
+  } = useBudgetsQuery({ pageSize: pagination.pageSize });
+
+  const budgets = data?.budgets ?? [];
 
   const [term, setTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
@@ -63,8 +72,9 @@ export const useBudgetList = () => {
       return;
     }
 
-    const { data } = await refetch();
-    if (data) toast.success('Dados atualizados com sucesso');
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    const { data: reloadedData } = await refetch();
+    if (reloadedData) toast.success('Dados atualizados com sucesso');
   };
 
   const handleRowClick = (row: Budget) => {
@@ -104,7 +114,11 @@ export const useBudgetList = () => {
   const toggleCustomizeColumnsModal = () =>
     setOpenCustomizeColumnsModal((prev) => !prev);
 
-  const handleFilter = async (data: BudgetFilterDto, currentTerm = term) => {
+  const handleFilter = async (
+    data: BudgetFilterDto,
+    currentTerm = term,
+    page = 1,
+  ) => {
     setFilter(Object.keys(data)?.length ? data : null);
     const statusFilter: Filter = [];
     const termFilter: Filter = [];
@@ -237,8 +251,13 @@ export const useBudgetList = () => {
         return;
       }
 
-      const result = await budgetService.get(scopedQuery as any);
+      const result = await budgetService.get({
+        ...scopedQuery,
+        limit: pagination.pageSize,
+        page,
+      } as any);
       setFilteredBudgets(result?.data || []);
+      setFilteredCount(result?.count ?? 0);
       setShowFilter(false);
     } catch (e) {
       console.error(e);
@@ -248,7 +267,8 @@ export const useBudgetList = () => {
 
   const handleSearch = async (search: string) => {
     setTerm(search);
-    await handleFilter(filter || ({} as BudgetFilterDto), search);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    await handleFilter(filter || ({} as BudgetFilterDto), search, 1);
   };
 
   const toggleView = () =>
@@ -267,19 +287,56 @@ export const useBudgetList = () => {
 
   const loading = isPending || isRefetching || isLoading || isFetching;
 
-  const currentBudgets = hasBudgetAccess
-    ? filter
-      ? filteredBudgets
-      : budgets
-    : [];
+  const count = filter ? filteredCount : (data?.count ?? 0);
+
+  const currentBudgetsAll = (
+    hasBudgetAccess ? (filter ? filteredBudgets || [] : budgets) : []
+  ).filter(
+    (b) =>
+      b.title?.toLowerCase().includes(term.toLowerCase()) ||
+      b.description?.toLowerCase().includes(term.toLowerCase()) ||
+      b.protocol?.toLowerCase().includes(term.toLowerCase()),
+  );
+
+  // Filter active: filteredBudgets is already the server page, no slice needed.
+  // No filter: budgets is accumulated; slice for current page.
+  const paginatedBudgets = filter
+    ? currentBudgetsAll
+    : currentBudgetsAll.slice(
+        pagination.pageIndex * pagination.pageSize,
+        (pagination.pageIndex + 1) * pagination.pageSize,
+      );
+
+  const handlePaginationChange = async (newPagination: Pagination) => {
+    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+
+    if (newPagination.pageIndex === pagination.pageIndex) {
+      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      return;
+    }
+
+    setPagination(newPagination);
+
+    if (filter) {
+      await handleFilter(filter, term, newPagination.pageIndex + 1);
+    } else {
+      const requiredCount =
+        (newPagination.pageIndex + 1) * newPagination.pageSize;
+      if (
+        budgets.length < requiredCount &&
+        hasNextPage &&
+        !isFetchingNextPage
+      ) {
+        await fetchNextPage();
+      }
+    }
+  };
 
   return {
-    budgets: (currentBudgets || []).filter(
-      (b) =>
-        b.title?.toLowerCase().includes(term.toLowerCase()) ||
-        b.description?.toLowerCase().includes(term.toLowerCase()) ||
-        b.protocol?.toLowerCase().includes(term.toLowerCase()),
-    ),
+    budgets: paginatedBudgets,
+    count,
+    pagination,
+    handlePaginationChange,
     viewMode,
     toggleView,
     loading,

@@ -66,7 +66,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
         open={open}
         setOpen={handleClose}
         height="auto"
-        title={editing ? 'Editar Tarefa' : 'Nova Tarefa'}
+        title={editing ? 'Editar OS' : 'Nova OS'}
         content={
           <Box
             gap={2}
@@ -80,13 +80,13 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
             <TextInput
               label="Título"
               name="title"
-              placeholder="Digite o título da tarefa"
+              placeholder="Digite o título da OS"
               control={control}
             />
             <TextInput
               label="Descrição"
               name="description"
-              placeholder="Descreva a tarefa"
+              placeholder="Descreva a OS"
               control={control}
               multiline
               minRows={3}
@@ -116,7 +116,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               options={options.clients || []}
             />
             <SelectInput
-              label="Tipo de Tarefa"
+              label="Tipo de OS"
               name="typeId"
               control={control}
               options={options.types || []}

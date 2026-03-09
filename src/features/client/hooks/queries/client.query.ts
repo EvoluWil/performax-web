@@ -4,7 +4,11 @@ import { getClientQuery } from '@/features/client/services/client.service';
 import { Client } from '@/features/client/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter } from '@/utils/query';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 type ClientMutationInput = {
@@ -15,10 +19,12 @@ type ClientMutationInput = {
 
 type ClientsQueryOptions = {
   scopeModule?: string;
+  pageSize?: number;
 };
 
 export function useClientsQuery(options: ClientsQueryOptions = {}) {
-  const scopeModule = options.scopeModule ?? 'client';
+  const { scopeModule = 'client', pageSize = getClientQuery.limit ?? 30 } =
+    options;
   const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedUserIds = useMemo(
@@ -26,31 +32,58 @@ export function useClientsQuery(options: ClientsQueryOptions = {}) {
     [getScopedUserIds, scopeModule],
   );
 
-  const scopedQuery = useMemo(() => {
+  const baseScopedQuery = useMemo(() => {
     const baseQuery = {
       ...getClientQuery,
       filter: getClientQuery.filter ? [...getClientQuery.filter] : [],
+      limit: pageSize,
     };
 
     return applyScopedFilter(baseQuery, scopedUserIds, userId, {
       field: 'userIds',
       operator: 'hasSome',
     });
-  }, [scopedUserIds, userId]);
-  const enabled = scopedQuery !== null;
+  }, [scopedUserIds, userId, pageSize]);
 
-  return useQuery({
-    queryKey: ['clients', scopeModule, scopedQuery ?? 'no-access'],
-    queryFn: async () => {
-      if (!scopedQuery) {
+  const enabled = baseScopedQuery !== null;
+
+  const query = useInfiniteQuery({
+    queryKey: ['clients', scopeModule, baseScopedQuery ?? 'no-access'],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!baseScopedQuery) {
         return { data: [], count: 0 };
       }
-      return clientService.get(scopedQuery);
+
+      return clientService.get({
+        ...baseScopedQuery,
+        page: pageParam,
+      });
     },
+
+    initialPageParam: 1,
+
+    getNextPageParam: (lastPage, pages) => {
+      const fetched = pages.length * pageSize;
+      return fetched < lastPage.count ? pages.length + 1 : undefined;
+    },
+
     enabled,
-    initialData: { data: [], count: 0 },
     refetchOnWindowFocus: false,
+
+    select: (data) => {
+      const clients = data.pages.flatMap((p) => p.data);
+      const total = data.pages[0]?.count ?? 0;
+
+      return {
+        ...data,
+        clients,
+        count: total,
+        loadedCount: clients.length,
+      };
+    },
   });
+
+  return query;
 }
 
 export const useClientMutation = () => {
@@ -59,21 +92,26 @@ export const useClientMutation = () => {
   const mutationFn = async (input: ClientMutationInput): Promise<Client> => {
     switch (input.type) {
       case 'create':
-        return clientService.create(input?.data as ClientFormDto);
+        return clientService.create(input.data as ClientFormDto);
+
       case 'update':
         return clientService.update(
-          input?.id as string,
-          input?.data as ClientFormDto,
+          input.id as string,
+          input.data as ClientFormDto,
         );
+
       case 'delete':
-        return clientService.delete(input?.id as string);
+        return clientService.delete(input.id as string);
     }
   };
 
   return useMutation<Client, Error, ClientMutationInput>({
     mutationFn,
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({
+        queryKey: ['clients'],
+      });
     },
   });
 };

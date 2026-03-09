@@ -56,7 +56,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
         body: [
           [
             {
-              text: `DADOS DA TAREFA: ${task.title?.toUpperCase()}`,
+              text: `DADOS DA OS: ${task.title?.toUpperCase()}`,
               alignment: 'center',
               fontSize: 12,
               bold: true,
@@ -159,7 +159,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
         body: [
           [
             {
-              text: 'DESCRIÇÃO DA TAREFA',
+              text: 'DESCRIÇÃO DA OS',
               alignment: 'center',
               fontSize: 12,
               bold: true,

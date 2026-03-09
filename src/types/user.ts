@@ -1,6 +1,6 @@
 import { Company, CompanyUserRole } from './company';
 
-const UserRoleEnum = {
+export const UserRoleEnum = {
   SYSTEM_ADMIN: 'SYSTEM_ADMIN',
   USER: 'USER',
 } as const;

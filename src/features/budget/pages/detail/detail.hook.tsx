@@ -1,19 +1,28 @@
-"use client";
+'use client';
 
-import { usePdfGenerator } from "@/hooks/common/pdf";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePdfGenerator } from '@/hooks/common/pdf';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   useBudgetDetailQuery,
   useBudgetMutation,
-} from "../../hooks/queries/budgets.query";
-import { generateBudgetPdfObject } from "../../util/budget-pdf";
+} from '../../hooks/queries/budgets.query';
+import { generateBudgetPdfObject } from '../../util/budget-pdf';
 
 export const useBudgetDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { makeDetailPDF } = usePdfGenerator();
+  const {
+    makeDetailPDF,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
+  } = usePdfGenerator();
   const { budgetId } = useParams();
   const { replace } = useRouter();
 
@@ -29,7 +38,7 @@ export const useBudgetDetail = () => {
   const handleChangeStatus = async (status: string) => {
     if (!budget) return;
     await budgetMutation.mutateAsync({
-      type: "update",
+      type: 'update',
       id: budget.id,
       data: { status } as any,
     });
@@ -37,7 +46,7 @@ export const useBudgetDetail = () => {
   };
 
   const handleBack = () => {
-    if (typeof window !== "undefined") window.history.back();
+    if (typeof window !== 'undefined') window.history.back();
   };
 
   const toggleEditModal = (newValue: boolean) => setEditModalOpen(newValue);
@@ -51,14 +60,14 @@ export const useBudgetDetail = () => {
 
   const handleDelete = async () => {
     if (!budget) return;
-    await budgetMutation.mutateAsync({ type: "delete", id: budget.id });
-    replace("/panel/budgets");
+    await budgetMutation.mutateAsync({ type: 'delete', id: budget.id });
+    replace('/panel/budgets');
   };
 
   const loading = budgetMutation.isPending || isRefetching || isLoading;
 
   useEffect(() => {
-    if (error) replace("/panel/budgets");
+    if (error) replace('/panel/budgets');
   }, [error, replace]);
 
   return {
@@ -71,5 +80,12 @@ export const useBudgetDetail = () => {
     handleDelete,
     refetch,
     handleChangeStatus,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
   };
 };

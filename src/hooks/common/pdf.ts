@@ -1,8 +1,11 @@
+import { firebaseApp } from '@/config/firebase';
 import { useSession } from '@/providers/auth';
 import { companyService } from '@/services/company.service';
 import { getBase64 } from '@/utils/base64';
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
+import { useCallback, useRef, useState } from 'react';
 
 pdfMake.fonts = {
   Roboto: {
@@ -16,9 +19,18 @@ pdfMake.fonts = {
   },
 };
 
+const firebaseStorage = getStorage(firebaseApp);
+
 export const usePdfGenerator = () => {
   const { user } = useSession();
   const company = companyService.getDefaultCompany();
+
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfStorageUrl, setPdfStorageUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState('');
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const blobUrlRef = useRef<string | null>(null);
 
   const getPdfHeaderUrl = async () => {
     if (company?.whiteLabel?.banner) {
@@ -62,10 +74,55 @@ export const usePdfGenerator = () => {
 
     (documentDefinition.content as any).push(...contents);
 
-    pdfMake.createPdf(documentDefinition).download();
+    pdfMake.createPdf(documentDefinition).getBlob(async (blob) => {
+      // Local preview URL
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+      const localUrl = URL.createObjectURL(blob);
+      blobUrlRef.current = localUrl;
+      setPdfBlobUrl(localUrl);
+      setPdfStorageUrl(null);
+      setPdfTitle(title);
+      setPdfModalOpen(true);
+
+      // Upload to Firebase Storage
+      setPdfUploading(true);
+      try {
+        const safeName = title.replace(/[^a-zA-Z0-9\-_]/g, '_').slice(0, 80);
+        const path = `pdfs/${safeName}_${Date.now()}.pdf`;
+        const storageRef = ref(firebaseStorage, path);
+        await uploadBytes(storageRef, blob, { contentType: 'application/pdf' });
+        const downloadUrl = await getDownloadURL(storageRef);
+        setPdfStorageUrl(downloadUrl);
+      } catch (err) {
+        console.error('[pdf] upload error:', err);
+      } finally {
+        setPdfUploading(false);
+      }
+    });
   };
+
+  const downloadPdf = useCallback(() => {
+    if (!blobUrlRef.current || !pdfTitle) return;
+    const a = document.createElement('a');
+    a.href = blobUrlRef.current;
+    a.download = `${pdfTitle}.pdf`;
+    a.click();
+  }, [pdfTitle]);
+
+  const closePdfModal = useCallback(() => {
+    setPdfModalOpen(false);
+  }, []);
 
   return {
     makeDetailPDF,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
   };
 };

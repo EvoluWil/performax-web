@@ -1,14 +1,14 @@
-import { useTaskTypeMutation } from "@/features/task/hooks";
+import { useTaskTypeMutation } from '@/features/task/hooks';
 import {
   TaskTypeFormDto,
   taskTypeFormInitialValues,
   taskTypeFormSchema,
-} from "@/features/task/schemas";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { TaskTypeDrawerProps } from "./task-type";
+} from '@/features/task/schemas';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { TaskTypeDrawerProps } from './task-type';
 
 export const useTaskTypeDrawer = ({
   onClose,
@@ -24,7 +24,7 @@ export const useTaskTypeDrawer = ({
 
   const handleTaskType = handleSubmit(async (data: TaskTypeFormDto) => {
     const result = await taskTypeMutation.mutateAsync({
-      type: taskType ? "update" : "create",
+      type: taskType ? 'update' : 'create',
       data: data,
       id: taskType?.id,
     });
@@ -32,8 +32,8 @@ export const useTaskTypeDrawer = ({
     if (result) {
       toast.success(
         taskType
-          ? "Tipo de tarefa atualizado com sucesso"
-          : "Tipo de tarefa criado com sucesso"
+          ? 'Tipo de OS atualizado com sucesso'
+          : 'Tipo de OS criado com sucesso',
       );
       handleClose();
       onClose();

@@ -184,6 +184,9 @@ export const TaskList = () => {
     selectedColumnsKeys,
     defaultColumns,
     tableKey,
+    pagination,
+    handlePaginationChange,
+    count,
   } = useTaskList();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('task', 'write');
@@ -195,7 +198,7 @@ export const TaskList = () => {
   if (canEdit) {
     tableActions.push({
       icon: () => <EditOutlined />,
-      label: () => 'Editar tarefa',
+      label: () => 'Editar OS',
       onClick: (task) => handleSelectTaskToEdit(task),
     });
   }
@@ -203,7 +206,7 @@ export const TaskList = () => {
   if (canAdmin) {
     tableActions.push({
       icon: () => <DeleteOutlined />,
-      label: () => 'Excluir tarefa',
+      label: () => 'Excluir OS',
       onClick: (task) => handleDeleteTask(task.id),
     });
   }
@@ -214,10 +217,12 @@ export const TaskList = () => {
 
   return (
     <>
-      {loading && <Loading fullScreen message="Carregando tarefas..." />}
+      {loading && (
+        <Loading fullScreen message="Carregando ordens de serviço..." />
+      )}
 
       <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
-        TAREFAS
+        ORDENS DE SERVIÇO
       </Typography>
 
       <ListHeader
@@ -225,7 +230,7 @@ export const TaskList = () => {
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por titulo, descrição ou protocolo"
-        addTitle="Adicionar tarefa"
+        addTitle="Adicionar OS"
         onShowFilters={toggleShowFilter}
         viewMode={viewMode}
         onToggleView={toggleView}
@@ -247,6 +252,9 @@ export const TaskList = () => {
           onRowClick={handleRowClick}
           loading={loading}
           actions={tableActions}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
+          rowCount={count}
         />
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>

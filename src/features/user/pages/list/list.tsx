@@ -1,72 +1,72 @@
-"use client";
+'use client';
 
-import { Table } from "@/components/common";
-import { ListHeader } from "@/components/common/list-header/list-header";
-import { Actions } from "@/components/common/table/table";
+import { Table } from '@/components/common';
+import { ListHeader } from '@/components/common/list-header/list-header';
+import { Actions } from '@/components/common/table/table';
 import {
   UserClientsDrawer,
   UserDrawer,
   UserRoleDrawer,
   UserSubordinatesDrawer,
-} from "@/features/user/components";
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { User } from "@/types/user";
-import { formatCpf } from "@/utils/cpf";
+} from '@/features/user/components';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { User } from '@/types/user';
+import { formatCpf } from '@/utils/cpf';
 import {
   AddModeratorOutlined,
   DeleteOutlined,
   GroupAddOutlined,
   HandshakeOutlined,
-} from "@mui/icons-material";
-import { Typography } from "@mui/material";
-import { MRT_ColumnDef } from "material-react-table";
-import { useUserList } from "./list.hook";
+} from '@mui/icons-material';
+import { Typography } from '@mui/material';
+import { MRT_ColumnDef } from 'material-react-table';
+import { useUserList } from './list.hook';
 
 const resolveRoleLabel = (data: User & { isOwner?: boolean }) => {
   if (data.isOwner) {
-    return "Proprietário";
+    return 'Proprietário';
   }
 
   const userRole = data.companyUser?.[0]?.role;
 
   if (userRole) {
-    return (userRole as any).name || "Usuário";
+    return (userRole as any).name || 'Usuário';
   }
 
-  return "Sem cargo";
+  return 'Sem cargo';
 };
 
 const columns: MRT_ColumnDef<User>[] = [
   {
-    accessorKey: "name",
-    header: "Nome",
+    accessorKey: 'name',
+    header: 'Nome',
   },
   {
-    accessorKey: "email",
-    header: "E-mail",
+    accessorKey: 'email',
+    header: 'E-mail',
   },
   {
-    accessorKey: "cpf",
-    header: "CPF",
+    accessorKey: 'cpf',
+    header: 'CPF',
     muiTableHeadCellProps: {
-      align: "center",
+      align: 'center',
     },
     muiTableBodyCellProps: {
-      align: "center",
+      align: 'center',
     },
     Cell({ cell }: any) {
       return formatCpf(cell.getValue());
     },
   },
   {
-    id: "role",
+    id: 'role',
     accessorFn: (row) => resolveRoleLabel(row as User & { isOwner?: boolean }),
-    header: "Função",
+    header: 'Função',
     muiTableHeadCellProps: {
-      align: "center",
+      align: 'center',
     },
     muiTableBodyCellProps: {
-      align: "center",
+      align: 'center',
     },
     Cell({ cell }: any) {
       return cell.getValue();
@@ -97,10 +97,13 @@ export const UserList = () => {
     handleUpdateUserSubordinates,
     handleUpdateUserClients,
     handleSelectUserToEdit,
+    pagination,
+    handlePaginationChange,
+    count,
   } = useUserList();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission("user", "write");
-  const canAdmin = permissionsReady && hasPermission("user", "admin");
+  const canWrite = permissionsReady && hasPermission('user', 'write');
+  const canAdmin = permissionsReady && hasPermission('user', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<User>[] = [];
@@ -108,7 +111,7 @@ export const UserList = () => {
   if (canAdmin) {
     actions.push({
       icon: () => <DeleteOutlined />,
-      label: () => "Excluir usuário",
+      label: () => 'Excluir usuário',
       onClick: (user) => handleDeleteUser(user.id),
     });
   }
@@ -118,19 +121,19 @@ export const UserList = () => {
       {
         icon: () => <AddModeratorOutlined />,
         label: (user) =>
-          user.companyUser?.length ? "Alterar cargo" : "Adicionar cargo",
+          user.companyUser?.length ? 'Alterar cargo' : 'Adicionar cargo',
         onClick: handleUpdateUserRole,
       },
       {
         icon: () => <GroupAddOutlined />,
-        label: () => "Gerenciar subordinados",
+        label: () => 'Gerenciar subordinados',
         onClick: handleUpdateUserSubordinates,
       },
       {
         icon: () => <HandshakeOutlined />,
-        label: () => "Gerenciar clientes",
+        label: () => 'Gerenciar clientes',
         onClick: handleUpdateUserClients,
-      }
+      },
     );
   }
 
@@ -155,6 +158,9 @@ export const UserList = () => {
         onReload={handleReload}
         onRowClick={canEdit ? handleSelectUserToEdit : () => null}
         actions={actions}
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
+        rowCount={count}
       />
 
       {openModal && (

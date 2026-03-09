@@ -26,12 +26,18 @@ export const useTaskDrawer = ({
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
-  const { data: clientsResponse } = useClientsQuery({ scopeModule: 'client' });
+  const { data: clientsQueryData } = useClientsQuery({
+    scopeModule: 'client',
+    pageSize: 1000,
+  });
+  const clients = clientsQueryData?.clients ?? [];
   const { data: taskTypes } = useTaskTypesQuery();
-  const { data: usersResponse } = useUsersQuery({ scopeModule: 'task' });
+  const { data: usersResponse } = useUsersQuery({
+    scopeModule: 'task',
+    pageSize: 1000,
+  });
 
-  const clients = clientsResponse?.data || [];
-  const users = usersResponse?.data || [];
+  const users = usersResponse?.users || [];
 
   const options = useMemo(() => {
     return {
@@ -68,7 +74,7 @@ export const useTaskDrawer = ({
 
     if (result) {
       toast.success(
-        task ? 'Tarefa atualizada com sucesso' : 'Tarefa criada com sucesso',
+        task ? 'OS atualizada com sucesso' : 'OS criada com sucesso',
       );
       handleClose();
       onClose();

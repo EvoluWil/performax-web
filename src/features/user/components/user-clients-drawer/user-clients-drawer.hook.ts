@@ -1,17 +1,17 @@
-import { useClientsQuery } from "@/features/client/hooks";
-import { Client } from "@/features/client/types";
-import { useUserRolesQuery } from "@/features/user/hooks";
+import { useClientsQuery } from '@/features/client/hooks';
+import { Client } from '@/features/client/types';
+import { useUserRolesQuery } from '@/features/user/hooks';
 import {
   UserClientsFormDto,
   userClientsFormInitialValues,
   userClientsFormSchema,
-} from "@/features/user/schemas";
-import { User } from "@/types/user";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { useUserRoleClientsMutation } from "../../hooks/queries/user-role.query";
+} from '@/features/user/schemas';
+import { User } from '@/types/user';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { useUserRoleClientsMutation } from '../../hooks/queries/user-role.query';
 
 export type UserClientsDrawerProps = {
   open: boolean;
@@ -25,10 +25,13 @@ export const useUserClientsDrawer = ({
   user,
 }: UserClientsDrawerProps) => {
   const mutation = useUserRoleClientsMutation();
-  const { data: clientsData } = useClientsQuery({ scopeModule: "client" });
+  const { data: clientsData } = useClientsQuery({
+    scopeModule: 'client',
+    pageSize: 1000,
+  });
   const { data: currentAssignments } = useUserRolesQuery(
-    user?.id || "",
-    !!user?.id
+    user?.id || '',
+    !!user?.id,
   );
 
   const { control, handleSubmit, reset, watch, setValue } =
@@ -37,12 +40,12 @@ export const useUserClientsDrawer = ({
       resolver: yupResolver(userClientsFormSchema),
     });
 
-  const watchedClientIds = watch("clientIds") || [];
+  const watchedClientIds = watch('clientIds') || [];
 
-  const availableClients: Client[] = clientsData?.data || [];
+  const availableClients: Client[] = clientsData?.clients || [];
 
   const selectedClients = availableClients.filter((client) =>
-    watchedClientIds.includes(client.id)
+    watchedClientIds.includes(client.id),
   );
 
   const handleAssignClients = handleSubmit(async (data: UserClientsFormDto) => {
@@ -53,7 +56,7 @@ export const useUserClientsDrawer = ({
       data,
     });
 
-    toast.success("Clientes atualizados com sucesso");
+    toast.success('Clientes atualizados com sucesso');
     handleClose();
   });
 
@@ -63,7 +66,7 @@ export const useUserClientsDrawer = ({
   };
 
   useEffect(() => {
-    setValue("clientIds", currentAssignments?.clientIds || []);
+    setValue('clientIds', currentAssignments?.clientIds || []);
   }, [currentAssignments, setValue]);
 
   return {

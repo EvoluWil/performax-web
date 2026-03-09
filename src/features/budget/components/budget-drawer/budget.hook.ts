@@ -1,19 +1,19 @@
-import { useClientsQuery } from "@/features/client/hooks";
-import { useUsersQuery } from "@/features/user/hooks";
-import { formatterSelectOptions } from "@/utils/select";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
-import { useBudgetTypesQuery } from "../../hooks/queries/budget-types.query";
-import { useBudgetMutation } from "../../hooks/queries/budgets.query";
+import { useClientsQuery } from '@/features/client/hooks';
+import { useUsersQuery } from '@/features/user/hooks';
+import { formatterSelectOptions } from '@/utils/select';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { useBudgetTypesQuery } from '../../hooks/queries/budget-types.query';
+import { useBudgetMutation } from '../../hooks/queries/budgets.query';
 import {
   BudgetFormDto,
   budgetFormInitialValues,
   budgetFormSchema,
-} from "../../schemas/budget-drawer.schema";
-import { budgetService } from "../../services/budget.service";
-import type { Budget } from "../../types/budget";
+} from '../../schemas/budget-drawer.schema';
+import { budgetService } from '../../services/budget.service';
+import type { Budget } from '../../types/budget';
 type HookProps = {
   onClose: () => void;
   open: boolean;
@@ -30,24 +30,26 @@ export const useBudgetDrawer = ({
   const budget = selectedBudget || null;
   const [loading, setLoading] = useState(false);
 
-  const { data: clientsResponse } = useClientsQuery({ scopeModule: "client" });
+  const { data: clientsQueryData } = useClientsQuery({
+    scopeModule: 'client',
+    pageSize: 1000,
+  });
+  const clients = clientsQueryData?.clients ?? [];
 
   const { data: budgetTypes } = useBudgetTypesQuery();
 
-  const { data: usersResponse } = useUsersQuery({ scopeModule: "budget" });
+  const { data: usersResponse } = useUsersQuery({
+    scopeModule: 'budget',
+    pageSize: 1000,
+  });
 
-  const { clients, users } = useMemo(() => {
-    return {
-      clients: clientsResponse?.data || [],
-      users: usersResponse?.data || [],
-    };
-  }, [clientsResponse, usersResponse]);
+  const users = usersResponse?.users || [];
 
   const options = useMemo(() => {
     return {
-      clients: formatterSelectOptions(clients, "id", "name"),
-      types: formatterSelectOptions(budgetTypes, "id", "name"),
-      users: formatterSelectOptions(users, "id", "name"),
+      clients: formatterSelectOptions(clients, 'id', 'name'),
+      types: formatterSelectOptions(budgetTypes, 'id', 'name'),
+      users: formatterSelectOptions(users, 'id', 'name'),
     };
   }, [clients, budgetTypes, users]);
 
@@ -69,7 +71,7 @@ export const useBudgetDrawer = ({
     try {
       setLoading(true);
       const result = await mutation.mutateAsync({
-        type: budget ? "update" : "create",
+        type: budget ? 'update' : 'create',
         id: budget?.id,
         data: payload,
       });
@@ -77,8 +79,8 @@ export const useBudgetDrawer = ({
       if (result) {
         toast.success(
           budget
-            ? "Orçamento atualizado com sucesso"
-            : "Orçamento criado com sucesso"
+            ? 'Orçamento atualizado com sucesso'
+            : 'Orçamento criado com sucesso',
         );
         handleClose();
         onClose();
@@ -86,7 +88,7 @@ export const useBudgetDrawer = ({
       }
     } catch (e) {
       console.error(e);
-      toast.error("Erro ao salvar orçamento");
+      toast.error('Erro ao salvar orçamento');
     } finally {
       setLoading(false);
     }
@@ -100,16 +102,16 @@ export const useBudgetDrawer = ({
   useEffect(() => {
     const fill = (b: Budget) => {
       reset({
-        title: b.title || "",
-        description: b.description || "",
-        observation: b.observation || "",
-        value: (b.value as any) ?? "",
-        clientId: (b.client as any)?.id || b.clientId || "",
-        typeId: b.typeId || "",
-        responsibleId: (b.responsible as any)?.id || b.responsibleId || "",
+        title: b.title || '',
+        description: b.description || '',
+        observation: b.observation || '',
+        value: (b.value as any) ?? '',
+        clientId: (b.client as any)?.id || b.clientId || '',
+        typeId: b.typeId || '',
+        responsibleId: (b.responsible as any)?.id || b.responsibleId || '',
         items: (b.items || []).map((it: any) => ({
-          label: it?.label ?? "",
-          type: it?.type ?? "PRODUCT",
+          label: it?.label ?? '',
+          type: it?.type ?? 'PRODUCT',
           quantity: it?.quantity ?? 1,
           value: it?.value ?? 0,
         })),

@@ -1,9 +1,9 @@
-import { BaseDrawer } from "@/components/drawer";
-import { ButtonGroup, TextInput } from "@/components/inputs";
-import { TaskType } from "@/features/task/types";
-import { Box, Button } from "@mui/material";
-import { Controller } from "react-hook-form";
-import { useTaskTypeDrawer } from "./task-type.hook";
+import { BaseDrawer } from '@/components/drawer';
+import { ButtonGroup, TextInput } from '@/components/inputs';
+import { TaskType } from '@/features/task/types';
+import { Box, Button } from '@mui/material';
+import { Controller } from 'react-hook-form';
+import { useTaskTypeDrawer } from './task-type.hook';
 
 export type TaskTypeDrawerProps = {
   open: boolean;
@@ -20,7 +20,7 @@ export const TaskTypeDrawer: React.FC<TaskTypeDrawerProps> = (props) => {
       open={open}
       setOpen={handleClose}
       height="auto"
-      title={editing ? "Editar Tipo de Tarefa" : "Novo Tipo de Tarefa"}
+      title={editing ? 'Editar Tipo de OS' : 'Novo Tipo de OS'}
       content={
         <Box
           gap={2}
@@ -31,11 +31,7 @@ export const TaskTypeDrawer: React.FC<TaskTypeDrawerProps> = (props) => {
           flexDirection="column"
           flex={1}
         >
-          <TextInput
-            label="Nome do tipo de tarefa"
-            name="name"
-            control={control}
-          />
+          <TextInput label="Nome do tipo de OS" name="name" control={control} />
 
           <Controller
             name="needApprove"
@@ -43,14 +39,14 @@ export const TaskTypeDrawer: React.FC<TaskTypeDrawerProps> = (props) => {
             render={({ field }) => (
               <ButtonGroup
                 label="Necessita aprovação?"
-                value={field.value ? "true" : "false"}
-                onChange={(value) => field.onChange(value === "true")}
+                value={field.value ? 'true' : 'false'}
+                onChange={(value) => field.onChange(value === 'true')}
                 options={[
-                  { value: "true", label: "Sim" },
-                  { value: "false", label: "Não" },
+                  { value: 'true', label: 'Sim' },
+                  { value: 'false', label: 'Não' },
                 ]}
                 variant="outlined"
-                sx={{ width: "100%" }}
+                sx={{ width: '100%' }}
               />
             )}
           />

@@ -1,13 +1,13 @@
-import { TextInput } from "@/components/inputs";
+import { TextInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from "@/components/modal";
-import { CloseOutlined } from "@mui/icons-material";
-import { Box, Button, Typography } from "@mui/material";
-import React from "react";
-import { useImpediment } from "./impediment.hook";
+} from '@/components/modal';
+import { CloseOutlined } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
+import React from 'react';
+import { useImpediment } from './impediment.hook';
 
 export type ImpedimentModalProps = {
   open: boolean;
@@ -33,12 +33,12 @@ export const ImpedimentModal: React.FC<ImpedimentModalProps> = ({
           <CloseOutlined />
         </CloseButtonStyled>
 
-        <Typography variant="h6">Impedir tarefa</Typography>
+        <Typography variant="h6">Impedir OS</Typography>
 
         <TextInput
           label="Motivo do impedimento"
           name="impedimentNote"
-          placeholder="Descreva o motivo do impedimento da tarefa..."
+          placeholder="Descreva o motivo do impedimento da OS..."
           control={control}
           defaultValue=""
           fullWidth
@@ -47,7 +47,7 @@ export const ImpedimentModal: React.FC<ImpedimentModalProps> = ({
         />
 
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}
         >
           <Button
             variant="outlined"

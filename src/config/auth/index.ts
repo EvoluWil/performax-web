@@ -1,21 +1,36 @@
 import { authService } from '@/features/auth/services/auth.service';
 import { NextAuthOptions } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { api } from '../api';
 
-// async function refreshAccessToken(refreshToken: string) {
-//   try {
-//     const result = await authService.refreshToken(refreshToken);
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: token.session?.refreshToken }),
+      },
+    );
 
-//     if (result) {
-//       return result;
-//     }
+    if (!response.ok) {
+      return { ...token, error: 'RefreshAccessTokenError' as const };
+    }
 
-//     return null;
-//   } catch {
-//     return null;
-//   }
-// }
+    const data = await response.json();
+
+    return {
+      ...token,
+      user: data.user,
+      session: data.session,
+      error: undefined,
+    };
+  } catch {
+    return { ...token, error: 'RefreshAccessTokenError' as const };
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -52,32 +67,23 @@ export const authOptions: NextAuthOptions = {
         token.session = user?.session || {};
       }
 
+      if (!token.session?.refreshToken) {
+        return token;
+      }
+
       if (
         token.session?.accessTokenExpires &&
-        Date.now() < token.session.accessTokenExpires
+        Date.now() < token.session.accessTokenExpires - 30_000
       ) {
         return token;
       }
-      console.warn('Access token expired, refreshing...');
-      // const result = await refreshAccessToken(token.session?.refreshToken);
-      // console.log('Result from refreshAccessToken:', result);
-      // if (result) {
-      //   token.user = result.user;
-      //   token.session = result.session;
-      //   return token;
-      // }
-      console.warn('RefreshAccessToken failed');
-      return token;
-      // return {
-      //   ...token,
-      //   user: null as any,
-      //   session: null as any,
-      //   error: 'RefreshAccessTokenError',
-      // };
+
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       session.user = token.user;
       session.session = token.session;
+      session.error = token.error;
 
       api.defaults.headers.common.Authorization = `Bearer ${token.session?.accessToken}`;
       return session;

@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
 import {
   useChecklistMutation,
   useTaskDetailQuery,
   useTaskMutation,
-} from "@/features/task/hooks";
-import { usePdfGenerator } from "@/hooks/common/pdf";
-import { useUpload } from "@/hooks/common/upload";
-import { hasIncompleteChecklist } from "@/utils/checklist";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import swal from "sweetalert2";
-import { ConclusionSchemaType } from "../../components";
-import { ChecklistItemDto } from "../../types";
-import { generateTaskPdfObject } from "../../util/task-pdf";
+} from '@/features/task/hooks';
+import { usePdfGenerator } from '@/hooks/common/pdf';
+import { useUpload } from '@/hooks/common/upload';
+import { hasIncompleteChecklist } from '@/utils/checklist';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import swal from 'sweetalert2';
+import { ConclusionSchemaType } from '../../components';
+import { ChecklistItemDto } from '../../types';
+import { generateTaskPdfObject } from '../../util/task-pdf';
 
 export const useTaskDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -22,7 +22,16 @@ export const useTaskDetail = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { sendFiles } = useUpload();
-  const { makeDetailPDF } = usePdfGenerator();
+  const {
+    makeDetailPDF,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
+  } = usePdfGenerator();
   const { taskId } = useParams();
   const { replace } = useRouter();
   const {
@@ -36,7 +45,7 @@ export const useTaskDetail = () => {
   const checklistMutation = useChecklistMutation();
 
   const handleBack = () => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       window.history.back();
     }
   };
@@ -44,29 +53,29 @@ export const useTaskDetail = () => {
   const handleStart = async () => {
     try {
       await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         id: task?.id,
-        data: { status: "IN_PROGRESS" },
+        data: { status: 'IN_PROGRESS' },
       });
       refetch();
     } catch (err: any) {
-      window.alert("Falha ao iniciar a tarefa: " + (err?.message || err));
+      window.alert('Falha ao iniciar a OS: ' + (err?.message || err));
     }
   };
 
   const handleCancel = async () => {
     try {
       await swal.fire({
-        title: "Cancelar tarefa",
-        text: "Tem certeza que deseja cancelar esta tarefa? Esta ação não pode ser desfeita.",
-        icon: "warning",
+        title: 'Cancelar OS',
+        text: 'Tem certeza que deseja cancelar esta OS? Esta ação não pode ser desfeita.',
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: "Sim, cancelar",
+        confirmButtonText: 'Sim, cancelar',
         preConfirm: async () => {
           await taskMutation.mutateAsync({
-            type: "update",
+            type: 'update',
             id: task?.id,
-            data: { status: "REJECTED" },
+            data: { status: 'REJECTED' },
           });
           refetch();
         },
@@ -83,9 +92,9 @@ export const useTaskDetail = () => {
   const handleImpediment = async (impedimentNote: string) => {
     try {
       const a = await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         id: task?.id,
-        data: { status: "IMPEDED", impedimentNote },
+        data: { status: 'IMPEDED', impedimentNote },
       });
       if (a) {
         setImpedimentModalOpen(false);
@@ -102,33 +111,33 @@ export const useTaskDetail = () => {
 
   const handleDownloadPdf = async () => {
     const contents = await generateTaskPdfObject(task);
-    await makeDetailPDF(`Tarefa - ${task?.title}`, contents);
+    await makeDetailPDF(`OS - ${task?.title}`, contents);
     setIsLoading(false);
   };
 
   const handleResolved = async () => {
     try {
       await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         id: task?.id,
-        data: { status: "OPEN" },
+        data: { status: 'OPEN' },
       });
       refetch();
     } catch (err: any) {
-      window.alert("Falha ao resolver impedimento: " + (err?.message || err));
+      window.alert('Falha ao resolver impedimento: ' + (err?.message || err));
     }
   };
 
   const handleReOpen = async () => {
     try {
       await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         id: task?.id,
-        data: { status: "OPEN" },
+        data: { status: 'OPEN' },
       });
       refetch();
     } catch (err: any) {
-      window.alert("Falha ao reabrir a tarefa: " + (err?.message || err));
+      window.alert('Falha ao reabrir a OS: ' + (err?.message || err));
     }
   };
 
@@ -140,17 +149,17 @@ export const useTaskDetail = () => {
       if (payload.files && payload.files.length > 0) {
         const files = await sendFiles(
           payload.files as any,
-          `tasks/${task?.id}/conclusion`
+          `tasks/${task?.id}/conclusion`,
         );
         conclusionFiles.push(...files);
       }
 
       await taskMutation.mutateAsync({
-        type: "update",
+        type: 'update',
         id: task?.id,
         data: {
           ...{
-            status: "CLOSED",
+            status: 'CLOSED',
             conclusionNote: payload.conclusionNote,
             conclusionFiles: conclusionFiles,
           },
@@ -159,13 +168,13 @@ export const useTaskDetail = () => {
       setConclusionModalOpen(false);
       refetch();
     } catch (err: any) {
-      window.alert("Falha ao finalizar a tarefa: " + (err?.message || err));
+      window.alert('Falha ao finalizar a OS: ' + (err?.message || err));
     }
   };
 
   const handleUpdateChecklistItem = async (
     item: ChecklistItemDto,
-    checklistId: string
+    checklistId: string,
   ) => {
     const result = await checklistMutation.mutateAsync({
       checklistId,
@@ -190,7 +199,7 @@ export const useTaskDetail = () => {
 
   useEffect(() => {
     if (error) {
-      replace("/panel/tasks");
+      replace('/panel/tasks');
     }
   }, [error, replace]);
 
@@ -214,5 +223,12 @@ export const useTaskDetail = () => {
     handleFinalize,
     handleUpdateChecklistItem,
     taskChecklistIncomplete,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
   };
 };

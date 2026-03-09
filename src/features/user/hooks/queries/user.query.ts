@@ -3,7 +3,11 @@ import { getUserQuery, userService } from '@/features/user/services';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { User } from '@/types/user';
 import { applyScopedFilter } from '@/utils/query';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 type UserMutationInput = {
@@ -14,10 +18,11 @@ type UserMutationInput = {
 
 type UsersQueryOptions = {
   scopeModule?: string;
+  pageSize?: number;
 };
 
 export function useUsersQuery(options: UsersQueryOptions = {}) {
-  const scopeModule = options.scopeModule ?? 'user';
+  const { scopeModule = 'user', pageSize = getUserQuery.limit ?? 30 } = options;
   const { getScopedUserIds, userId } = useCompanyPermissions();
 
   const scopedUserIds = useMemo(
@@ -25,31 +30,44 @@ export function useUsersQuery(options: UsersQueryOptions = {}) {
     [getScopedUserIds, scopeModule],
   );
 
-  const scopedQuery = useMemo(() => {
+  const baseScopedQuery = useMemo(() => {
     const baseQuery = {
       ...getUserQuery,
       filter: getUserQuery.filter ? [...getUserQuery.filter] : [],
+      limit: pageSize,
     };
 
     return applyScopedFilter(baseQuery, scopedUserIds, userId, {
       field: 'id',
       operator: 'in',
     });
-  }, [scopedUserIds, userId]);
-  const enabled = scopedQuery !== null;
+  }, [scopedUserIds, userId, pageSize]);
 
-  return useQuery({
-    queryKey: ['users', scopeModule, scopedQuery ?? 'no-access'],
-    queryFn: async () => {
-      if (!scopedQuery) {
+  const enabled = baseScopedQuery !== null;
+
+  const query = useInfiniteQuery({
+    queryKey: ['users', scopeModule, baseScopedQuery ?? 'no-access'],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!baseScopedQuery) {
         return { data: [], count: 0 };
       }
-      return userService.get(scopedQuery);
+      return userService.get({ ...baseScopedQuery, page: pageParam });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => {
+      const fetched = pages.length * pageSize;
+      return fetched < lastPage.count ? pages.length + 1 : undefined;
     },
     enabled,
-    initialData: { data: [], count: 0 },
     refetchOnWindowFocus: false,
+    select: (data) => {
+      const users = data.pages.flatMap((p) => p.data);
+      const total = data.pages[0]?.count ?? 0;
+      return { ...data, users, count: total };
+    },
   });
+
+  return query;
 }
 
 export const useUserMutation = () => {

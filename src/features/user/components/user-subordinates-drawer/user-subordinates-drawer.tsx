@@ -1,6 +1,6 @@
-import { BaseDrawer } from "@/components/drawer";
-import { SelectInput } from "@/components/inputs";
-import { formatCpf } from "@/utils/cpf";
+import { BaseDrawer } from '@/components/drawer';
+import { SelectInput } from '@/components/inputs';
+import { formatCpf } from '@/utils/cpf';
 import {
   Box,
   Button,
@@ -8,16 +8,16 @@ import {
   ListItem,
   ListItemText,
   Typography,
-} from "@mui/material";
+} from '@mui/material';
 import {
   UserSubordinatesDrawerProps,
   useUserSubordinatesDrawer,
-} from "./user-subordinates-drawer.hook";
+} from './user-subordinates-drawer.hook';
 
 export type { UserSubordinatesDrawerProps };
 
 export const UserSubordinatesDrawer: React.FC<UserSubordinatesDrawerProps> = (
-  props
+  props,
 ) => {
   const {
     control,
@@ -49,7 +49,7 @@ export const UserSubordinatesDrawer: React.FC<UserSubordinatesDrawerProps> = (
           justifyContent="center"
           flexDirection="column"
           flex={1}
-          maxWidth={316}
+          width="100%"
         >
           <SelectInput
             name="targetIds"
@@ -71,10 +71,10 @@ export const UserSubordinatesDrawer: React.FC<UserSubordinatesDrawerProps> = (
                     key={user.id}
                     sx={{
                       border: 1,
-                      borderColor: "divider",
+                      borderColor: 'divider',
                       borderRadius: 1,
                       mb: 1,
-                      backgroundColor: "background.paper",
+                      backgroundColor: 'background.paper',
                     }}
                   >
                     <ListItemText
@@ -92,9 +92,9 @@ export const UserSubordinatesDrawer: React.FC<UserSubordinatesDrawerProps> = (
           {selectedUsers.length === 0 && (
             <Box
               sx={{
-                textAlign: "center",
+                textAlign: 'center',
                 py: 4,
-                color: "text.secondary",
+                color: 'text.secondary',
               }}
             >
               <Typography variant="body2">

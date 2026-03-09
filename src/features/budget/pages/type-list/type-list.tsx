@@ -1,18 +1,22 @@
-"use client";
+'use client';
 
-import { ListHeader, Table } from "@/components/common";
-import { Actions } from "@/components/common/table/table";
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { DeleteOutlined } from "@mui/icons-material";
-import { Typography } from "@mui/material";
-import { MRT_ColumnDef } from "material-react-table";
-import { BudgetTypeDrawer } from "../../components/budget-type-drawer/budget-type";
-import { BudgetType } from "../../types/budget-type";
-import { useBudgetTypeList } from "./type-list.hook";
+import { ListHeader, Table } from '@/components/common';
+import { Actions } from '@/components/common/table/table';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { DeleteOutlined } from '@mui/icons-material';
+import { Typography } from '@mui/material';
+import { MRT_ColumnDef } from 'material-react-table';
+import { BudgetTypeDrawer } from '../../components/budget-type-drawer/budget-type';
+import { BudgetType } from '../../types/budget-type';
+import { useBudgetTypeList } from './type-list.hook';
 
 const columns: MRT_ColumnDef<BudgetType>[] = [
-  { accessorKey: "name", header: "Nome" },
-  { accessorKey: "needApprove", header: "Precisa Aprovação?" },
+  { accessorKey: 'name', header: 'Nome' },
+  {
+    accessorKey: 'needApprove',
+    header: 'Precisa Aprovação?',
+    Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'),
+  },
 ];
 
 export const BudgetTypeList = () => {
@@ -28,8 +32,8 @@ export const BudgetTypeList = () => {
     handleSelectBudgetTypeToEdit,
   } = useBudgetTypeList();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission("budget", "write");
-  const canAdmin = permissionsReady && hasPermission("budget", "admin");
+  const canWrite = permissionsReady && hasPermission('budget', 'write');
+  const canAdmin = permissionsReady && hasPermission('budget', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<BudgetType>[] = [];
@@ -37,7 +41,7 @@ export const BudgetTypeList = () => {
   if (canAdmin) {
     actions.push({
       icon: () => <DeleteOutlined />,
-      label: () => "Excluir tipo de orçamento",
+      label: () => 'Excluir tipo de orçamento',
       onClick: (type) => handleDeleteBudgetType(type.id),
     });
   }

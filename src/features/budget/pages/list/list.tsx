@@ -1,67 +1,67 @@
-"use client";
+'use client';
 
-import { ListHeader, Table } from "@/components/common";
-import { Loading } from "@/components/common/loading/loading";
-import { Actions } from "@/components/common/table/table";
-import { CustomizeColumnsModal } from "@/components/modal/customize-columns/customize-columns.modal";
-import { useCompanyPermissions } from "@/hooks/common/permission";
-import { formatDate } from "@/utils/date";
-import { DeleteOutlined, EditOutlined } from "@mui/icons-material";
-import { Box, Chip, Typography } from "@mui/material";
-import { MRT_ColumnDef } from "material-react-table";
-import { BudgetCard } from "../../components/budget-card/budget-card";
-import { BudgetDrawer } from "../../components/budget-drawer/budget";
-import { BudgetFilter } from "../../components/budget-filter/budget-filter";
+import { ListHeader, Table } from '@/components/common';
+import { Loading } from '@/components/common/loading/loading';
+import { Actions } from '@/components/common/table/table';
+import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { formatDate } from '@/utils/date';
+import { DeleteOutlined, EditOutlined } from '@mui/icons-material';
+import { Box, Chip, Typography } from '@mui/material';
+import { MRT_ColumnDef } from 'material-react-table';
+import { BudgetCard } from '../../components/budget-card/budget-card';
+import { BudgetDrawer } from '../../components/budget-drawer/budget';
+import { BudgetFilter } from '../../components/budget-filter/budget-filter';
 import {
   Budget,
   BudgetStatusEnum,
   budgetStatusLabels,
-} from "../../types/budget";
-import { useBudgetList } from "./list.hook";
+} from '../../types/budget';
+import { useBudgetList } from './list.hook';
 
 const columns: MRT_ColumnDef<Budget>[] = [
-  { accessorKey: "protocol", header: "Protocolo" },
-  { accessorKey: "title", header: "Título" },
+  { accessorKey: 'protocol', header: 'Protocolo' },
+  { accessorKey: 'title', header: 'Título' },
   {
-    accessorKey: "client",
-    header: "Cliente",
+    accessorKey: 'client',
+    header: 'Cliente',
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
   },
   {
-    accessorKey: "responsible",
-    header: "Responsável",
+    accessorKey: 'responsible',
+    header: 'Responsável',
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
   },
   {
-    accessorKey: "value",
-    header: "Valor",
+    accessorKey: 'value',
+    header: 'Valor',
 
     Cell({ cell }: any) {
-      return Number(cell.getValue()).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
+      return Number(cell.getValue()).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
       });
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Criado em",
+    accessorKey: 'createdAt',
+    header: 'Criado em',
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
     },
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     Cell({ cell }: any) {
       const status = cell.getValue() as BudgetStatusEnum;
       const { label, color } = budgetStatusLabels[status] || {
         label: status,
-        color: "default",
+        color: 'default',
       };
       return (
         <Chip
@@ -99,10 +99,13 @@ export const BudgetList = () => {
     defaultColumns,
     tableKey,
     handleUpdateColumns,
+    pagination,
+    handlePaginationChange,
+    count,
   } = useBudgetList();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission("budget", "write");
-  const canAdmin = permissionsReady && hasPermission("budget", "admin");
+  const canWrite = permissionsReady && hasPermission('budget', 'write');
+  const canAdmin = permissionsReady && hasPermission('budget', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const tableActions: Actions<Budget>[] = [];
@@ -110,7 +113,7 @@ export const BudgetList = () => {
   if (canEdit) {
     tableActions.push({
       icon: () => <EditOutlined />,
-      label: () => "Editar orçamento",
+      label: () => 'Editar orçamento',
       onClick: handleSelectBudgetToEdit,
     });
   }
@@ -118,13 +121,13 @@ export const BudgetList = () => {
   if (canAdmin) {
     tableActions.push({
       icon: () => <DeleteOutlined />,
-      label: () => "Excluir orçamento",
+      label: () => 'Excluir orçamento',
       onClick: (row) => handleDeleteBudget(row.id),
     });
   }
 
   const columnsToShow = columns.filter((col) =>
-    selectedColumnsKeys.includes(col.accessorKey as string)
+    selectedColumnsKeys.includes(col.accessorKey as string),
   );
   const columnsKeys = columns.map((col) => col.accessorKey as string);
 
@@ -154,7 +157,7 @@ export const BudgetList = () => {
         loading={false}
       />
 
-      {viewMode === "table" ? (
+      {viewMode === 'table' ? (
         <Table
           columns={columnsToShow}
           data={budgets || []}
@@ -163,6 +166,9 @@ export const BudgetList = () => {
           onRowClick={handleRowClick}
           loading={loading}
           actions={tableActions}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
+          rowCount={count}
         />
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
@@ -171,10 +177,10 @@ export const BudgetList = () => {
               <Box
                 key={budget.id}
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: { xs: "100%", sm: "auto" },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: { xs: '100%', sm: 'auto' },
                 }}
               >
                 <BudgetCard

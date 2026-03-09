@@ -1,3 +1,4 @@
+import { Pagination } from '@/components/common/table/table';
 import { useTaskMutation, useTasksQuery } from '@/features/task/hooks';
 import { TaskFilterDto } from '@/features/task/schemas';
 import { taskService } from '@/features/task/services';
@@ -25,14 +26,22 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-tasks';
 
 export const useTaskList = () => {
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [filteredCount, setFilteredCount] = useState(0);
+
   const {
-    data: { data: tasks },
+    data,
     refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isRefetching,
     isPending,
     isLoading,
     isFetching,
-  } = useTasksQuery();
+  } = useTasksQuery({ pageSize: pagination.pageSize });
+
+  const tasks = data?.tasks ?? [];
   const { getScopedUserIds, userId } = useCompanyPermissions();
   const [openModal, setOpenModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -80,7 +89,7 @@ export const useTaskList = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     swal.fire({
-      title: 'Tem certeza que deseja excluir esta tarefa?',
+      title: 'Tem certeza que deseja excluir esta OS?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sim, excluir',
@@ -92,7 +101,7 @@ export const useTaskList = () => {
         });
 
         if (result) {
-          toast.success('Tarefa excluída com sucesso');
+          toast.success('OS excluída com sucesso');
         }
       },
     });
@@ -108,17 +117,24 @@ export const useTaskList = () => {
 
   const handleReload = async () => {
     if (!hasTaskAccess) {
-      toast.info('Você não possui permissão para visualizar tarefas.');
+      toast.info(
+        'Você não possui permissão para visualizar ordens de serviço.',
+      );
       return;
     }
 
-    const { data } = await refetch();
-    if (data) {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    const { data: reloadedData } = await refetch();
+    if (reloadedData) {
       toast.success('Dados atualizados com sucesso');
     }
   };
 
-  const handleFilter = async (data: TaskFilterDto, currentTerm = term) => {
+  const handleFilter = async (
+    data: TaskFilterDto,
+    currentTerm = term,
+    page = 1,
+  ) => {
     setFilterLoading(true);
     const filterStatus: Filter = [];
     const filterTerm: Filter = [];
@@ -276,9 +292,14 @@ export const useTaskList = () => {
         return;
       }
 
-      const result = await taskService.get(scopedQuery as any);
+      const result = await taskService.get({
+        ...scopedQuery,
+        limit: pagination.pageSize,
+        page,
+      } as any);
       if (result && result.data) {
         setFilteredTasks(result.data || []);
+        setFilteredCount(result.count ?? 0);
       }
       setShowFilter(false);
     } catch (_err) {
@@ -295,17 +316,55 @@ export const useTaskList = () => {
 
   const handleSearch = async (search: string) => {
     setTerm(search);
-    await handleFilter(filter, search);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    await handleFilter(filter, search, 1);
   };
 
-  const filteredTasksLocal = (
-    hasTaskAccess ? (filteredTasks?.length ? filteredTasks : tasks) : []
-  )?.filter(
+  const activeTasks = hasTaskAccess
+    ? filteredTasks !== null
+      ? filteredTasks
+      : tasks
+    : [];
+
+  const filteredTasksLocal = activeTasks.filter(
     (task) =>
       task.title?.toLowerCase().includes(term.toLowerCase()) ||
       task.description?.toLowerCase().includes(term.toLowerCase()) ||
       task.protocol?.toLowerCase().includes(term.toLowerCase()),
   );
+
+  const count = filteredTasks !== null ? filteredCount : (data?.count ?? 0);
+
+  // Filter active: filteredTasks is already the server page, no slice needed.
+  // No filter: tasks is accumulated; slice for current page.
+  const paginatedTasks =
+    filteredTasks !== null
+      ? filteredTasksLocal
+      : filteredTasksLocal.slice(
+          pagination.pageIndex * pagination.pageSize,
+          (pagination.pageIndex + 1) * pagination.pageSize,
+        );
+
+  const handlePaginationChange = async (newPagination: Pagination) => {
+    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+
+    if (newPagination.pageIndex === pagination.pageIndex) {
+      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      return;
+    }
+
+    setPagination(newPagination);
+
+    if (filteredTasks !== null) {
+      await handleFilter(filter, term, newPagination.pageIndex + 1);
+    } else {
+      const requiredCount =
+        (newPagination.pageIndex + 1) * newPagination.pageSize;
+      if (tasks.length < requiredCount && hasNextPage && !isFetchingNextPage) {
+        await fetchNextPage();
+      }
+    }
+  };
 
   const toggleView = () => {
     setViewMode((v) => (v === 'table' ? 'list' : 'table'));
@@ -330,7 +389,10 @@ export const useTaskList = () => {
   const loading = isPending || isRefetching || isLoading || isFetching;
 
   return {
-    tasks: filteredTasksLocal,
+    tasks: paginatedTasks,
+    count,
+    pagination,
+    handlePaginationChange,
     viewMode,
     toggleView,
     openModal,
