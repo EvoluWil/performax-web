@@ -111,35 +111,13 @@ export const useTaskList = () => {
     setOpenCustomizeColumnsModal((prev) => !prev);
   };
 
-  const handleUpdateColumns = (columns: string[]) => {
-    setSelectedColumnsKeys(columns);
-  };
-
-  const handleReload = async () => {
-    if (!hasTaskAccess) {
-      toast.info(
-        'Você não possui permissão para visualizar ordens de serviço.',
-      );
-      return;
-    }
-
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    const { data: reloadedData } = await refetch();
-    if (reloadedData) {
-      toast.success('Dados atualizados com sucesso');
-    }
-  };
-
-  const handleFilter = async (
+  const buildTaskFilterQuery = (
     data: TaskFilterDto,
     currentTerm = term,
-    page = 1,
-  ) => {
-    setFilterLoading(true);
+  ): Query => {
     const filterStatus: Filter = [];
     const filterTerm: Filter = [];
 
-    setFilter(data);
     if (currentTerm) {
       const termFields: Filter = ['title', 'description', 'protocol'].map(
         (field) => ({
@@ -168,6 +146,7 @@ export const useTaskList = () => {
       }));
       filterStatus.push(...openedStatuses);
     }
+
     if (data.in_progress) {
       filterStatus.push({
         path: 'status',
@@ -175,6 +154,7 @@ export const useTaskList = () => {
         value: 'IN_PROGRESS',
       });
     }
+
     if (data.closed) {
       const closedStatuses: Filter = ['CLOSED', 'REJECTED'].map((status) => ({
         path: 'status',
@@ -193,6 +173,7 @@ export const useTaskList = () => {
       if (filterStatus.length) {
         queryFilter.filter.push({ or: filterStatus });
       }
+
       if (filterTerm.length) {
         queryFilter.filter.push({ or: filterTerm });
       }
@@ -269,6 +250,37 @@ export const useTaskList = () => {
       }
     }
 
+    return queryFilter;
+  };
+
+  const handleUpdateColumns = (columns: string[]) => {
+    setSelectedColumnsKeys(columns);
+  };
+
+  const handleReload = async () => {
+    if (!hasTaskAccess) {
+      toast.info(
+        'Você não possui permissão para visualizar ordens de serviço.',
+      );
+      return;
+    }
+
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    const { data: reloadedData } = await refetch();
+    if (reloadedData) {
+      toast.success('Dados atualizados com sucesso');
+    }
+  };
+
+  const handleFilter = async (
+    data: TaskFilterDto,
+    currentTerm = term,
+    page = 1,
+  ) => {
+    setFilterLoading(true);
+    setFilter(data);
+    const queryFilter = buildTaskFilterQuery(data, currentTerm);
+
     if (!hasTaskAccess) {
       setFilteredTasks([]);
       setShowFilter(false);
@@ -307,6 +319,46 @@ export const useTaskList = () => {
       toast.error('Erro ao aplicar filtros');
     } finally {
       setFilterLoading(false);
+    }
+  };
+
+  const getTaskReportData = async () => {
+    if (!hasTaskAccess) {
+      return { tasks: [] as Task[], total: 0, limit: 500 };
+    }
+
+    try {
+      const queryFilter = buildTaskFilterQuery(filter, term);
+
+      const scopedQuery = applyScopedFilter(
+        queryFilter as Query,
+        scopedTaskUserIds,
+        userId,
+        {
+          field: 'responsibleId',
+          operator: 'in',
+        },
+      );
+
+      if (!scopedQuery) {
+        return { tasks: [] as Task[], total: 0, limit: 500 };
+      }
+
+      const result = await taskService.get({
+        ...scopedQuery,
+        limit: 500,
+        page: 1,
+      } as any);
+
+      return {
+        tasks: result?.data || [],
+        total: result?.count ?? 0,
+        limit: 500,
+      };
+    } catch (_err) {
+      console.error(_err);
+      toast.error('Erro ao gerar relatório de OS');
+      return { tasks: [] as Task[], total: 0, limit: 500 };
     }
   };
 
@@ -390,6 +442,7 @@ export const useTaskList = () => {
 
   return {
     tasks: paginatedTasks,
+    getTaskReportData,
     count,
     pagination,
     handlePaginationChange,

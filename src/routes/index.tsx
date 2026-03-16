@@ -7,7 +7,7 @@ import {
 } from '@mui/icons-material';
 import { JSX } from 'react';
 
-type Module = 'task' | 'budget' | 'client' | 'user' | 'role';
+type Module = 'task' | 'budget' | 'occurrence' | 'client' | 'user' | 'role';
 
 export type Route = {
   id: string;
@@ -33,8 +33,8 @@ export const routes: Route[] = [
     id: 'Operacional',
     icon: <Work sx={{ color: 'white' }} />,
     path: '/panel/tasks',
-    permissions: ['task', 'budget'],
-    modules: ['task', 'budget'],
+    permissions: ['task', 'budget', 'occurrence'],
+    modules: ['task', 'budget', 'occurrence'],
     subRoutes: [
       {
         id: 'Ordens de Serviço',
@@ -47,6 +47,12 @@ export const routes: Route[] = [
         path: '/panel/budgets',
         permissions: ['budget'],
         modules: ['budget'],
+      },
+      {
+        id: 'Ocorrências',
+        path: '/panel/occurrences',
+        permissions: ['occurrence'],
+        modules: ['occurrence'],
       },
       // {
       //   id: 'Lançamentos',
@@ -115,8 +121,8 @@ export const routes: Route[] = [
     id: 'Cadastros',
     icon: <AppRegistration sx={{ color: 'white' }} />,
     path: '/panel/register',
-    permissions: ['task', 'budget'],
-    modules: ['task', 'budget'],
+    permissions: ['task', 'budget', 'occurrence'],
+    modules: ['task', 'budget', 'occurrence'],
     scope: 'write',
     subRoutes: [
       {
@@ -131,6 +137,13 @@ export const routes: Route[] = [
         path: '/panel/budgets/types',
         permissions: ['budget'],
         modules: ['budget'],
+        scope: 'write',
+      },
+      {
+        id: 'Tipos de ocorrência',
+        path: '/panel/occurrences/types',
+        permissions: ['occurrence'],
+        modules: ['occurrence'],
         scope: 'write',
       },
     ],

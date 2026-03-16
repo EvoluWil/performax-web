@@ -1,7 +1,7 @@
-import { ChevronRightOutlined } from "@mui/icons-material";
-import { Box, Fab, Typography } from "@mui/material";
-import { JSX } from "react";
-import { DrawerStyled } from "./base-drawer.styles";
+import { ChevronRightOutlined } from '@mui/icons-material';
+import { Box, Fab, Typography } from '@mui/material';
+import { JSX } from 'react';
+import { DrawerStyled } from './base-drawer.styles';
 
 interface BaseDrawerProps {
   open: boolean;
@@ -9,7 +9,7 @@ interface BaseDrawerProps {
   content: JSX.Element;
   width?: number;
   height?: string;
-  direction?: "bottom" | "left" | "right" | "top";
+  direction?: 'bottom' | 'left' | 'right' | 'top';
   title: string;
 }
 
@@ -18,7 +18,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
   setOpen,
   content,
   width = 32,
-  direction = "right",
+  direction = 'right',
   title,
 }) => {
   return (
@@ -28,29 +28,30 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
         anchor={direction}
         open={open}
         onClose={setOpen}
-        sx={{ position: "relative" }}
+        sx={{ position: 'relative' }}
       >
-        <Box display="flex">
+        <Box display="flex" height="100dvh" overflow="hidden">
           <Box
             bgcolor="primary.main"
             color="white"
             width={56}
-            minHeight="100vh"
+            minHeight="100%"
+            flexShrink={0}
           >
             <Fab
               onClick={setOpen}
               sx={{
-                borderRadius: "16px 0 0 16px",
-                bgcolor: "white",
-                color: "primary.main",
-                boxShadow: "none",
+                borderRadius: '16px 0 0 16px',
+                bgcolor: 'white',
+                color: 'primary.main',
+                boxShadow: 'none',
                 height: 64,
               }}
             >
               <ChevronRightOutlined />
             </Fab>
           </Box>
-          <Box width="100%">
+          <Box width="100%" minWidth={0}>
             <Box
               border="1px solid"
               borderColor="divider"
@@ -67,12 +68,16 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
             </Box>
             <Box
               p={2}
-              display="flex"
               sx={{
-                minHeight: "calc(100vh - 66px)",
-                overflowY: "auto",
-                "&::-webkit-scrollbar": {
-                  display: "none",
+                height: 'calc(100dvh - 66px)',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                boxSizing: 'border-box',
+                pb: 3,
+                scrollPaddingTop: 16,
+                scrollPaddingBottom: 16,
+                '&::-webkit-scrollbar': {
+                  display: 'none',
                 },
               }}
             >

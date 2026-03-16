@@ -3,12 +3,19 @@
 import { ListHeader, Table } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
+import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { formatDate } from '@/utils/date';
-import { DeleteOutlined, EditOutlined } from '@mui/icons-material';
-import { Box, Chip, Typography } from '@mui/material';
+import {
+  DeleteOutlined,
+  DownloadOutlined,
+  EditOutlined,
+} from '@mui/icons-material';
+import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { useState } from 'react';
 import { BudgetCard } from '../../components/budget-card/budget-card';
 import { BudgetDrawer } from '../../components/budget-drawer/budget';
 import { BudgetFilter } from '../../components/budget-filter/budget-filter';
@@ -75,6 +82,16 @@ const columns: MRT_ColumnDef<Budget>[] = [
   },
 ];
 
+type BudgetReportRow = {
+  protocol: string;
+  title: string;
+  client: string;
+  responsible: string;
+  value: string;
+  createdAt: string;
+  status: string;
+};
+
 export const BudgetList = () => {
   const {
     budgets,
@@ -102,11 +119,23 @@ export const BudgetList = () => {
     pagination,
     handlePaginationChange,
     count,
+    getBudgetReportData,
   } = useBudgetList();
+  const {
+    makeTablePDF,
+    pdfModalOpen,
+    pdfBlobUrl,
+    pdfStorageUrl,
+    pdfUploading,
+    pdfTitle,
+    closePdfModal,
+    downloadPdf,
+  } = usePdfGenerator();
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('budget', 'write');
   const canAdmin = permissionsReady && hasPermission('budget', 'admin');
   const canEdit = canWrite || canAdmin;
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const tableActions: Actions<Budget>[] = [];
 
@@ -131,13 +160,83 @@ export const BudgetList = () => {
   );
   const columnsKeys = columns.map((col) => col.accessorKey as string);
 
+  const handleDownloadPdf = async () => {
+    setGeneratingPdf(true);
+
+    try {
+      const tableHeader = columnsToShow.map((column) => ({
+        label: String(column.header ?? column.accessorKey ?? ''),
+        value: column.accessorKey as keyof BudgetReportRow,
+      }));
+
+      const report = await getBudgetReportData();
+
+      const totalValue = report.budgets.reduce(
+        (acc, budget) => acc + Number(budget.value || 0),
+        0,
+      );
+
+      const formattedTotalValue = Intl.NumberFormat('pt-BR', {
+        currency: 'BRL',
+        style: 'currency',
+      }).format(totalValue);
+
+      const data: BudgetReportRow[] = report.budgets.map((budget) => ({
+        protocol: budget.protocol || '-',
+        title: budget.title || '-',
+        client: budget.client?.name || '-',
+        responsible: budget.responsible?.name || '-',
+        value: Number(budget.value || 0).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        createdAt: formatDate(budget.createdAt) || '-',
+        status: budget.status
+          ? budgetStatusLabels[budget.status]?.label || '-'
+          : '-',
+      }));
+
+      const subtitleParts = [`Total orçado: ${formattedTotalValue}`];
+      if (report.total > report.limit) {
+        subtitleParts.push(
+          `Relatório limitado a ${report.limit} itens de ${report.total} disponíveis.`,
+        );
+      }
+
+      await makeTablePDF(
+        tableHeader,
+        data,
+        'Relatório de orçamentos',
+        subtitleParts.join(' | '),
+      );
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   return (
     <>
       {loading && <Loading fullScreen message="Carregando orçamentos..." />}
 
-      <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
-        ORÇAMENTOS
-      </Typography>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        flexWrap="wrap"
+        gap={2}
+      >
+        <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
+          ORÇAMENTOS
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={handleDownloadPdf}
+          startIcon={<DownloadOutlined />}
+          disabled={!count || generatingPdf}
+        >
+          Baixar PDF
+        </Button>
+      </Box>
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
@@ -221,6 +320,16 @@ export const BudgetList = () => {
           defaultColumns={defaultColumns}
         />
       )}
+
+      <PdfPreviewModal
+        open={pdfModalOpen}
+        onClose={closePdfModal}
+        pdfBlobUrl={pdfBlobUrl}
+        pdfStorageUrl={pdfStorageUrl}
+        pdfUploading={pdfUploading}
+        title={pdfTitle}
+        onDownload={downloadPdf}
+      />
     </>
   );
 };

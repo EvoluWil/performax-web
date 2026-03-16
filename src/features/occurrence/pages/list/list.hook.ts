@@ -1,4 +1,14 @@
 import { Pagination } from '@/components/common/table/table';
+import {
+  useOccurrenceMutation,
+  useOccurrencesQuery,
+} from '@/features/occurrence/hooks';
+import { OccurrenceFilterDto } from '@/features/occurrence/schemas';
+import {
+  getOccurrenceQuery,
+  occurrenceService,
+} from '@/features/occurrence/services';
+import { Occurrence } from '@/features/occurrence/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
@@ -7,23 +17,21 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
-import { useBudgetsQuery } from '../../hooks/queries/budgets.query';
-import { BudgetFilterDto } from '../../schemas/budget-filter.schema';
-import { budgetService, getBudgetQuery } from '../../services/budget.service';
-import { Budget } from '../../types/budget';
 
 const defaultColumns = [
   'protocol',
   'title',
   'client',
-  'responsible',
-  'value',
+  'type',
+  'createdBy',
+  'date',
+  'createdAt',
   'status',
 ];
 
-const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-budgets';
+const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-occurrences';
 
-export const useBudgetList = () => {
+export const useOccurrenceList = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
   const [filteredCount, setFilteredCount] = useState(0);
 
@@ -37,38 +45,42 @@ export const useBudgetList = () => {
     isPending,
     isLoading,
     isFetching,
-  } = useBudgetsQuery({ pageSize: pagination.pageSize });
+  } = useOccurrencesQuery({ pageSize: pagination.pageSize });
 
-  const budgets = data?.budgets ?? [];
+  const occurrences = data?.occurrences ?? [];
 
   const [term, setTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<BudgetFilterDto | null>(null);
+  const [filter, setFilter] = useState<OccurrenceFilterDto | null>(null);
   const [selectedColumnsKeys, setSelectedColumnsKeys] =
     useState<string[]>(defaultColumns);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
     useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
-  const [filteredBudgets, setFilteredBudgets] = useState<Budget[] | null>(null);
+  const [filteredOccurrences, setFilteredOccurrences] = useState<
+    Occurrence[] | null
+  >(null);
   const [openModal, setOpenModal] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [selectedOccurrence, setSelectedOccurrence] =
+    useState<Occurrence | null>(null);
 
+  const occurrenceMutation = useOccurrenceMutation();
   const { getScopedUserIds, userId } = useCompanyPermissions();
 
-  const scopedBudgetUserIds = useMemo(
-    () => getScopedUserIds('budget'),
+  const scopedOccurrenceUserIds = useMemo(
+    () => getScopedUserIds('occurrence'),
     [getScopedUserIds],
   );
 
-  const hasBudgetAccess =
-    scopedBudgetUserIds === null || scopedBudgetUserIds.length > 0;
+  const hasOccurrenceAccess =
+    scopedOccurrenceUserIds === null || scopedOccurrenceUserIds.length > 0;
 
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('md'));
   const { push } = useRouter();
 
   const handleReload = async () => {
-    if (!hasBudgetAccess) {
-      toast.info('Você não possui permissão para visualizar orçamentos.');
+    if (!hasOccurrenceAccess) {
+      toast.info('Você não possui permissão para visualizar ocorrências.');
       return;
     }
 
@@ -77,45 +89,48 @@ export const useBudgetList = () => {
     if (reloadedData) toast.success('Dados atualizados com sucesso');
   };
 
-  const handleRowClick = (row: Budget) => {
-    push(`/panel/budgets/${row.id}`);
+  const handleRowClick = (row: Occurrence) => {
+    push(`/panel/occurrences/${row.id}`);
   };
 
-  const handleOpenAdd = async () => setOpenModal(true);
-
-  const handleCloseAdd = () => {
-    setOpenModal(false);
-    setSelectedBudget(null);
-  };
-
-  const handleSelectBudgetToEdit = (row: Budget) => {
-    setSelectedBudget(row);
-    setOpenModal(true);
-  };
-
-  const handleDeleteBudget = async (id: string) => {
+  const handleDeleteOccurrence = async (id: string) => {
     swal.fire({
-      title: 'Tem certeza que deseja excluir este orçamento?',
+      title: 'Tem certeza que deseja excluir esta ocorrência?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sim, excluir',
       cancelButtonText: 'Cancelar',
       preConfirm: async () => {
-        const result = await budgetService.delete(id);
+        const result = await occurrenceMutation.mutateAsync({
+          type: 'delete',
+          id,
+        });
         if (result) {
-          toast.success('Orçamento excluído com sucesso');
+          toast.success('Ocorrência excluída com sucesso');
           await refetch();
         }
       },
     });
   };
 
+  const handleOpenAdd = async () => setOpenModal(true);
+
+  const handleCloseAdd = () => {
+    setOpenModal(false);
+    setSelectedOccurrence(null);
+  };
+
+  const handleSelectOccurrenceToEdit = (occurrence: Occurrence) => {
+    setSelectedOccurrence(occurrence);
+    setOpenModal(true);
+  };
+
   const toggleShowFilter = () => setShowFilter((prev) => !prev);
   const toggleCustomizeColumnsModal = () =>
     setOpenCustomizeColumnsModal((prev) => !prev);
 
-  const buildBudgetFilterQuery = (
-    data: BudgetFilterDto,
+  const buildOccurrenceFilterQuery = (
+    data: OccurrenceFilterDto,
     currentTerm = term,
   ): Query => {
     const statusFilter: Filter = [];
@@ -132,26 +147,28 @@ export const useBudgetList = () => {
       );
       termFilter.push(...termFields);
     }
-
-    const selectedStatuses: string[] = [];
-    if (data.pending) selectedStatuses.push('PENDING', 'APPROVED');
-    if (data.financial) selectedStatuses.push('CHARGED', 'PAID', 'FINANCIAL');
-    if (data.closed) selectedStatuses.push('COMPLETED', 'REJECTED');
-
-    if (selectedStatuses.length) {
-      const statusesOr: Filter = selectedStatuses.map(
-        (s) =>
-          ({
-            path: 'status',
-            operator: 'equals',
-            value: s,
-          }) as any,
+    // PENDING;
+    // APPROVED;
+    // REJECTED;
+    // IN_PROGRESS;
+    // COMPLETED;
+    if (data.open) {
+      statusFilter.push(
+        { path: 'status', operator: 'equals', value: 'PENDING' },
+        { path: 'status', operator: 'equals', value: 'APPROVED' },
+        { path: 'status', operator: 'equals', value: 'IN_PROGRESS' },
       );
-      statusFilter.push(...statusesOr);
+    }
+
+    if (data.closed) {
+      statusFilter.push(
+        { path: 'status', operator: 'equals', value: 'COMPLETED' },
+        { path: 'status', operator: 'equals', value: 'REJECTED' },
+      );
     }
 
     const queryFilter: Query = {
-      ...getBudgetQuery,
+      ...getOccurrenceQuery,
       filter: [],
     } as any;
 
@@ -159,7 +176,6 @@ export const useBudgetList = () => {
       if (statusFilter.length) {
         queryFilter.filter.push({ or: statusFilter });
       }
-
       if (termFilter.length) {
         queryFilter.filter.push({ or: termFilter });
       }
@@ -168,14 +184,6 @@ export const useBudgetList = () => {
         queryFilter.filter.push({
           path: 'clientId',
           value: data.clientId,
-          filterGroup: 'and',
-        });
-      }
-
-      if (data?.typeId) {
-        queryFilter.filter.push({
-          path: 'typeId',
-          value: data.typeId,
           filterGroup: 'and',
         });
       }
@@ -220,7 +228,7 @@ export const useBudgetList = () => {
 
       if (data?.userId) {
         queryFilter.filter.push({
-          path: 'responsibleId',
+          path: 'createdById',
           value: data.userId,
           filterGroup: 'and',
         });
@@ -231,42 +239,43 @@ export const useBudgetList = () => {
   };
 
   const handleFilter = async (
-    data: BudgetFilterDto,
+    data: OccurrenceFilterDto,
     currentTerm = term,
     page = 1,
   ) => {
     setFilter(Object.keys(data)?.length ? data : null);
-    const queryFilter = buildBudgetFilterQuery(data, currentTerm);
 
-    if (!hasBudgetAccess) {
-      setFilteredBudgets([]);
+    if (!hasOccurrenceAccess) {
+      setFilteredOccurrences([]);
       setShowFilter(false);
       return;
     }
 
     try {
+      const queryFilter = buildOccurrenceFilterQuery(data, currentTerm);
+
       const scopedQuery = applyScopedFilter(
         queryFilter as Query,
-        scopedBudgetUserIds,
+        scopedOccurrenceUserIds,
         userId,
         {
-          field: 'responsibleId',
+          field: 'createdById',
           operator: 'in',
         },
       );
 
       if (!scopedQuery) {
-        setFilteredBudgets([]);
+        setFilteredOccurrences([]);
         setShowFilter(false);
         return;
       }
 
-      const result = await budgetService.get({
+      const result = await occurrenceService.get({
         ...scopedQuery,
         limit: pagination.pageSize,
         page,
       } as any);
-      setFilteredBudgets(result?.data || []);
+      setFilteredOccurrences(result?.data || []);
       setFilteredCount(result?.count ?? 0);
       setShowFilter(false);
     } catch (e) {
@@ -275,53 +284,53 @@ export const useBudgetList = () => {
     }
   };
 
-  const getBudgetReportData = async () => {
-    if (!hasBudgetAccess) {
-      return { budgets: [] as Budget[], total: 0, limit: 500 };
+  const getOccurrenceReportData = async () => {
+    if (!hasOccurrenceAccess) {
+      return { occurrences: [] as Occurrence[], total: 0, limit: 500 };
     }
 
     try {
-      const queryFilter = buildBudgetFilterQuery(
-        (filter || {}) as BudgetFilterDto,
+      const queryFilter = buildOccurrenceFilterQuery(
+        (filter || {}) as OccurrenceFilterDto,
         term,
       );
 
       const scopedQuery = applyScopedFilter(
         queryFilter as Query,
-        scopedBudgetUserIds,
+        scopedOccurrenceUserIds,
         userId,
         {
-          field: 'responsibleId',
+          field: 'createdById',
           operator: 'in',
         },
       );
 
       if (!scopedQuery) {
-        return { budgets: [] as Budget[], total: 0, limit: 500 };
+        return { occurrences: [] as Occurrence[], total: 0, limit: 500 };
       }
 
-      const result = await budgetService.get({
+      const result = await occurrenceService.get({
         ...scopedQuery,
         limit: 500,
         page: 1,
       } as any);
 
       return {
-        budgets: result?.data || [],
+        occurrences: result?.data || [],
         total: result?.count ?? 0,
         limit: 500,
       };
     } catch (e) {
       console.error(e);
-      toast.error('Erro ao gerar relatório de orçamentos');
-      return { budgets: [] as Budget[], total: 0, limit: 500 };
+      toast.error('Erro ao gerar relatório de ocorrências');
+      return { occurrences: [] as Occurrence[], total: 0, limit: 500 };
     }
   };
 
   const handleSearch = async (search: string) => {
     setTerm(search);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    await handleFilter(filter || ({} as BudgetFilterDto), search, 1);
+    await handleFilter(filter || ({} as OccurrenceFilterDto), search, 1);
   };
 
   const toggleView = () =>
@@ -342,20 +351,22 @@ export const useBudgetList = () => {
 
   const count = filter ? filteredCount : (data?.count ?? 0);
 
-  const currentBudgetsAll = (
-    hasBudgetAccess ? (filter ? filteredBudgets || [] : budgets) : []
+  const currentOccurrencesAll = (
+    hasOccurrenceAccess
+      ? filter
+        ? filteredOccurrences || []
+        : occurrences
+      : []
   ).filter(
-    (b) =>
-      b.title?.toLowerCase().includes(term.toLowerCase()) ||
-      b.description?.toLowerCase().includes(term.toLowerCase()) ||
-      b.protocol?.toLowerCase().includes(term.toLowerCase()),
+    (o) =>
+      o.title?.toLowerCase().includes(term.toLowerCase()) ||
+      o.description?.toLowerCase().includes(term.toLowerCase()) ||
+      o.protocol?.toLowerCase().includes(term.toLowerCase()),
   );
 
-  // Filter active: filteredBudgets is already the server page, no slice needed.
-  // No filter: budgets is accumulated; slice for current page.
-  const paginatedBudgets = filter
-    ? currentBudgetsAll
-    : currentBudgetsAll.slice(
+  const paginatedOccurrences = filter
+    ? currentOccurrencesAll
+    : currentOccurrencesAll.slice(
         pagination.pageIndex * pagination.pageSize,
         (pagination.pageIndex + 1) * pagination.pageSize,
       );
@@ -376,7 +387,7 @@ export const useBudgetList = () => {
       const requiredCount =
         (newPagination.pageIndex + 1) * newPagination.pageSize;
       if (
-        budgets.length < requiredCount &&
+        occurrences.length < requiredCount &&
         hasNextPage &&
         !isFetchingNextPage
       ) {
@@ -386,9 +397,13 @@ export const useBudgetList = () => {
   };
 
   return {
-    budgets: paginatedBudgets,
+    openModal,
+    selectedOccurrence,
+    handleOpenAdd,
+    handleCloseAdd,
+    handleSelectOccurrenceToEdit,
+    occurrences: paginatedOccurrences,
     count,
-    getBudgetReportData,
     pagination,
     handlePaginationChange,
     viewMode,
@@ -400,17 +415,13 @@ export const useBudgetList = () => {
     showFilter,
     toggleShowFilter,
     handleFilter,
-    openModal,
-    selectedBudget,
-    handleOpenAdd,
-    handleCloseAdd,
-    handleSelectBudgetToEdit,
-    handleDeleteBudget,
+    handleDeleteOccurrence,
     selectedColumnsKeys,
     handleUpdateColumns: (cols: string[]) => setSelectedColumnsKeys(cols),
     defaultColumns,
     tableKey: DEFAULT_TABLE_COLUMNS_KEY,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
+    getOccurrenceReportData,
   };
 };

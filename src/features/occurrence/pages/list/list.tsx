@@ -5,8 +5,16 @@ import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
-import { TaskCard, TaskDrawer, TaskFilter } from '@/features/task/components';
-import { Task, taskStatusLabels } from '@/features/task/types';
+import {
+  OccurrenceCard,
+  OccurrenceDrawer,
+  OccurrenceFilter,
+} from '@/features/occurrence/components';
+import {
+  Occurrence,
+  OccurrenceStatusEnum,
+  occurrenceStatusLabels,
+} from '@/features/occurrence/types';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { formatDate } from '@/utils/date';
@@ -18,27 +26,14 @@ import {
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
 import { useState } from 'react';
-import { useTaskList } from './list.hook';
+import { useOccurrenceList } from './list.hook';
 
-const columns: MRT_ColumnDef<Task>[] = [
-  {
-    accessorKey: 'title',
-    header: 'Título',
-  },
-  {
-    accessorKey: 'protocol',
-    header: 'Protocolo',
-  },
+const columns: MRT_ColumnDef<Occurrence>[] = [
+  { accessorKey: 'protocol', header: 'Protocolo' },
+  { accessorKey: 'title', header: 'Título' },
   {
     accessorKey: 'client',
     header: 'Cliente',
-    Cell({ cell }: any) {
-      return cell.getValue()?.name;
-    },
-  },
-  {
-    accessorKey: 'responsible',
-    header: 'Responsável',
     Cell({ cell }: any) {
       return cell.getValue()?.name;
     },
@@ -51,74 +46,32 @@ const columns: MRT_ColumnDef<Task>[] = [
     },
   },
   {
-    accessorKey: 'value',
-    header: 'Valor',
-    muiTableHeadCellProps: {
-      align: 'right',
-    },
-    muiTableBodyCellProps: {
-      align: 'right',
-    },
+    accessorKey: 'createdBy',
+    header: 'Criado por',
     Cell({ cell }: any) {
-      const value = cell.getValue();
-      if (!value || value === 0) return '-';
-      return value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-      });
-    },
-  },
-  {
-    accessorKey: 'internalNote',
-    header: 'Obs. Interna',
-    Cell({ cell }: any) {
-      const v = cell.getValue();
-      if (!v) return '';
-      return typeof v === 'string' && v.length > 60
-        ? `${v.slice(0, 60)}...`
-        : v;
+      return cell.getValue()?.name;
     },
   },
   {
     accessorKey: 'date',
-    header: 'Data prevista',
-    muiTableHeadCellProps: {
-      align: 'center',
-    },
-    muiTableBodyCellProps: {
-      align: 'center',
-    },
+    header: 'Data da ocorrência',
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
     },
   },
   {
     accessorKey: 'createdAt',
-    header: 'Criada em',
+    header: 'Criado em',
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
-    },
-  },
-  {
-    accessorKey: 'updatedAt',
-    header: 'Atualizada em',
-    Cell({ cell }: any) {
-      return formatDate(cell.getValue());
-    },
-  },
-  {
-    accessorKey: 'completedAt',
-    header: 'Concluída em',
-    Cell({ cell }: any) {
-      return cell.getValue() ? formatDate(cell.getValue()) : '-';
     },
   },
   {
     accessorKey: 'status',
     header: 'Status',
     Cell({ cell }: any) {
-      const status = cell.getValue();
-      const { label, color } = taskStatusLabels[status] || {
+      const status = cell.getValue() as OccurrenceStatusEnum;
+      const { label, color } = occurrenceStatusLabels[status] || {
         label: status,
         color: 'default',
       };
@@ -132,89 +85,51 @@ const columns: MRT_ColumnDef<Task>[] = [
       );
     },
   },
-  {
-    accessorKey: 'createdBy',
-    header: 'Criada por',
-    Cell({ cell }: any) {
-      return cell.getValue()?.name ?? '-';
-    },
-  },
-  {
-    accessorKey: 'updatedBy',
-    header: 'Atualizada por',
-    Cell({ cell }: any) {
-      return cell.getValue()?.name ?? '-';
-    },
-  },
-  {
-    accessorKey: 'files',
-    header: 'Anexos',
-    Cell({ cell }: any) {
-      const v = cell.getValue();
-      return v ? v.length : 0;
-    },
-  },
-  {
-    accessorKey: 'conclusionFiles',
-    header: 'Anexos (Conclusão)',
-    Cell({ cell }: any) {
-      const v = cell.getValue();
-      return v ? v.length : 0;
-    },
-  },
 ];
+
+type OccurrenceReportRow = {
+  protocol: string;
+  title: string;
+  client: string;
+  type: string;
+  createdBy: string;
+  date: string;
+  createdAt: string;
+  status: string;
+};
 
 const columnsKeys = columns.map((col) => col.accessorKey as string);
 
-type TaskReportRow = {
-  title: string;
-  protocol: string;
-  client: string;
-  responsible: string;
-  type: string;
-  value: string;
-  internalNote: string;
-  date: string;
-  createdAt: string;
-  updatedAt: string;
-  completedAt: string;
-  status: string;
-  createdBy: string;
-  updatedBy: string;
-  files: number;
-  conclusionFiles: number;
-};
-
-export const TaskList = () => {
+export const OccurrenceList = () => {
   const {
-    tasks,
+    occurrences,
     openModal,
-    selectedTask,
+    selectedOccurrence,
     handleOpenAdd,
+    handleCloseAdd,
+    handleSelectOccurrenceToEdit,
     handleReload,
     handleSearch,
-    handleCloseAdd,
-    handleDeleteTask,
-    handleSelectTaskToEdit,
-    showFilter,
-    toggleShowFilter,
-    handleFilter,
     viewMode,
     toggleView,
     handleRowClick,
     loading,
-    filterLoading,
+    showFilter,
+    toggleShowFilter,
+    handleFilter,
+    selectedColumnsKeys,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
-    handleUpdateColumns,
-    selectedColumnsKeys,
+    handleDeleteOccurrence,
     defaultColumns,
     tableKey,
+    handleUpdateColumns,
     pagination,
     handlePaginationChange,
     count,
-    getTaskReportData,
-  } = useTaskList();
+    getOccurrenceReportData,
+  } = useOccurrenceList();
+
   const {
     makeTablePDF,
     pdfModalOpen,
@@ -225,27 +140,28 @@ export const TaskList = () => {
     closePdfModal,
     downloadPdf,
   } = usePdfGenerator();
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission('task', 'write');
-  const canAdmin = permissionsReady && hasPermission('task', 'admin');
+  const canWrite = permissionsReady && hasPermission('occurrence', 'write');
+  const canAdmin = permissionsReady && hasPermission('occurrence', 'admin');
   const canEdit = canWrite || canAdmin;
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  const tableActions: Actions<Task>[] = [];
+  const tableActions: Actions<Occurrence>[] = [];
 
   if (canEdit) {
     tableActions.push({
       icon: () => <EditOutlined />,
-      label: () => 'Editar OS',
-      onClick: (task) => handleSelectTaskToEdit(task),
+      label: () => 'Editar ocorrência',
+      onClick: handleSelectOccurrenceToEdit,
     });
   }
 
   if (canAdmin) {
     tableActions.push({
       icon: () => <DeleteOutlined />,
-      label: () => 'Excluir OS',
-      onClick: (task) => handleDeleteTask(task.id),
+      label: () => 'Excluir ocorrência',
+      onClick: (row) => handleDeleteOccurrence(row.id),
     });
   }
 
@@ -259,47 +175,29 @@ export const TaskList = () => {
     try {
       const tableHeader = columnsToShow.map((column) => ({
         label: String(column.header ?? column.accessorKey ?? ''),
-        value: column.accessorKey as keyof TaskReportRow,
+        value: column.accessorKey as keyof OccurrenceReportRow,
       }));
 
-      const report = await getTaskReportData();
+      const report = await getOccurrenceReportData();
 
-      const totalValue = report.tasks.reduce(
-        (acc, task) => acc + Number(task.value || 0),
-        0,
+      const data: OccurrenceReportRow[] = report.occurrences.map(
+        (occurrence) => ({
+          protocol: occurrence.protocol || '-',
+          title: occurrence.title || '-',
+          client: occurrence.client?.name || '-',
+          type: occurrence.type?.name || '-',
+          createdBy: occurrence.createdBy?.name || '-',
+          date: occurrence.date ? formatDate(occurrence.date) : '-',
+          createdAt: occurrence.createdAt
+            ? formatDate(occurrence.createdAt)
+            : '-',
+          status: occurrence.status
+            ? occurrenceStatusLabels[occurrence.status]?.label || '-'
+            : '-',
+        }),
       );
 
-      const formattedTotalValue = Intl.NumberFormat('pt-BR', {
-        currency: 'BRL',
-        style: 'currency',
-      }).format(totalValue);
-
-      const data: TaskReportRow[] = report.tasks.map((task) => ({
-        title: task.title || '-',
-        protocol: task.protocol || '-',
-        client: task.client?.name || '-',
-        responsible: task.responsible?.name || '-',
-        type: task.type?.name || '-',
-        value:
-          Number(task.value || 0) > 0
-            ? Number(task.value || 0).toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-              })
-            : '-',
-        internalNote: task.internalNote || '-',
-        date: formatDate(task.date) || '-',
-        createdAt: formatDate(task.createdAt) || '-',
-        updatedAt: formatDate(task.updatedAt) || '-',
-        completedAt: task.completedAt ? formatDate(task.completedAt) : '-',
-        status: task.status ? taskStatusLabels[task.status]?.label || '-' : '-',
-        createdBy: task.createdBy?.name || '-',
-        updatedBy: task.updatedBy?.name || '-',
-        files: task.files?.length || 0,
-        conclusionFiles: task.conclusionFiles?.length || 0,
-      }));
-
-      const subtitleParts = [`Valor total: ${formattedTotalValue}`];
+      const subtitleParts = [`Total de ocorrências: ${report.total}`];
       if (report.total > report.limit) {
         subtitleParts.push(
           `Relatório limitado a ${report.limit} itens de ${report.total} disponíveis.`,
@@ -309,7 +207,7 @@ export const TaskList = () => {
       await makeTablePDF(
         tableHeader,
         data,
-        'Relatório de OS',
+        'Relatório de ocorrências',
         subtitleParts.join(' | '),
       );
     } finally {
@@ -319,9 +217,7 @@ export const TaskList = () => {
 
   return (
     <>
-      {loading && (
-        <Loading fullScreen message="Carregando ordens de serviço..." />
-      )}
+      {loading && <Loading fullScreen message="Carregando ocorrências..." />}
 
       <Box
         display="flex"
@@ -331,7 +227,7 @@ export const TaskList = () => {
         gap={2}
       >
         <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
-          ORDENS DE SERVIÇO
+          OCORRÊNCIAS
         </Typography>
         <Button
           variant="contained"
@@ -347,24 +243,24 @@ export const TaskList = () => {
         onAdd={canEdit ? handleOpenAdd : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
-        searchTitle="Pesquise por titulo, descrição ou protocolo"
-        addTitle="Adicionar OS"
+        searchTitle="Pesquise por título, descrição ou protocolo"
+        addTitle="Adicionar ocorrência"
         onShowFilters={toggleShowFilter}
-        viewMode={viewMode}
         onToggleView={toggleView}
+        viewMode={viewMode}
         onCustomizeColumns={toggleCustomizeColumnsModal}
       />
 
-      <TaskFilter
+      <OccurrenceFilter
         open={showFilter}
         onFilter={(filter) => handleFilter(filter)}
-        loading={filterLoading}
+        loading={false}
       />
 
       {viewMode === 'table' ? (
         <Table
           columns={columnsToShow}
-          data={tasks}
+          data={occurrences || []}
           emptyMessage="Nenhum resultado encontrado"
           onReload={handleReload}
           onRowClick={handleRowClick}
@@ -376,10 +272,10 @@ export const TaskList = () => {
         />
       ) : (
         <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
-          {tasks && tasks.length > 0 ? (
-            tasks.map((task) => (
+          {occurrences && occurrences.length > 0 ? (
+            occurrences.map((occurrence) => (
               <Box
-                key={task.id}
+                key={occurrence.id}
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -387,14 +283,18 @@ export const TaskList = () => {
                   width: { xs: '100%', sm: 'auto' },
                 }}
               >
-                <TaskCard
-                  task={task}
-                  onClick={() => handleRowClick(task)}
+                <OccurrenceCard
+                  occurrence={occurrence}
+                  onClick={() => handleRowClick(occurrence)}
                   onEdit={
-                    canEdit ? () => handleSelectTaskToEdit(task) : undefined
+                    canEdit
+                      ? () => handleSelectOccurrenceToEdit(occurrence)
+                      : undefined
                   }
                   onDelete={
-                    canAdmin ? () => handleDeleteTask(task.id) : undefined
+                    canAdmin
+                      ? () => handleDeleteOccurrence(occurrence.id)
+                      : undefined
                   }
                 />
               </Box>
@@ -408,14 +308,6 @@ export const TaskList = () => {
         </Box>
       )}
 
-      {openModal && (
-        <TaskDrawer
-          task={selectedTask}
-          open={openModal}
-          onClose={handleCloseAdd}
-        />
-      )}
-
       {openCustomizeColumnsModal && (
         <CustomizeColumnsModal
           open={openCustomizeColumnsModal}
@@ -424,6 +316,15 @@ export const TaskList = () => {
           columns={columnsKeys}
           tableKey={tableKey}
           defaultColumns={defaultColumns}
+        />
+      )}
+
+      {openModal && (
+        <OccurrenceDrawer
+          occurrence={selectedOccurrence}
+          open={openModal}
+          onClose={handleCloseAdd}
+          onSuccess={handleReload}
         />
       )}
 
