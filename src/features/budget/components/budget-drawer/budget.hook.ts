@@ -34,7 +34,6 @@ export const useBudgetDrawer = ({
     scopeModule: 'client',
     pageSize: 1000,
   });
-  const clients = clientsQueryData?.clients ?? [];
 
   const { data: budgetTypes } = useBudgetTypesQuery();
 
@@ -43,7 +42,13 @@ export const useBudgetDrawer = ({
     pageSize: 1000,
   });
 
-  const users = usersResponse?.users || [];
+  const clients = useMemo(() => {
+    return clientsQueryData?.clients ?? [];
+  }, [clientsQueryData]);
+
+  const users = useMemo(() => {
+    return usersResponse?.users || [];
+  }, [usersResponse]);
 
   const options = useMemo(() => {
     return {
@@ -60,13 +65,23 @@ export const useBudgetDrawer = ({
   const mutation = useBudgetMutation(budget?.id);
 
   const handleBudget = handleSubmit(async (data: BudgetFormDto) => {
+    const normalizedItems = (data.items || []).map((item: any) => ({
+      ...item,
+      quantity:
+        item?.quantity === undefined ||
+        item?.quantity === null ||
+        item?.quantity === ''
+          ? undefined
+          : Number(item.quantity),
+    }));
+
     const total = (data.items || []).reduce((sum, it: any) => {
       const qty = Number(it?.quantity ?? 1) || 0;
       const val = Number(it?.value ?? 0) || 0;
       return sum + qty * val;
     }, 0);
 
-    const payload = { ...data, value: total } as any;
+    const payload = { ...data, items: normalizedItems, value: total } as any;
 
     try {
       setLoading(true);

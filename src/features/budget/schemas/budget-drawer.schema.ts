@@ -1,10 +1,10 @@
-import * as yup from "yup";
+import * as yup from 'yup';
 
 export type BudgetItemForm = {
   label: string;
   value?: number | string;
-  quantity?: number | string;
-  type?: "PRODUCT" | "SERVICE";
+  quantity?: number;
+  type?: 'PRODUCT' | 'SERVICE';
 };
 
 export type BudgetFormDto = {
@@ -19,53 +19,60 @@ export type BudgetFormDto = {
 };
 
 export const budgetFormInitialValues: BudgetFormDto = {
-  title: "",
-  description: "",
-  observation: "",
-  value: "" as any,
-  typeId: "",
-  clientId: "",
-  responsibleId: "",
+  title: '',
+  description: '',
+  observation: '',
+  value: '' as any,
+  typeId: '',
+  clientId: '',
+  responsibleId: '',
   items: [],
 };
 
 export const budgetFormSchema = yup.object().shape({
-  title: yup.string().required("Título é obrigatório"),
+  title: yup.string().required('Título é obrigatório'),
   description: yup.string().nullable(),
   observation: yup.string().nullable(),
   // value é calculado automaticamente a partir dos itens
   value: yup.mixed<number | string>().nullable(),
-  typeId: yup.string().required("Tipo é obrigatório"),
+  typeId: yup.string().required('Tipo é obrigatório'),
   clientId: yup.string().nullable(),
   responsibleId: yup.string().nullable(),
   items: yup
     .array()
     .of(
       yup.object().shape({
-        label: yup.string().required("Descrição do item é obrigatória"),
+        label: yup.string().required('Descrição do item é obrigatória'),
         type: yup
-          .mixed<"PRODUCT" | "SERVICE">()
-          .oneOf(["PRODUCT", "SERVICE"]) // obrigatório
-          .required("Tipo é obrigatório"),
+          .mixed<'PRODUCT' | 'SERVICE'>()
+          .oneOf(['PRODUCT', 'SERVICE']) // obrigatório
+          .required('Tipo é obrigatório'),
         quantity: yup
-          .mixed<number | string>()
-          .test(
-            "is-number",
-            "Quantidade inválida",
-            (v) =>
-              v === undefined || v === null || v === "" || !isNaN(Number(v))
-          )
+          .number()
+          .transform((current, originalValue) => {
+            if (
+              originalValue === undefined ||
+              originalValue === null ||
+              originalValue === ''
+            ) {
+              return undefined;
+            }
+
+            const parsed = Number(originalValue);
+            return Number.isNaN(parsed) ? NaN : parsed;
+          })
+          .typeError('Quantidade inválida')
           .nullable(),
         value: yup
           .mixed<number | string>()
           .test(
-            "is-number",
-            "Valor inválido",
+            'is-number',
+            'Valor inválido',
             (v) =>
-              v === undefined || v === null || v === "" || !isNaN(Number(v))
+              v === undefined || v === null || v === '' || !isNaN(Number(v)),
           )
           .nullable(),
-      })
+      }),
     )
     .nullable(),
 });

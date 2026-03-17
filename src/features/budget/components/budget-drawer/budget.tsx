@@ -1,11 +1,11 @@
-import { BaseDrawer } from "@/components/drawer";
-import { CurrencyInput, SelectInput, TextInput } from "@/components/inputs";
-import { Add, DeleteOutline } from "@mui/icons-material";
-import { Box, Button, Divider, Typography } from "@mui/material";
-import { useFieldArray, useWatch } from "react-hook-form";
-import type { BudgetItemForm } from "../../schemas/budget-drawer.schema";
-import { Budget } from "../../types/budget";
-import { useBudgetDrawer } from "./budget.hook";
+import { BaseDrawer } from '@/components/drawer';
+import { CurrencyInput, SelectInput, TextInput } from '@/components/inputs';
+import { Add, DeleteOutline } from '@mui/icons-material';
+import { Box, Button, Divider, Typography } from '@mui/material';
+import { useFieldArray, useWatch } from 'react-hook-form';
+import type { BudgetItemForm } from '../../schemas/budget-drawer.schema';
+import { Budget } from '../../types/budget';
+import { useBudgetDrawer } from './budget.hook';
 
 export type BudgetDrawerProps = {
   open: boolean;
@@ -29,9 +29,9 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
   // Items editor using react-hook-form field array
   const { fields, append, remove } = useFieldArray({
     control: control as any,
-    name: "items" as any,
+    name: 'items' as any,
   });
-  const items = useWatch({ control: control as any, name: "items" as any }) as
+  const items = useWatch({ control: control as any, name: 'items' as any }) as
     | BudgetItemForm[]
     | undefined;
 
@@ -44,9 +44,9 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
   // keep computed total synced into form 'value'
   if (!Number.isNaN(total)) {
     setValue(
-      "value" as any,
+      'value' as any,
       total as any,
-      { shouldValidate: false, shouldDirty: true } as any
+      { shouldValidate: false, shouldDirty: true } as any,
     );
   }
 
@@ -55,7 +55,7 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
       open={open}
       setOpen={handleClose}
       height="auto"
-      title={editing ? "Editar Orçamento" : "Novo Orçamento"}
+      title={editing ? 'Editar Orçamento' : 'Novo Orçamento'}
       content={
         <Box
           gap={2}
@@ -99,7 +99,7 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
                   key={field.id}
                   display="grid"
                   gridTemplateColumns={{
-                    xs: "1fr",
+                    xs: '1fr',
                   }}
                   gap={1}
                   alignItems="center"
@@ -118,8 +118,8 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
                     control={control}
                     label="Tipo"
                     options={[
-                      { value: "PRODUCT", label: "Produto" },
-                      { value: "SERVICE", label: "Serviço" },
+                      { value: 'PRODUCT', label: 'Produto' },
+                      { value: 'SERVICE', label: 'Serviço' },
                     ]}
                   />
                   <TextInput
@@ -147,10 +147,10 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
                 variant="outlined"
                 onClick={() =>
                   append({
-                    label: "",
-                    type: "PRODUCT",
+                    label: '',
+                    type: 'PRODUCT',
                     quantity: 1,
-                    value: "",
+                    value: '',
                   } as any)
                 }
               >
@@ -160,7 +160,7 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
           </Box>
           <Box width="100%" display="flex" justifyContent="flex-end">
             <Typography variant="subtitle1">
-              Total: R${" "}
+              Total: R${' '}
               {total.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
@@ -187,7 +187,7 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
             options={options.users || []}
           />
 
-          <Divider sx={{ width: "100%" }} />
+          <Divider sx={{ width: '100%' }} />
 
           <Box
             mt="auto"
