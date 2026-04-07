@@ -10,7 +10,7 @@ import {
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
 import { formatRRuleToText } from '@/utils/rrule';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -46,7 +46,8 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     needApprove,
     showResponsibleSelect,
     setValue,
-    hasRecurrence,
+    paidTo,
+    setPaidTo,
   } = useFinanceDrawer(props);
 
   const router = useRouter();
@@ -157,20 +158,46 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 onInputChange={(v) => setSearch('users', v)}
               />
             )}
-            <AutocompleteInput
-              label="Funcionário (opcional)"
-              name="employeeId"
-              control={control}
-              options={options.employees ?? []}
-              onInputChange={(v) => setSearch('employees', v)}
-            />
-            <AutocompleteInput
-              label="Cliente (opcional)"
-              name="clientId"
-              control={control}
-              options={options.clients ?? []}
-              onInputChange={(v) => setSearch('clients', v)}
-            />
+            {isOutFlow && (
+              <ButtonGroup fullWidth size="small">
+                <Button
+                  variant={paidTo === 'client' ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    setPaidTo('client');
+                    setValue('employeeId', '');
+                  }}
+                >
+                  Cliente
+                </Button>
+                <Button
+                  variant={paidTo === 'employee' ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    setPaidTo('employee');
+                    setValue('clientId', '');
+                  }}
+                >
+                  Funcionário
+                </Button>
+              </ButtonGroup>
+            )}
+            {isOutFlow && paidTo === 'employee' && (
+              <AutocompleteInput
+                label={isOutFlow ? 'Funcionário' : 'Funcionário (opcional)'}
+                name="employeeId"
+                control={control}
+                options={options.employees ?? []}
+                onInputChange={(v) => setSearch('employees', v)}
+              />
+            )}
+            {(!isOutFlow || paidTo === 'client') && (
+              <AutocompleteInput
+                label={isOutFlow ? 'Cliente' : 'Cliente (opcional)'}
+                name="clientId"
+                control={control}
+                options={options.clients ?? []}
+                onInputChange={(v) => setSearch('clients', v)}
+              />
+            )}
             {isOutFlow && (
               <AutocompleteInput
                 label="Favorecido"

@@ -30,6 +30,7 @@ export const useFinanceDrawer = ({
 }: HookProps) => {
   const finance = selectedFinance || null;
   const [loading, setLoading] = useState(false);
+  const [paidTo, setPaidTo] = useState<'client' | 'employee'>('client');
 
   const { isAdmin, subordinateIds, currentUserId } = useCompanyPermissions();
   const showResponsibleSelect = isAdmin || subordinateIds.length > 0;
@@ -68,6 +69,10 @@ export const useFinanceDrawer = ({
   const selectedTypeId = watch('typeId');
 
   const isOutFlow = selectedFlow === FinanceFlowEnum.OUT;
+
+  useEffect(() => {
+    if (!isOutFlow) setPaidTo('client');
+  }, [isOutFlow]);
   const selectedTypeOption = (options.financeTypes ?? []).find(
     (t) => t.value === selectedTypeId,
   );
@@ -94,11 +99,18 @@ export const useFinanceDrawer = ({
         employeeId: finance.employeeId ?? undefined,
         recurrence: finance.recurringMaster?.recurrence ?? '',
       });
+      if (finance.flow === FinanceFlowEnum.OUT) {
+        if (finance.employeeId) setPaidTo('employee');
+        else setPaidTo('client');
+      } else {
+        setPaidTo('client');
+      }
     } else if (open && !finance) {
       reset({
         ...financeFormInitialValues,
         responsibleId: showResponsibleSelect ? '' : currentUserId,
       });
+      setPaidTo('client');
     }
   }, [open, finance, reset, showResponsibleSelect, currentUserId]);
 
@@ -153,5 +165,7 @@ export const useFinanceDrawer = ({
     isOutFlow,
     needApprove,
     showResponsibleSelect,
+    paidTo,
+    setPaidTo,
   };
 };
