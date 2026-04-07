@@ -21,6 +21,7 @@ type Module =
 
 export type Route = {
   id: string;
+  label?: string;
   icon?: JSX.Element;
   path: string;
   subRoutes?: SubRoute[];
@@ -32,6 +33,7 @@ export type Route = {
 
 export type SubRoute = {
   id: string;
+  label?: string;
   path: string;
   subRoutes?: SubRoute[];
   modules: Module[];
@@ -112,7 +114,8 @@ export const routes: Route[] = [
         modules: ['financial'],
       },
       {
-        id: 'Cadastros',
+        id: 'financial-cadastros',
+        label: 'Cadastros',
         path: '/panel/financial/types',
         permissions: ['financial'],
         modules: ['financial'],

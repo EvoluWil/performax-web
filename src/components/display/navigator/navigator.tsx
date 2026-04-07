@@ -236,7 +236,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                   <ListItemIcon className="route-icon">
                     {route.icon}
                   </ListItemIcon>
-                  <ListItemText className="route-name">{route.id}</ListItemText>
+                  <ListItemText className="route-name">{route.label ?? route.id}</ListItemText>
                   {route.subRoutes && (
                     <ExpandMore className="route-name" sx={{ mr: -1 }} />
                   )}
@@ -261,7 +261,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                             onClick={() => handleSelectRoute(childrenRoute)}
                           >
                             <ListItemText className="route-name">
-                              {childrenRoute.id}
+                              {childrenRoute.label ?? childrenRoute.id}
                             </ListItemText>
                             {childrenRoute.subRoutes && (
                               <ExpandMore
@@ -308,7 +308,7 @@ export function Navigator({ open, onClose }: NavigatorProps) {
                                       className="route-name"
                                       sx={{ pl: 4 }}
                                     >
-                                      {childrenSubRoute.id}
+                                      {childrenSubRoute.label ?? childrenSubRoute.id}
                                     </ListItemText>
                                   </ListItemButton>
                                 </ListItem>
