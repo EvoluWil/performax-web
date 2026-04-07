@@ -63,6 +63,14 @@ class OccurrenceService extends BaseCompanyService {
     );
     return data;
   }
+
+  async approve(id: string, approved: boolean): Promise<Occurrence> {
+    const { data } = await api.put<Occurrence>(
+      `${this.getUrlBase(this.path)}/${id}/approve`,
+      { approved },
+    );
+    return data;
+  }
 }
 
 export const occurrenceService = new OccurrenceService();

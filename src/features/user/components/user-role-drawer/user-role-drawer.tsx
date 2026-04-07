@@ -1,10 +1,10 @@
-import { BaseDrawer } from "@/components/drawer";
-import { SelectInput } from "@/components/inputs";
-import { Box, Button } from "@mui/material";
+import { BaseDrawer } from '@/components/drawer';
+import { SelectInput } from '@/components/inputs';
+import { Box, Button } from '@mui/material';
 import {
   UserRoleDrawerProps,
   useUserRoleDrawer,
-} from "./user-role-drawer.hook";
+} from './user-role-drawer.hook';
 
 export type { UserRoleDrawerProps };
 
@@ -26,7 +26,7 @@ export const UserRoleDrawer: React.FC<UserRoleDrawerProps> = (props) => {
       open={open}
       setOpen={handleClose}
       height="auto"
-      title={hasRole ? "Alterar Cargo do Usuário" : "Atribuir Cargo ao Usuário"}
+      title={hasRole ? 'Alterar Cargo do Usuário' : 'Atribuir Cargo ao Usuário'}
       content={
         <Box
           gap={2}
@@ -71,8 +71,9 @@ export const UserRoleDrawer: React.FC<UserRoleDrawerProps> = (props) => {
                 onClick={handleRemoveRole}
                 disabled={loading}
                 fullWidth
+                sx={{ whiteSpace: 'nowrap' }}
               >
-                Remover Cargo
+                Remover cargo
               </Button>
             )}
 
@@ -84,7 +85,7 @@ export const UserRoleDrawer: React.FC<UserRoleDrawerProps> = (props) => {
                 disabled={loading}
                 fullWidth
               >
-                {hasRole ? "Alterar Cargo" : "Atribuir Cargo"}
+                {hasRole ? 'Alterar Cargo' : 'Atribuir Cargo'}
               </Button>
             )}
           </Box>

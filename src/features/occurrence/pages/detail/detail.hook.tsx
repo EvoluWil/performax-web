@@ -4,10 +4,16 @@ import { generateOccurrencePdfObject } from '@/features/occurrence/util/occurren
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useOccurrenceDetailQuery, useOccurrenceMutation } from '../../hooks';
+import {
+  useOccurrenceApprovalMutation,
+  useOccurrenceDetailQuery,
+  useOccurrenceMutation,
+} from '../../hooks';
 
 export const useOccurrenceDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -32,6 +38,16 @@ export const useOccurrenceDetail = () => {
   } = useOccurrenceDetailQuery(String(occurrenceId));
 
   const occurrenceMutation = useOccurrenceMutation(String(occurrenceId));
+  const approvalMutation = useOccurrenceApprovalMutation();
+
+  const toggleApprovalDrawer = () => setApprovalDrawerOpen((prev) => !prev);
+
+  const handleApprove = async (approved: boolean) => {
+    if (!occurrence) return;
+    await approvalMutation.mutateAsync({ id: occurrence.id, approved });
+    setApprovalDrawerOpen(false);
+    refetch();
+  };
 
   const handleBack = () => {
     if (typeof window !== 'undefined') window.history.back();
@@ -58,6 +74,16 @@ export const useOccurrenceDetail = () => {
     replace('/panel/occurrences');
   };
 
+  const handleChangeStatus = async (status: string) => {
+    if (!occurrence) return;
+    await occurrenceMutation.mutateAsync({
+      type: 'update',
+      id: occurrence.id,
+      data: { status } as any,
+    });
+    await refetch();
+  };
+
   const loading = occurrenceMutation.isPending || isRefetching || isLoading;
 
   useEffect(() => {
@@ -68,10 +94,16 @@ export const useOccurrenceDetail = () => {
     occurrence,
     loading,
     editModalOpen,
+    approvalDrawerOpen,
+    statusModalOpen,
+    setStatusModalOpen,
     handleBack,
     toggleEditModal,
+    toggleApprovalDrawer,
+    handleApprove,
     handleDownloadPdf,
     handleDelete,
+    handleChangeStatus,
     refetch,
     pdfModalOpen,
     pdfBlobUrl,

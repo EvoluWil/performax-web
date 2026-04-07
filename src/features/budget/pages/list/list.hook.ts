@@ -7,7 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
-import { useBudgetsQuery } from '../../hooks/queries/budgets.query';
+import {
+  useBudgetApprovalMutation,
+  useBudgetsQuery,
+} from '../../hooks/queries/budgets.query';
 import { BudgetFilterDto } from '../../schemas/budget-filter.schema';
 import { budgetService, getBudgetQuery } from '../../services/budget.service';
 import { Budget } from '../../types/budget';
@@ -340,6 +343,17 @@ export const useBudgetList = () => {
 
   const loading = isPending || isRefetching || isLoading || isFetching;
 
+  const approvalMutation = useBudgetApprovalMutation();
+
+  const handleApprove = async (budgetId: string, approved: boolean) => {
+    await approvalMutation.mutateAsync({ id: budgetId, approved });
+    toast.success(
+      approved
+        ? 'Orçamento aprovado com sucesso'
+        : 'Orçamento reprovado com sucesso',
+    );
+  };
+
   const count = filter ? filteredCount : (data?.count ?? 0);
 
   const currentBudgetsAll = (
@@ -412,5 +426,6 @@ export const useBudgetList = () => {
     tableKey: DEFAULT_TABLE_COLUMNS_KEY,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
+    handleApprove,
   };
 };

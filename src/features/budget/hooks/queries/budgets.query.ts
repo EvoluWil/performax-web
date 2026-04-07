@@ -110,3 +110,14 @@ export const useBudgetMutation = (budgetId?: string) => {
     },
   });
 };
+
+export const useBudgetApprovalMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Budget, Error, { id: string; approved: boolean }>({
+    mutationFn: ({ id, approved }) => budgetService.approve(id, approved),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+};

@@ -3,6 +3,7 @@
 import { Empty, ListHeader, Table } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import {
@@ -22,6 +23,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  ThumbsUpDownOutlined,
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
@@ -69,7 +71,18 @@ const columns: MRT_ColumnDef<Occurrence>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    Cell({ cell }: any) {
+    Cell({ cell, row }: any) {
+      const approved: boolean = row.original.approved;
+      if (approved === false) {
+        return (
+          <Chip
+            label="Aguardando aprovação"
+            sx={{ color: 'warning.main', borderColor: 'warning.main' }}
+            variant="outlined"
+            size="small"
+          />
+        );
+      }
       const status = cell.getValue() as OccurrenceStatusEnum;
       const { label, color } = occurrenceStatusLabels[status] || {
         label: status,
@@ -97,8 +110,6 @@ type OccurrenceReportRow = {
   createdAt: string;
   status: string;
 };
-
-const columnsKeys = columns.map((col) => col.accessorKey as string);
 
 export const OccurrenceList = () => {
   const {
@@ -128,7 +139,12 @@ export const OccurrenceList = () => {
     handlePaginationChange,
     count,
     getOccurrenceReportData,
+    handleApprove,
   } = useOccurrenceList();
+
+  const [approvalOccurrence, setApprovalOccurrence] =
+    useState<Occurrence | null>(null);
+  const [approvalLoading, setApprovalLoading] = useState(false);
 
   const {
     makeTablePDF,
@@ -162,6 +178,13 @@ export const OccurrenceList = () => {
       icon: () => <DeleteOutlined />,
       label: () => 'Excluir ocorrência',
       onClick: (row) => handleDeleteOccurrence(row.id),
+    });
+
+    tableActions.push({
+      icon: () => <ThumbsUpDownOutlined />,
+      label: () => 'Aprovar / Reprovar',
+      onClick: (row) => setApprovalOccurrence(row),
+      condition: (row) => row.approved === false,
     });
   }
 
@@ -313,7 +336,10 @@ export const OccurrenceList = () => {
           open={openCustomizeColumnsModal}
           onClose={toggleCustomizeColumnsModal}
           onSuccess={handleUpdateColumns}
-          columns={columnsKeys}
+          columns={columns.map((col) => ({
+            key: col.accessorKey as string,
+            label: String(col.header),
+          }))}
           tableKey={tableKey}
           defaultColumns={defaultColumns}
         />
@@ -336,6 +362,20 @@ export const OccurrenceList = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+
+      <ApprovalDrawer
+        open={!!approvalOccurrence}
+        onClose={() => setApprovalOccurrence(null)}
+        title={approvalOccurrence?.title}
+        loading={approvalLoading}
+        onSubmit={async (approved) => {
+          if (!approvalOccurrence) return;
+          setApprovalLoading(true);
+          await handleApprove(approvalOccurrence.id, approved);
+          setApprovalLoading(false);
+          setApprovalOccurrence(null);
+        }}
       />
     </>
   );

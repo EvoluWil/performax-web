@@ -3,6 +3,7 @@
 import { Empty, ListHeader, Table } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import { TaskCard, TaskDrawer, TaskFilter } from '@/features/task/components';
@@ -14,6 +15,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  ThumbsUpDownOutlined,
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
@@ -116,7 +118,18 @@ const columns: MRT_ColumnDef<Task>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    Cell({ cell }: any) {
+    Cell({ cell, row }: any) {
+      const approved: boolean = row.original.approved;
+      if (approved === false) {
+        return (
+          <Chip
+            label="Aguardando aprovação"
+            sx={{ color: 'warning.main', borderColor: 'warning.main' }}
+            variant="outlined"
+            size="small"
+          />
+        );
+      }
       const status = cell.getValue();
       const { label, color } = taskStatusLabels[status] || {
         label: status,
@@ -163,8 +176,6 @@ const columns: MRT_ColumnDef<Task>[] = [
     },
   },
 ];
-
-const columnsKeys = columns.map((col) => col.accessorKey as string);
 
 type TaskReportRow = {
   title: string;
@@ -214,7 +225,11 @@ export const TaskList = () => {
     handlePaginationChange,
     count,
     getTaskReportData,
+    handleApprove,
   } = useTaskList();
+
+  const [approvalTask, setApprovalTask] = useState<Task | null>(null);
+  const [approvalLoading, setApprovalLoading] = useState(false);
   const {
     makeTablePDF,
     pdfModalOpen,
@@ -246,6 +261,13 @@ export const TaskList = () => {
       icon: () => <DeleteOutlined />,
       label: () => 'Excluir OS',
       onClick: (task) => handleDeleteTask(task.id),
+    });
+
+    tableActions.push({
+      icon: () => <ThumbsUpDownOutlined />,
+      label: () => 'Aprovar / Reprovar',
+      onClick: (task) => setApprovalTask(task),
+      condition: (task) => task.approved === false,
     });
   }
 
@@ -421,7 +443,10 @@ export const TaskList = () => {
           open={openCustomizeColumnsModal}
           onClose={toggleCustomizeColumnsModal}
           onSuccess={handleUpdateColumns}
-          columns={columnsKeys}
+          columns={columns.map((col) => ({
+            key: col.accessorKey as string,
+            label: String(col.header),
+          }))}
           tableKey={tableKey}
           defaultColumns={defaultColumns}
         />
@@ -435,6 +460,20 @@ export const TaskList = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+
+      <ApprovalDrawer
+        open={!!approvalTask}
+        onClose={() => setApprovalTask(null)}
+        title={approvalTask?.title}
+        loading={approvalLoading}
+        onSubmit={async (approved) => {
+          if (!approvalTask) return;
+          setApprovalLoading(true);
+          await handleApprove(approvalTask.id, approved);
+          setApprovalLoading(false);
+          setApprovalTask(null);
+        }}
       />
     </>
   );

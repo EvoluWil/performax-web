@@ -108,3 +108,14 @@ export const useOccurrenceMutation = (occurrenceId?: string) => {
     },
   });
 };
+
+export const useOccurrenceApprovalMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Occurrence, Error, { id: string; approved: boolean }>({
+    mutationFn: ({ id, approved }) => occurrenceService.approve(id, approved),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['occurrences'] });
+    },
+  });
+};

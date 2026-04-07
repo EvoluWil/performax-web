@@ -60,6 +60,14 @@ class BudgetService extends BaseCompanyService {
     );
     return data;
   }
+
+  async approve(id: string, approved: boolean): Promise<Budget> {
+    const { data } = await api.put<Budget>(
+      `${this.getUrlBase(this.path)}/${id}/approve`,
+      { approved },
+    );
+    return data;
+  }
 }
 
 export const budgetService = new BudgetService();

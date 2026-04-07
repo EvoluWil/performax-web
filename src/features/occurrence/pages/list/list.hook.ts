@@ -1,5 +1,6 @@
 import { Pagination } from '@/components/common/table/table';
 import {
+  useOccurrenceApprovalMutation,
   useOccurrenceMutation,
   useOccurrencesQuery,
 } from '@/features/occurrence/hooks';
@@ -349,6 +350,17 @@ export const useOccurrenceList = () => {
 
   const loading = isPending || isRefetching || isLoading || isFetching;
 
+  const approvalMutation = useOccurrenceApprovalMutation();
+
+  const handleApprove = async (occurrenceId: string, approved: boolean) => {
+    await approvalMutation.mutateAsync({ id: occurrenceId, approved });
+    toast.success(
+      approved
+        ? 'Ocorrência aprovada com sucesso'
+        : 'Ocorrência reprovada com sucesso',
+    );
+  };
+
   const count = filter ? filteredCount : (data?.count ?? 0);
 
   const currentOccurrencesAll = (
@@ -423,5 +435,6 @@ export const useOccurrenceList = () => {
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
     getOccurrenceReportData,
+    handleApprove,
   };
 };

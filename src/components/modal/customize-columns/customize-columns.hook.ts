@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { CustomizeColumnsModalProps } from "./customize-columns.modal";
+import { useState } from 'react';
+import { CustomizeColumnsModalProps } from './customize-columns.modal';
+// columns is { key, label }[] — hook works with keys internally
 
 export const useCustomizeColumns = ({
   onSuccess,

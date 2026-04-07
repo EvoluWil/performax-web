@@ -2,6 +2,7 @@
 
 import {
   useChecklistMutation,
+  useTaskApprovalMutation,
   useTaskDetailQuery,
   useTaskMutation,
 } from '@/features/task/hooks';
@@ -19,6 +20,7 @@ export const useTaskDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [impedimentModalOpen, setImpedimentModalOpen] = useState(false);
   const [conclusionModalOpen, setConclusionModalOpen] = useState(false);
+  const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const { sendFiles } = useUpload();
@@ -43,6 +45,16 @@ export const useTaskDetail = () => {
 
   const taskMutation = useTaskMutation(String(taskId));
   const checklistMutation = useChecklistMutation();
+  const approvalMutation = useTaskApprovalMutation();
+
+  const toggleApprovalDrawer = () => setApprovalDrawerOpen((prev) => !prev);
+
+  const handleApprove = async (approved: boolean) => {
+    if (!task) return;
+    await approvalMutation.mutateAsync({ id: task.id, approved });
+    setApprovalDrawerOpen(false);
+    refetch();
+  };
 
   const handleBack = () => {
     if (typeof window !== 'undefined') {
@@ -209,6 +221,7 @@ export const useTaskDetail = () => {
     impedimentModalOpen,
     editModalOpen,
     conclusionModalOpen,
+    approvalDrawerOpen,
     refetch,
     handleBack,
     handleStart,
@@ -217,6 +230,8 @@ export const useTaskDetail = () => {
     toggleEditModal,
     toggleImpedimentModal,
     toggleConclusionModal,
+    toggleApprovalDrawer,
+    handleApprove,
     handleDownloadPdf,
     handleResolved,
     handleReOpen,

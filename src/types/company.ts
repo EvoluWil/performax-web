@@ -1,3 +1,4 @@
+import { Role } from '@/features/role/types';
 import { Module } from './module';
 import { User } from './user';
 
@@ -7,7 +8,7 @@ export type CompanyUserRole = {
   user: User;
   companyId: string;
   company: Company;
-  role: object;
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -37,6 +38,7 @@ export type Company = {
   id: string;
   name: string;
   ownerId: string;
+  groupId?: string;
   createdAt: Date;
   updatedAt: Date;
   whiteLabel?: CompanyWhiteLabel;

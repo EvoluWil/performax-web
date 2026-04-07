@@ -1,16 +1,17 @@
-import { useRolesQuery } from "@/features/role/hooks";
-import { Role } from "@/features/role/types";
-import { useUserRoleMutation } from "@/features/user/hooks";
+import { useRolesQuery } from '@/features/role/hooks';
+import { Role } from '@/features/role/types';
+import { useUserRoleMutation } from '@/features/user/hooks';
 import {
   UserRoleFormDto,
   userRoleFormInitialValues,
   userRoleFormSchema,
-} from "@/features/user/schemas";
-import { User } from "@/types/user";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+} from '@/features/user/schemas';
+import { companyService } from '@/services/company.service';
+import { User } from '@/types/user';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
 export type UserRoleDrawerProps = {
   open: boolean;
@@ -31,17 +32,26 @@ export const useUserRoleDrawer = ({
     resolver: yupResolver(userRoleFormSchema),
   });
 
-  const initialRole = user?.companyUser?.[0]?.role as Role;
-  const selectedRoleId = watch("roleId");
+  const initialRole = useMemo(() => {
+    const selectedCompany = companyService.getDefaultCompany();
+    if (!selectedCompany) return null;
+
+    const companyUser = user?.companyUser?.find(
+      (cu) => cu.role?.companyId === selectedCompany.id,
+    );
+    return companyUser?.role as Role;
+  }, [user]);
+
+  const selectedRoleId = watch('roleId');
   const hasUpdatedRole = !initialRole
     ? false
-    : selectedRoleId !== initialRole.id;
+    : selectedRoleId === initialRole.id;
 
   const handleAssignRole = handleSubmit(async (data: UserRoleFormDto) => {
     if (!user?.id) return;
 
     const result = await mutation.mutateAsync({
-      type: "assign",
+      type: 'assign',
       data: {
         userId: user.id,
         roleId: data.roleId,
@@ -51,8 +61,8 @@ export const useUserRoleDrawer = ({
     if (result) {
       toast.success(
         initialRole
-          ? "Cargo alterado com sucesso"
-          : "Cargo atribuído com sucesso"
+          ? 'Cargo alterado com sucesso'
+          : 'Cargo atribuído com sucesso',
       );
       handleClose();
     }
@@ -62,12 +72,12 @@ export const useUserRoleDrawer = ({
     if (!user?.id) return;
 
     const result = await mutation.mutateAsync({
-      type: "remove",
+      type: 'remove',
       userId: user.id,
     });
 
     if (result) {
-      toast.success("Cargo removido com sucesso");
+      toast.success('Cargo removido com sucesso');
       handleClose();
     }
   };
@@ -79,7 +89,7 @@ export const useUserRoleDrawer = ({
 
   useEffect(() => {
     if (user?.companyUser?.[0]?.role) {
-      reset({ roleId: initialRole?.id || "" });
+      reset({ roleId: initialRole?.id || '' });
     } else {
       reset(userRoleFormInitialValues);
     }

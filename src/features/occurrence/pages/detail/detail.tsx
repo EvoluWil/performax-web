@@ -1,12 +1,22 @@
 'use client';
 
-import { PageTitle, SplitActions } from '@/components/common';
+import {
+  PageTitle,
+  PendingApprovalAlert,
+  SplitActions,
+} from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
+import { BudgetStatusModal } from '@/features/budget/components/status-modal/status.modal';
 import {
   OccurrenceDetailCard,
   OccurrenceDrawer,
 } from '@/features/occurrence/components';
+import {
+  OccurrenceStatusEnum,
+  occurrenceStatusLabels,
+} from '@/features/occurrence/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { Box, Divider } from '@mui/material';
 import { useOccurrenceDetail } from './detail.hook';
@@ -18,6 +28,12 @@ export const OccurrenceDetail = () => {
     loading,
     handleBack,
     toggleEditModal,
+    toggleApprovalDrawer,
+    handleApprove,
+    approvalDrawerOpen,
+    statusModalOpen,
+    setStatusModalOpen,
+    handleChangeStatus,
     handleDownloadPdf,
     handleDelete,
     refetch,
@@ -34,6 +50,18 @@ export const OccurrenceDetail = () => {
   const canWrite = isReady && hasPermission('occurrence', 'write');
   const canAdmin = isReady && hasPermission('occurrence', 'admin');
   const canEdit = canWrite || canAdmin;
+
+  const orderedStatuses = [
+    OccurrenceStatusEnum.PENDING,
+    OccurrenceStatusEnum.APPROVED,
+    OccurrenceStatusEnum.IN_PROGRESS,
+    OccurrenceStatusEnum.COMPLETED,
+    OccurrenceStatusEnum.REJECTED,
+  ] as const;
+  const statusOptions = orderedStatuses.map((s) => ({
+    value: s,
+    label: occurrenceStatusLabels[s]?.label || s,
+  }));
 
   if (!occurrence) {
     return <Loading />;
@@ -53,6 +81,18 @@ export const OccurrenceDetail = () => {
                 <SplitActions
                   primaryLabel="Ações"
                   actions={[
+                    {
+                      key: 'approve',
+                      label: 'Aprovar / Reprovar',
+                      onClick: toggleApprovalDrawer,
+                      visible: occurrence.approved === false,
+                    },
+                    {
+                      key: 'status',
+                      label: 'Alterar status',
+                      onClick: () => setStatusModalOpen(true),
+                      visible: occurrence.approved !== false,
+                    },
                     {
                       key: 'edit',
                       label: 'Editar',
@@ -78,6 +118,10 @@ export const OccurrenceDetail = () => {
           ]}
         />
 
+        {occurrence.approved === false && (
+          <PendingApprovalAlert onAction={toggleApprovalDrawer} />
+        )}
+
         <Divider sx={{ my: 2 }} />
 
         <OccurrenceDetailCard occurrence={occurrence} />
@@ -92,6 +136,19 @@ export const OccurrenceDetail = () => {
         />
       )}
 
+      {statusModalOpen && (
+        <BudgetStatusModal
+          open={statusModalOpen}
+          onClose={() => setStatusModalOpen(false)}
+          defaultStatus={occurrence.status}
+          options={statusOptions}
+          title="Alterar status da ocorrência"
+          onSubmit={async (status) => {
+            await handleChangeStatus(status);
+            setStatusModalOpen(false);
+          }}
+        />
+      )}
       <PdfPreviewModal
         open={pdfModalOpen}
         onClose={closePdfModal}
@@ -100,6 +157,13 @@ export const OccurrenceDetail = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+      <ApprovalDrawer
+        open={approvalDrawerOpen}
+        onClose={toggleApprovalDrawer}
+        title={occurrence.title}
+        onSubmit={handleApprove}
+        loading={false}
       />
     </>
   );

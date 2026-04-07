@@ -100,3 +100,14 @@ export const useTaskMutation = (taskId?: string) => {
     },
   });
 };
+
+export const useTaskApprovalMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Task, Error, { id: string; approved: boolean }>({
+    mutationFn: ({ id, approved }) => taskService.approve(id, approved),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+};

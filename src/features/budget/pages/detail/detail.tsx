@@ -1,8 +1,13 @@
 'use client';
 import React from 'react';
 
-import { PageTitle, SplitActions } from '@/components/common';
+import {
+  PageTitle,
+  PendingApprovalAlert,
+  SplitActions,
+} from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { Box, Divider } from '@mui/material';
 import { BudgetDetailCard } from '../../components/budget-detail-card/budget-detail-card';
@@ -18,6 +23,9 @@ export const BudgetDetail = () => {
     loading,
     handleBack,
     toggleEditModal,
+    toggleApprovalDrawer,
+    handleApprove,
+    approvalDrawerOpen,
     handleDownloadPdf,
     handleDelete,
     refetch,
@@ -66,10 +74,16 @@ export const BudgetDetail = () => {
                   primaryLabel="Ações"
                   actions={[
                     {
+                      key: 'approve',
+                      label: 'Aprovar / Reprovar',
+                      onClick: toggleApprovalDrawer,
+                      visible: budget.approved === false,
+                    },
+                    {
                       key: 'status',
                       label: 'Alterar status',
                       onClick: () => setStatusModalOpen(true),
-                      visible: true,
+                      visible: budget.approved !== false,
                     },
                     {
                       key: 'edit',
@@ -95,6 +109,10 @@ export const BudgetDetail = () => {
             },
           ]}
         />
+
+        {budget.approved === false && (
+          <PendingApprovalAlert onAction={toggleApprovalDrawer} />
+        )}
 
         <Divider sx={{ my: 2 }} />
 
@@ -128,6 +146,13 @@ export const BudgetDetail = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+      <ApprovalDrawer
+        open={approvalDrawerOpen}
+        onClose={toggleApprovalDrawer}
+        title={budget.title}
+        onSubmit={handleApprove}
+        loading={false}
       />
     </>
   );

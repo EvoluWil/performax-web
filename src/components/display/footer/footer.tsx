@@ -1,12 +1,16 @@
 'use client';
 
 import { Copyright } from '@/components/common';
+import { useWhiteLabel } from '@/providers/white-label';
 import { ArrowDropUp } from '@mui/icons-material';
 import { Box, Container, Fab, Typography } from '@mui/material';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export const Footer = () => {
+  const { whiteLabel } = useWhiteLabel();
+  const logoSrc = whiteLabel?.logo || '/images/brand/logo.png';
+  const companyName = whiteLabel?.name || 'PERFORMAX';
+
   const handleTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -41,17 +45,16 @@ export const Footer = () => {
             }}
           >
             <Box display="flex" alignItems="center" gap={0.5}>
-              <Box width={60} height={60} mt={-0.5} position="relative">
-                <Image
-                  src="/images/brand/logo.png"
+              <Box width={60} height={60} mt={-0.5} sx={{ flexShrink: 0 }}>
+                <img
+                  src={logoSrc}
                   alt="Logo"
-                  layout="fill"
-                  objectFit="contain"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </Box>
             </Box>
             <Typography color="primary" fontWeight="bold" variant="h6">
-              PERFORMAX
+              {companyName}
             </Typography>
           </Box>
 

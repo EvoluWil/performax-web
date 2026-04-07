@@ -1,13 +1,13 @@
-import { SelectInput } from "@/components/inputs";
+import { SelectInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from "@/components/modal";
-import { CloseOutlined } from "@mui/icons-material";
-import { Box, Button, Typography } from "@mui/material";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+} from '@/components/modal';
+import { CloseOutlined } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export type BudgetStatusModalProps = {
   open: boolean;
@@ -15,6 +15,7 @@ export type BudgetStatusModalProps = {
   onSubmit: (status: string) => Promise<void>;
   defaultStatus: string;
   options: { value: string; label: string }[];
+  title?: string;
 };
 
 export const BudgetStatusModal: React.FC<BudgetStatusModalProps> = ({
@@ -23,6 +24,7 @@ export const BudgetStatusModal: React.FC<BudgetStatusModalProps> = ({
   onSubmit,
   defaultStatus,
   options,
+  title = 'Alterar status do orçamento',
 }) => {
   const [loading, setLoading] = useState(false);
   const { control, handleSubmit, reset } = useForm<{ status: string }>({
@@ -51,7 +53,7 @@ export const BudgetStatusModal: React.FC<BudgetStatusModalProps> = ({
           <CloseOutlined />
         </CloseButtonStyled>
 
-        <Typography variant="h6">Alterar status do orçamento</Typography>
+        <Typography variant="h6">{title}</Typography>
 
         <SelectInput
           label="Novo status"
@@ -61,7 +63,7 @@ export const BudgetStatusModal: React.FC<BudgetStatusModalProps> = ({
         />
 
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}
         >
           <Button
             variant="outlined"

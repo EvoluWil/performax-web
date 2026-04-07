@@ -1,8 +1,8 @@
-import { api } from "@/config/api";
-import { BaseCompanyService } from "@/services/base-url.service";
-import { User } from "@/types/user";
-import { UserClientsFormDto, UserSubordinatesFormDto } from "../schemas";
-import { UserRole } from "../types";
+import { api } from '@/config/api';
+import { BaseCompanyService } from '@/services/base-url.service';
+import { User } from '@/types/user';
+import { UserClientsFormDto, UserSubordinatesFormDto } from '../schemas';
+import { UserRole } from '../types';
 
 export type AssignUserRoleDto = {
   userId: string;
@@ -10,11 +10,11 @@ export type AssignUserRoleDto = {
 };
 
 class UserRoleService extends BaseCompanyService {
-  private path = "users";
+  private path = 'users';
 
   async getUserRole(userId: string): Promise<UserRole> {
     const { data } = await api.get<UserRole>(
-      `${this.getUrlBase(this.path)}/${userId}/roles`
+      `${this.getUrlBase(this.path)}/${userId}/roles`,
     );
     return data;
   }
@@ -22,18 +22,18 @@ class UserRoleService extends BaseCompanyService {
   async assignRole(data: AssignUserRoleDto): Promise<User> {
     const { data: response } = await api.post<User>(
       `${this.getUrlBase(this.path)}/${data.userId}/roles`,
-      { roleId: data.roleId }
+      { roleId: data.roleId },
     );
     return response;
   }
 
   async assignSubordinates(
     userId: string,
-    data: UserSubordinatesFormDto
+    data: UserSubordinatesFormDto,
   ): Promise<User> {
     const { data: response } = await api.post<User>(
       `${this.getUrlBase(this.path)}/${userId}/roles/targets`,
-      data
+      data,
     );
     return response;
   }
@@ -41,14 +41,14 @@ class UserRoleService extends BaseCompanyService {
   async assignClients(userId: string, data: UserClientsFormDto): Promise<User> {
     const { data: response } = await api.post<User>(
       `${this.getUrlBase(this.path)}/${userId}/roles/clients`,
-      data
+      data,
     );
     return response;
   }
 
   async removeRole(userId: string): Promise<User> {
     const { data } = await api.delete<User>(
-      `${this.getUrlBase(this.path)}/${userId}/role`
+      `${this.getUrlBase(this.path)}/${userId}/roles`,
     );
     return data;
   }

@@ -3,6 +3,7 @@
 import { ListHeader, Table } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import { usePdfGenerator } from '@/hooks/common/pdf';
@@ -12,6 +13,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  ThumbsUpDownOutlined,
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
@@ -64,7 +66,18 @@ const columns: MRT_ColumnDef<Budget>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    Cell({ cell }: any) {
+    Cell({ cell, row }: any) {
+      const approved: boolean = row.original.approved;
+      if (approved === false) {
+        return (
+          <Chip
+            label="Aguardando aprovação"
+            sx={{ color: 'warning.main', borderColor: 'warning.main' }}
+            variant="outlined"
+            size="small"
+          />
+        );
+      }
       const status = cell.getValue() as BudgetStatusEnum;
       const { label, color } = budgetStatusLabels[status] || {
         label: status,
@@ -120,7 +133,11 @@ export const BudgetList = () => {
     handlePaginationChange,
     count,
     getBudgetReportData,
+    handleApprove,
   } = useBudgetList();
+
+  const [approvalBudget, setApprovalBudget] = useState<Budget | null>(null);
+  const [approvalLoading, setApprovalLoading] = useState(false);
   const {
     makeTablePDF,
     pdfModalOpen,
@@ -152,6 +169,13 @@ export const BudgetList = () => {
       icon: () => <DeleteOutlined />,
       label: () => 'Excluir orçamento',
       onClick: (row) => handleDeleteBudget(row.id),
+    });
+
+    tableActions.push({
+      icon: () => <ThumbsUpDownOutlined />,
+      label: () => 'Aprovar / Reprovar',
+      onClick: (row) => setApprovalBudget(row),
+      condition: (row) => row.approved === false,
     });
   }
 
@@ -315,7 +339,10 @@ export const BudgetList = () => {
           open={openCustomizeColumnsModal}
           onClose={toggleCustomizeColumnsModal}
           onSuccess={handleUpdateColumns}
-          columns={columnsKeys}
+          columns={columns.map((col) => ({
+            key: col.accessorKey as string,
+            label: String(col.header),
+          }))}
           tableKey={tableKey}
           defaultColumns={defaultColumns}
         />
@@ -329,6 +356,20 @@ export const BudgetList = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+
+      <ApprovalDrawer
+        open={!!approvalBudget}
+        onClose={() => setApprovalBudget(null)}
+        title={approvalBudget?.title}
+        loading={approvalLoading}
+        onSubmit={async (approved) => {
+          if (!approvalBudget) return;
+          setApprovalLoading(true);
+          await handleApprove(approvalBudget.id, approved);
+          setApprovalLoading(false);
+          setApprovalBudget(null);
+        }}
       />
     </>
   );

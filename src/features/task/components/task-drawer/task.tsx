@@ -1,5 +1,6 @@
 import { BaseDrawer } from '@/components/drawer';
 import {
+  AutocompleteInput,
   CurrencyInput,
   DateTimeInput,
   FileInput,
@@ -41,6 +42,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
     open,
     editing,
     options,
+    setSearch,
     defaultFiles,
     handleRemoveDefaultFile,
     setValue,
@@ -103,23 +105,26 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
                 { value: 'SCHEDULED', label: 'Agendada' },
               ]}
             />
-            <SelectInput
+            <AutocompleteInput
               label="Responsável"
               name="responsibleId"
               control={control}
-              options={options.users || []}
+              options={options.users ?? []}
+              onInputChange={(v) => setSearch('users', v)}
             />
-            <SelectInput
+            <AutocompleteInput
               label="Cliente"
               name="clientId"
               control={control}
-              options={options.clients || []}
+              options={options.clients ?? []}
+              onInputChange={(v) => setSearch('clients', v)}
             />
-            <SelectInput
+            <AutocompleteInput
               label="Tipo de OS"
               name="typeId"
               control={control}
-              options={options.types || []}
+              options={options.taskTypes ?? []}
+              onInputChange={(v) => setSearch('taskTypes', v)}
             />
             <TextInput
               label="Observações"

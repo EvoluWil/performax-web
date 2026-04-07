@@ -10,6 +10,7 @@ import {
   UserSubordinatesDrawer,
 } from '@/features/user/components';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { companyService } from '@/services/company.service';
 import { User } from '@/types/user';
 import { formatCpf } from '@/utils/cpf';
 import {
@@ -26,8 +27,12 @@ const resolveRoleLabel = (data: User & { isOwner?: boolean }) => {
   if (data.isOwner) {
     return 'Proprietário';
   }
+  const selectedCompany = companyService.getDefaultCompany();
 
-  const userRole = data.companyUser?.[0]?.role;
+  const companyUser = data.companyUser?.find(
+    (cu) => cu.role?.companyId === selectedCompany?.id,
+  );
+  const userRole = companyUser?.role;
 
   if (userRole) {
     return (userRole as any).name || 'Usuário';

@@ -48,7 +48,7 @@ export const PageTitle: React.FC<PageTitleProps> = ({
         )}
 
         <Box>
-          <Typography variant="h5" component="h1">
+          <Typography variant="h5" component="h1" color="primary" fontWeight="bold">
             {title}
           </Typography>
           {subtitle && (

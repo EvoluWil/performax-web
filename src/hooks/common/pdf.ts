@@ -28,8 +28,6 @@ const firebaseStorage = getStorage(firebaseApp);
 
 export const usePdfGenerator = () => {
   const { user } = useSession();
-  const company = companyService.getDefaultCompany();
-
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfStorageUrl, setPdfStorageUrl] = useState<string | null>(null);
@@ -38,6 +36,7 @@ export const usePdfGenerator = () => {
   const blobUrlRef = useRef<string | null>(null);
 
   const getPdfHeaderUrl = async () => {
+    const company = companyService.getDefaultCompany();
     if (company?.whiteLabel?.banner) {
       return company.whiteLabel.banner;
     }
@@ -150,6 +149,10 @@ export const usePdfGenerator = () => {
               tableHeader.map((cell) => ({
                 text: cell.label,
                 style: 'tableReportHeader',
+                fillColor:
+                  companyService.getDefaultCompany()?.whiteLabel
+                    ?.primaryColor ?? '#6B2AEE',
+                color: '#ffffff',
               })),
               ...tableBody,
             ],

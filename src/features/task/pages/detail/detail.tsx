@@ -1,7 +1,12 @@
 'use client';
 
-import { PageTitle, SplitActions } from '@/components/common';
+import {
+  PageTitle,
+  PendingApprovalAlert,
+  SplitActions,
+} from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
+import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import {
   ConclusionModal,
@@ -26,6 +31,9 @@ export const TaskDetail = () => {
     toggleImpedimentModal,
     conclusionModalOpen,
     toggleConclusionModal,
+    approvalDrawerOpen,
+    toggleApprovalDrawer,
+    handleApprove,
     handleDownloadPdf,
     handleResolved,
     handleReOpen,
@@ -64,20 +72,24 @@ export const TaskDetail = () => {
                       key: 'start',
                       label: 'Iniciar',
                       onClick: handleStart,
-                      visible: [
-                        'PENDING',
-                        'OPEN',
-                        'SCHEDULED',
-                        'EMERGENCY',
-                        'APPROVED',
-                        'EXPIRED',
-                      ].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        [
+                          'PENDING',
+                          'OPEN',
+                          'SCHEDULED',
+                          'EMERGENCY',
+                          'APPROVED',
+                          'EXPIRED',
+                        ].includes(task.status),
                     },
                     {
                       key: 'impediment',
                       label: 'Impedimento',
                       onClick: toggleImpedimentModal,
-                      visible: ['IN_PROGRESS'].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        ['IN_PROGRESS'].includes(task.status),
                     },
                     {
                       key: 'edit',
@@ -89,25 +101,39 @@ export const TaskDetail = () => {
                       key: 'finalize',
                       label: 'Finalizar',
                       onClick: toggleConclusionModal,
-                      visible: ['IN_PROGRESS'].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        ['IN_PROGRESS'].includes(task.status),
                     },
                     {
                       key: 'cancel',
                       label: 'Cancelar',
                       onClick: handleCancel,
-                      visible: !['CLOSED', 'REJECTED'].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        !['CLOSED', 'REJECTED'].includes(task.status),
                     },
                     {
                       key: 're-open',
                       label: 'Reabrir',
                       onClick: handleReOpen,
-                      visible: ['CLOSED'].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        ['CLOSED'].includes(task.status),
                     },
                     {
                       key: 'resolved',
                       label: 'Resolver impedimento',
                       onClick: handleResolved,
-                      visible: ['IMPEDED'].includes(task.status),
+                      visible:
+                        task.approved !== false &&
+                        ['IMPEDED'].includes(task.status),
+                    },
+                    {
+                      key: 'approve',
+                      label: 'Aprovar / Reprovar',
+                      onClick: toggleApprovalDrawer,
+                      visible: task.approved === false,
                     },
                     {
                       key: 'download',
@@ -121,6 +147,10 @@ export const TaskDetail = () => {
             },
           ]}
         />
+
+        {task.approved === false && (
+          <PendingApprovalAlert onAction={toggleApprovalDrawer} />
+        )}
 
         <Divider sx={{ my: 2 }} />
 
@@ -160,6 +190,13 @@ export const TaskDetail = () => {
         pdfUploading={pdfUploading}
         title={pdfTitle}
         onDownload={downloadPdf}
+      />
+      <ApprovalDrawer
+        open={approvalDrawerOpen}
+        onClose={toggleApprovalDrawer}
+        title={task.title}
+        onSubmit={handleApprove}
+        loading={false}
       />
     </>
   );

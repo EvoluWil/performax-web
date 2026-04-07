@@ -4,6 +4,7 @@ import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
+  useBudgetApprovalMutation,
   useBudgetDetailQuery,
   useBudgetMutation,
 } from '../../hooks/queries/budgets.query';
@@ -11,6 +12,7 @@ import { generateBudgetPdfObject } from '../../util/budget-pdf';
 
 export const useBudgetDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -34,6 +36,16 @@ export const useBudgetDetail = () => {
   } = useBudgetDetailQuery(String(budgetId));
 
   const budgetMutation = useBudgetMutation(String(budgetId));
+  const approvalMutation = useBudgetApprovalMutation();
+
+  const toggleApprovalDrawer = () => setApprovalDrawerOpen((prev) => !prev);
+
+  const handleApprove = async (approved: boolean) => {
+    if (!budget) return;
+    await approvalMutation.mutateAsync({ id: budget.id, approved });
+    setApprovalDrawerOpen(false);
+    await refetch();
+  };
 
   const handleChangeStatus = async (status: string) => {
     if (!budget) return;
@@ -74,8 +86,11 @@ export const useBudgetDetail = () => {
     budget,
     loading,
     editModalOpen,
+    approvalDrawerOpen,
     handleBack,
     toggleEditModal,
+    toggleApprovalDrawer,
+    handleApprove,
     handleDownloadPdf,
     handleDelete,
     refetch,

@@ -1,17 +1,15 @@
-import { useClientsQuery } from '@/features/client/hooks';
-import { useTaskMutation, useTaskTypesQuery } from '@/features/task/hooks';
+import { useTaskMutation } from '@/features/task/hooks';
 import {
   TaskFormDto,
   taskFormInitialValues,
   taskFormSchema,
 } from '@/features/task/schemas';
 import { Task } from '@/features/task/types';
-import { useUsersQuery } from '@/features/user/hooks';
 import { useUpload } from '@/hooks/common/upload';
+import { useFormResources } from '@/hooks/use-form-resources';
 import { File } from '@/types/file';
-import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { formatChecklist } from '../../util/format-checklist';
@@ -26,26 +24,12 @@ export const useTaskDrawer = ({
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
-  const { data: clientsQueryData } = useClientsQuery({
-    scopeModule: 'client',
-    pageSize: 1000,
-  });
-  const clients = clientsQueryData?.clients ?? [];
-  const { data: taskTypes } = useTaskTypesQuery();
-  const { data: usersResponse } = useUsersQuery({
-    scopeModule: 'task',
-    pageSize: 1000,
-  });
 
-  const users = usersResponse?.users || [];
-
-  const options = useMemo(() => {
-    return {
-      clients: formatterSelectOptions(clients, 'id', 'name'),
-      types: formatterSelectOptions(taskTypes, 'id', 'name'),
-      users: formatterSelectOptions(users, 'id', 'name'),
-    };
-  }, [clients, taskTypes, users]);
+  const { options, setSearch } = useFormResources([
+    'clients',
+    'taskTypes',
+    'users',
+  ]);
 
   const { control, handleSubmit, reset, setValue } = useForm<TaskFormDto>({
     defaultValues: taskFormInitialValues,
@@ -140,6 +124,7 @@ export const useTaskDrawer = ({
     handleClose,
     open,
     options,
+    setSearch,
     defaultFiles: task?.files || [],
     editing: !!task,
     hasRecurrence: !!task?.recurrence || task?.recurrenceMasterId,

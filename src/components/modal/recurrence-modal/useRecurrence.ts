@@ -1,21 +1,21 @@
-import { Options, RRule, Weekday, rrulestr } from "rrule";
-import { RecurrenceForm } from "./recurrence.schema";
+import { Options, RRule, Weekday, rrulestr } from 'rrule';
+import { RecurrenceForm } from './recurrence.schema';
 
 const toWeekday = (code: string): Weekday => {
   switch (code) {
-    case "MO":
+    case 'MO':
       return RRule.MO;
-    case "TU":
+    case 'TU':
       return RRule.TU;
-    case "WE":
+    case 'WE':
       return RRule.WE;
-    case "TH":
+    case 'TH':
       return RRule.TH;
-    case "FR":
+    case 'FR':
       return RRule.FR;
-    case "SA":
+    case 'SA':
       return RRule.SA;
-    case "SU":
+    case 'SU':
     default:
       return RRule.SU;
   }
@@ -27,18 +27,20 @@ export function parseRRuleToForm(initialRRule?: string) {
     const rule = rrulestr(initialRRule) as RRule;
     const o = rule.origOptions as any;
     const form: Partial<RecurrenceForm> = {};
-    if (o.freq === RRule.HOURLY) form.freq = "HOURLY";
-    else if (o.freq === RRule.DAILY) form.freq = "DAILY";
-    else if (o.freq === RRule.WEEKLY) form.freq = "WEEKLY";
+    if (o.freq === RRule.HOURLY) form.freq = 'HOURLY';
+    else if (o.freq === RRule.DAILY) form.freq = 'DAILY';
+    else if (o.freq === RRule.WEEKLY) form.freq = 'WEEKLY';
     else if (o.freq === RRule.MONTHLY) {
-      form.freq = "MONTHLY";
-    } else if (o.freq === RRule.YEARLY) form.freq = "YEARLY";
+      form.freq = 'MONTHLY';
+    } else if (o.freq === RRule.YEARLY) form.freq = 'YEARLY';
     if (o.interval) form.interval = o.interval;
     if (o.count) form.count = o.count;
     if (o.until) form.until = new Date(o.until).toISOString().slice(0, 16);
     if (o.byweekday) {
       const arr = Array.isArray(o.byweekday) ? o.byweekday : [o.byweekday];
       form.byweekday = arr.map((w: any) => (w as Weekday).toString());
+    } else {
+      form.byweekday = ['ALL'];
     }
     if (o.bymonthday)
       form.bymonthday = Array.isArray(o.bymonthday)
@@ -60,19 +62,19 @@ export function parseRRuleToForm(initialRRule?: string) {
 
 export function buildRRuleFromForm(
   data: RecurrenceForm,
-  dtstart?: Date
+  dtstart?: Date,
 ): string {
   const options: Partial<Options> = {
     freq:
-      data.freq === "HOURLY"
+      data.freq === 'HOURLY'
         ? RRule.HOURLY
-        : data.freq === "DAILY"
-        ? RRule.DAILY
-        : data.freq === "WEEKLY"
-        ? RRule.WEEKLY
-        : data.freq === "MONTHLY"
-        ? RRule.MONTHLY
-        : RRule.YEARLY,
+        : data.freq === 'DAILY'
+          ? RRule.DAILY
+          : data.freq === 'WEEKLY'
+            ? RRule.WEEKLY
+            : data.freq === 'MONTHLY'
+              ? RRule.MONTHLY
+              : RRule.YEARLY,
     interval: Number(data.interval) || 1,
     dtstart: dtstart || new Date(),
   };
@@ -81,7 +83,7 @@ export function buildRRuleFromForm(
 
   if (data.count) options.count = Number(data.count);
   if (data.until) options.until = new Date(data.until);
-  if (data.byweekday) {
+  if (data.byweekday && !data.byweekday.includes('ALL')) {
     const weekdays = Array.isArray(data.byweekday)
       ? data.byweekday
       : [data.byweekday];

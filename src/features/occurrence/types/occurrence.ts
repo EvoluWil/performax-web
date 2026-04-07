@@ -33,6 +33,7 @@ export type Occurrence = {
   createdAt: Date;
   updatedAt: Date;
   status: OccurrenceStatusEnum;
+  approved: boolean;
   createdById: string;
   createdBy?: User;
   clientId?: string;

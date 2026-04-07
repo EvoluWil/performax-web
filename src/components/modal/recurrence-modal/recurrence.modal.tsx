@@ -1,21 +1,21 @@
-import { DateInput, SelectInput, TextInput } from "@/components/inputs";
+import { DateInput, SelectInput, TextInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
   TwoColumnsContainer,
-} from "@/components/modal";
-import { CloseOutlined } from "@mui/icons-material";
-import { Box, Button, Divider, Typography } from "@mui/material";
-import React from "react";
-import { useForm, useWatch } from "react-hook-form";
+} from '@/components/modal';
+import { CloseOutlined } from '@mui/icons-material';
+import { Box, Button, Divider, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   RECURRENCE_FREQ_OPTIONS,
   RECURRENCE_WEEKDAYS,
   RecurrenceForm,
   recurrenceInitialValues,
-} from "./recurrence.schema";
-import { buildRRuleFromForm, parseRRuleToForm } from "./useRecurrence";
+} from './recurrence.schema';
+import { buildRRuleFromForm, parseRRuleToForm } from './useRecurrence';
 
 export type RecurrenceModalProps = {
   open: boolean;
@@ -32,7 +32,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   dtstart,
   onSubmit,
 }) => {
-  const { control, handleSubmit, reset } = useForm<RecurrenceForm>({
+  const { control, handleSubmit, reset, setValue } = useForm<RecurrenceForm>({
     defaultValues: recurrenceInitialValues,
   });
 
@@ -42,10 +42,33 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     reset({ ...recurrenceInitialValues, ...form });
   }, [initialRRule, reset]);
 
-  const freq = useWatch({ control, name: "freq" });
+  const freq = useWatch({ control, name: 'freq' });
+  const rawByweekday = useWatch({ control, name: 'byweekday' });
+  const byweekday = useMemo(() => rawByweekday ?? [], [rawByweekday]);
+  const prevByweekday = useRef<string[]>(byweekday);
 
-  const showMonthDay = freq === "MONTHLY";
-  const showYearly = freq === "YEARLY";
+  useEffect(() => {
+    const prev = prevByweekday.current ?? [];
+    const curr = byweekday ?? [];
+    if (curr.includes('ALL') && !prev.includes('ALL')) {
+      // User just selected Todos — clear specific days
+      setValue('byweekday', ['ALL']);
+    } else if (
+      curr.includes('ALL') &&
+      prev.includes('ALL') &&
+      curr.length > 1
+    ) {
+      // Had Todos selected, user picked a specific day — remove Todos
+      setValue(
+        'byweekday',
+        curr.filter((d) => d !== 'ALL'),
+      );
+    }
+    prevByweekday.current = curr;
+  }, [byweekday, setValue]);
+
+  const showMonthDay = freq === 'MONTHLY';
+  const showYearly = freq === 'YEARLY';
 
   const onSave = handleSubmit(async (data) => {
     const rrule = buildRRuleFromForm(data, dtstart);
@@ -74,15 +97,15 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             type="number"
             control={control}
             placeholder={
-              freq === "HOURLY"
-                ? "ex.: a cada 2 horas"
-                : freq === "DAILY"
-                ? "ex.: a cada 2 dias"
-                : freq === "WEEKLY"
-                ? "ex.: a cada 2 semanas"
-                : freq === "MONTHLY"
-                ? "ex.: a cada 2 meses"
-                : "ex.: a cada 2 anos"
+              freq === 'HOURLY'
+                ? 'ex.: a cada 2 horas'
+                : freq === 'DAILY'
+                  ? 'ex.: a cada 2 dias'
+                  : freq === 'WEEKLY'
+                    ? 'ex.: a cada 2 semanas'
+                    : freq === 'MONTHLY'
+                      ? 'ex.: a cada 2 meses'
+                      : 'ex.: a cada 2 anos'
             }
           />
         </TwoColumnsContainer>
@@ -93,12 +116,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           control={control}
           options={RECURRENCE_WEEKDAYS}
           defaultValue={[]}
-          slotProps={{
-            select: {
-              multiple: true,
-            },
-          }}
-          SelectProps={{ multiple: true }}
+          multiple
         />
 
         {showMonthDay && (
@@ -157,12 +175,12 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
             label="Data limite"
             name="until"
             control={control}
-            defaultValue={"" as any}
+            defaultValue={'' as any}
           />
         </TwoColumnsContainer>
 
         <Box
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+          sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}
         >
           <Button variant="outlined" color="error" onClick={onClose}>
             Cancelar

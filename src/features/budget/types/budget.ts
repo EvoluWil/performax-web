@@ -1,30 +1,30 @@
-import { Client } from "@/features/client/types";
-import { User } from "@/types/user";
-import { BudgetType } from "./budget-type";
+import { Client } from '@/features/client/types';
+import { User } from '@/types/user';
+import { BudgetType } from './budget-type';
 
 export enum BudgetStatusEnum {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-  COMPLETED = "COMPLETED",
-  CHARGED = "CHARGED",
-  PAID = "PAID",
-  FINANCIAL = "FINANCIAL",
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  CHARGED = 'CHARGED',
+  PAID = 'PAID',
+  FINANCIAL = 'FINANCIAL',
 }
 
 export const budgetStatusLabels = {
-  [BudgetStatusEnum.PENDING]: { label: "Pendente", color: "orange" },
-  [BudgetStatusEnum.APPROVED]: { label: "Aprovado", color: "green" },
-  [BudgetStatusEnum.REJECTED]: { label: "Rejeitado", color: "red" },
-  [BudgetStatusEnum.COMPLETED]: { label: "Concluído", color: "gray" },
-  [BudgetStatusEnum.CHARGED]: { label: "Faturado", color: "purple" },
-  [BudgetStatusEnum.PAID]: { label: "Pago", color: "teal" },
-  [BudgetStatusEnum.FINANCIAL]: { label: "Financeiro", color: "blue" },
+  [BudgetStatusEnum.PENDING]: { label: 'Pendente', color: 'orange' },
+  [BudgetStatusEnum.APPROVED]: { label: 'Aprovado', color: 'green' },
+  [BudgetStatusEnum.REJECTED]: { label: 'Rejeitado', color: 'red' },
+  [BudgetStatusEnum.COMPLETED]: { label: 'Concluído', color: 'gray' },
+  [BudgetStatusEnum.CHARGED]: { label: 'Faturado', color: 'purple' },
+  [BudgetStatusEnum.PAID]: { label: 'Pago', color: 'teal' },
+  [BudgetStatusEnum.FINANCIAL]: { label: 'Financeiro', color: 'blue' },
 };
 
 export enum ItemTypeEnum {
-  PRODUCT = "PRODUCT",
-  SERVICE = "SERVICE",
+  PRODUCT = 'PRODUCT',
+  SERVICE = 'SERVICE',
 }
 
 export type BudgetItem = {
@@ -45,6 +45,7 @@ export type Budget = {
   createdAt: Date;
   updatedAt: Date;
   status: BudgetStatusEnum;
+  approved: boolean;
   createdById: string;
   typeId: string;
   clientId: string;

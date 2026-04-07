@@ -5,6 +5,6 @@ export const formatDate = (date: Date | string): string => {
   return parsedDate.toLocaleDateString('pt-BR', {
     year: 'numeric',
     month: '2-digit',
-    day: 'numeric',
+    day: '2-digit',
   });
 };

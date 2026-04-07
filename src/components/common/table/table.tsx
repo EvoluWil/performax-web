@@ -6,6 +6,7 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from 'material-react-table';
+import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
 import { JSX } from 'react';
 import { Empty } from '..';
 
@@ -88,14 +89,8 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
       },
     }),
     localization: {
-      sortByColumnAsc: 'Ordenar por esta coluna de forma ascendente',
-      sortByColumnDesc: 'Ordenar por esta coluna de forma descendente',
-      sortedByColumnAsc: 'Ordenado por esta coluna de forma ascendente',
-      sortedByColumnDesc: 'Ordenado por esta coluna de forma descendente',
+      ...MRT_Localization_PT_BR,
       rowsPerPage: matches ? 'Linhas por página' : '',
-      goToNextPage: 'Ir para a próxima página',
-      goToPreviousPage: 'Ir para a página anterior',
-      actions: 'Ações',
     },
     manualPagination: !!pagination,
     rowCount: rowCount ?? data.length,

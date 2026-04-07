@@ -1,13 +1,23 @@
 import {
   AppRegistration,
+  BusinessCenter,
   ContactsOutlined,
+  MonetizationOn,
   PeopleOutline,
   SecurityOutlined,
+  SupportAgent,
   Work,
 } from '@mui/icons-material';
 import { JSX } from 'react';
 
-type Module = 'task' | 'budget' | 'occurrence' | 'client' | 'user' | 'role';
+type Module =
+  | 'task'
+  | 'budget'
+  | 'occurrence'
+  | 'client'
+  | 'user'
+  | 'role'
+  | 'financial';
 
 export type Route = {
   id: string;
@@ -17,6 +27,7 @@ export type Route = {
   modules: Module[];
   permissions: Module[];
   scope?: 'read' | 'write' | 'admin';
+  adminOnly?: boolean;
 };
 
 export type SubRoute = {
@@ -26,9 +37,18 @@ export type SubRoute = {
   modules: Module[];
   permissions: Module[];
   scope?: 'read' | 'write' | 'admin';
+  adminOnly?: boolean;
 };
 
 export const routes: Route[] = [
+  {
+    id: 'Atendimento',
+    icon: <SupportAgent sx={{ color: 'white' }} />,
+    path: '/panel/attendance',
+    permissions: ['task'],
+    modules: ['task'],
+    scope: 'write',
+  },
   {
     id: 'Operacional',
     icon: <Work sx={{ color: 'white' }} />,
@@ -78,12 +98,79 @@ export const routes: Route[] = [
       // },
     ],
   },
-  // {
-  //   id: 'Financeiro',
-  //   icon: <MonetizationOn sx={{ color: 'white' }} />,
-  //   path: '/panel/financial',
-  //   role: ['ADMIN', 'FINANCIAL'],
-  // },
+  {
+    id: 'Financeiro',
+    icon: <MonetizationOn sx={{ color: 'white' }} />,
+    path: '/panel/financial',
+    permissions: ['financial'],
+    modules: ['financial'],
+    subRoutes: [
+      {
+        id: 'Lançamentos',
+        path: '/panel/financial',
+        permissions: ['financial'],
+        modules: ['financial'],
+      },
+      {
+        id: 'Cadastros',
+        path: '/panel/financial/types',
+        permissions: ['financial'],
+        modules: ['financial'],
+        scope: 'write',
+        subRoutes: [
+          {
+            id: 'Centros de Custo',
+            path: '/panel/financial/types',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Bancos',
+            path: '/panel/financial/banks',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Categorias',
+            path: '/panel/financial/categories',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Segmentos',
+            path: '/panel/financial/segments',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Favorecidos',
+            path: '/panel/financial/payees',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Métodos de Pgto',
+            path: '/panel/financial/payment-methods',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'write',
+          },
+          {
+            id: 'Recorrências',
+            path: '/panel/financial/recurring',
+            permissions: ['financial'],
+            modules: ['financial'],
+            scope: 'admin',
+          },
+        ],
+      },
+    ],
+  },
   // {
   //   id: 'Relatórios',
   //   icon: <Assessment sx={{ color: 'white' }} />,
@@ -171,5 +258,13 @@ export const routes: Route[] = [
     permissions: ['role'],
     modules: ['role'],
     scope: 'read',
+  },
+  {
+    id: 'Minha Empresa',
+    icon: <BusinessCenter sx={{ color: 'white' }} />,
+    path: '/panel/customization',
+    permissions: [],
+    modules: [],
+    adminOnly: true,
   },
 ];

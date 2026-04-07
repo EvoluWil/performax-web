@@ -1,23 +1,25 @@
-import { CloseOutlined } from "@mui/icons-material";
-import { Box, Button, Divider, Switch, Typography } from "@mui/material";
+import { CloseOutlined } from '@mui/icons-material';
+import { Box, Button, Divider, Switch, Typography } from '@mui/material';
 import {
   CloseButtonStyled,
   ModalContainer,
   ModalStyled,
-} from "../modal-base.styles";
-import { useCustomizeColumns } from "./customize-columns.hook";
+} from '../modal-base.styles';
+import { useCustomizeColumns } from './customize-columns.hook';
+
+export type CustomizeColumnItem = { key: string; label: string };
 
 export type CustomizeColumnsModalProps = {
   open: boolean;
   onClose: () => void;
   onSuccess: (columns: string[]) => void;
-  columns: string[];
+  columns: CustomizeColumnItem[];
   tableKey: string;
   defaultColumns: string[];
 };
 
 export const CustomizeColumnsModal: React.FC<CustomizeColumnsModalProps> = (
-  props
+  props,
 ) => {
   const { handleClose, open, columns, isColumnSelected, toggleColumn } =
     useCustomizeColumns(props);
@@ -48,18 +50,18 @@ export const CustomizeColumnsModal: React.FC<CustomizeColumnsModalProps> = (
 
       <Box display="flex" flexDirection="column" gap={1}>
         {columns.map((column) => {
-          const isChecked = isColumnSelected(column);
+          const isChecked = isColumnSelected(column.key);
           return (
             <Box
-              key={column}
+              key={column.key}
               display="flex"
               alignItems="center"
               justifyContent="space-between"
             >
-              <Typography variant="body2">{column}</Typography>
+              <Typography variant="body2">{column.label}</Typography>
               <Switch
                 checked={isChecked}
-                onChange={() => toggleColumn(column)}
+                onChange={() => toggleColumn(column.key)}
               />
             </Box>
           );
@@ -68,7 +70,7 @@ export const CustomizeColumnsModal: React.FC<CustomizeColumnsModalProps> = (
 
       <Divider />
 
-      <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
         <Button
           type="button"
           variant="contained"

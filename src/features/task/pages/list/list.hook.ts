@@ -1,5 +1,9 @@
 import { Pagination } from '@/components/common/table/table';
-import { useTaskMutation, useTasksQuery } from '@/features/task/hooks';
+import {
+  useTaskApprovalMutation,
+  useTaskMutation,
+  useTasksQuery,
+} from '@/features/task/hooks';
 import { TaskFilterDto } from '@/features/task/schemas';
 import { taskService } from '@/features/task/services';
 import { getTaskQuery } from '@/features/task/services/task.service';
@@ -440,6 +444,15 @@ export const useTaskList = () => {
 
   const loading = isPending || isRefetching || isLoading || isFetching;
 
+  const approvalMutation = useTaskApprovalMutation();
+
+  const handleApprove = async (taskId: string, approved: boolean) => {
+    await approvalMutation.mutateAsync({ id: taskId, approved });
+    toast.success(
+      approved ? 'OS aprovada com sucesso' : 'OS reprovada com sucesso',
+    );
+  };
+
   return {
     tasks: paginatedTasks,
     getTaskReportData,
@@ -468,5 +481,6 @@ export const useTaskList = () => {
     handleUpdateColumns,
     defaultColumns,
     tableKey: DEFAULT_TABLE_COLUMNS_KEY,
+    handleApprove,
   };
 };

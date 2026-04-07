@@ -7,7 +7,7 @@ import { Query } from 'nestjs-prisma-querybuilder-interface';
 
 export const getTaskQuery: Query = {
   select:
-    'title description status value date files internalNote createdAt protocol completedAt recurrenceMasterId recurrence',
+    'title description status approved value date files internalNote createdAt protocol completedAt recurrenceMasterId recurrence',
   populate: [
     {
       path: 'client',
@@ -72,6 +72,14 @@ class TaskService extends BaseCompanyService {
   async delete(taskId: string): Promise<Task> {
     const { data } = await api.delete<Task>(
       `${this.getUrlBase(this.path)}/${taskId}`,
+    );
+    return data;
+  }
+
+  async approve(taskId: string, approved: boolean): Promise<Task> {
+    const { data } = await api.put<Task>(
+      `${this.getUrlBase(this.path)}/${taskId}/approve`,
+      { approved },
     );
     return data;
   }

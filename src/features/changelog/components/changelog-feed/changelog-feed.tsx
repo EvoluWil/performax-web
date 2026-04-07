@@ -1,6 +1,6 @@
 'use client';
 
-import { useChangelogQuery } from '@/features/changelog/hooks/queries/changelog.query';
+import { CHANGELOGS } from '@/features/changelog/data/changelog.data';
 import { Changelog, ChangelogType } from '@/features/changelog/types';
 import { formatDate } from '@/utils/date';
 import {
@@ -19,7 +19,6 @@ import {
   Divider,
   IconButton,
   Paper,
-  Skeleton,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -57,29 +56,6 @@ const TYPE_CONFIG: Record<ChangelogType, TypeConfig> = {
     icon: <LockOutlined sx={{ fontSize: 14 }} />,
   },
 };
-
-function ChangelogSkeleton() {
-  return (
-    <Box display="flex" flexDirection="column" gap={3} width="100%">
-      {[1, 2, 3].map((i) => (
-        <Box key={i} display="flex" gap={2} alignItems="flex-start">
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            pt={0.5}
-          >
-            <Skeleton variant="circular" width={36} height={36} />
-            <Skeleton variant="rectangular" width={2} height={80} />
-          </Box>
-          <Box flex={1}>
-            <Skeleton variant="rounded" width="100%" height={100} />
-          </Box>
-        </Box>
-      ))}
-    </Box>
-  );
-}
 
 function ChangelogItem({ item, isLast }: { item: Changelog; isLast: boolean }) {
   const config = TYPE_CONFIG[item.type];
@@ -218,7 +194,7 @@ function ChangelogItem({ item, isLast }: { item: Changelog; isLast: boolean }) {
 }
 
 export function ChangelogFeed() {
-  const { data: changelogs, isLoading } = useChangelogQuery();
+  const changelogs = CHANGELOGS;
 
   return (
     <Box
@@ -245,34 +221,15 @@ export function ChangelogFeed() {
         <Divider sx={{ mt: 2 }} />
       </Box>
 
-      {isLoading && <ChangelogSkeleton />}
-
-      {!isLoading && (!changelogs || changelogs.length === 0) && (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          py={8}
-          gap={1}
-        >
-          <NewReleasesOutlined sx={{ fontSize: 48, color: 'grey.300' }} />
-          <Typography variant="body1" color="text.secondary">
-            Nenhuma atualização disponível ainda.
-          </Typography>
-        </Box>
-      )}
-
-      {!isLoading && changelogs && changelogs.length > 0 && (
-        <Box display="flex" flexDirection="column">
-          {changelogs.map((item, index) => (
-            <ChangelogItem
-              key={item.id}
-              item={item}
-              isLast={index === changelogs.length - 1}
-            />
-          ))}
-        </Box>
-      )}
+      <Box display="flex" flexDirection="column">
+        {changelogs.map((item, index) => (
+          <ChangelogItem
+            key={item.id}
+            item={item}
+            isLast={index === changelogs.length - 1}
+          />
+        ))}
+      </Box>
     </Box>
   );
 }

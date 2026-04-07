@@ -1,6 +1,7 @@
 'use client';
 
 import { HeaderUser } from '@/components/cards';
+import { useWhiteLabel } from '@/providers/white-label';
 import { Menu } from '@mui/icons-material';
 import {
   AppBar,
@@ -10,7 +11,6 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Navigator } from '../navigator/navigator';
@@ -21,6 +21,10 @@ type HeaderProps = {
 
 export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
   const [open, setOpen] = useState(false);
+  const { whiteLabel } = useWhiteLabel();
+
+  const logoSrc = whiteLabel?.logo || '/images/brand/logo.png';
+  const companyName = whiteLabel?.name || 'PERFORMAX';
 
   return (
     <Box bgcolor="primary.main" color="white">
@@ -69,16 +73,19 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
                     width={{ xs: 36, sm: 50 }}
                     height={{ xs: 36, sm: 50 }}
                     mt={-0.5}
-                    position="relative"
+                    sx={{ flexShrink: 0 }}
                   >
-                    <Image
-                      src="/images/brand/logo.png"
+                    <img
+                      src={logoSrc}
                       alt="Logo"
-                      layout="fill"
-                      objectFit="contain"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
                     />
                   </Box>
-                  <Typography>PERFORMAX</Typography>
+                  <Typography>{companyName}</Typography>
                 </Box>
               </Box>
               {!simple && <HeaderUser />}
