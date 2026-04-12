@@ -24,9 +24,6 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
   const [open, setOpen] = useState(false);
   const { whiteLabel } = useWhiteLabel();
 
-  const logoSrc = whiteLabel.logo;
-  const companyName = whiteLabel.logo ? '' : whiteLabel.name;
-
   return (
     <Box bgcolor="primary.main" color="white">
       {!simple && <Navigator open={open} onClose={() => setOpen(false)} />}
@@ -77,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
                     sx={{ flexShrink: 0 }}
                   >
                     <Image
-                      src={logoSrc}
+                      src={whiteLabel.logo}
                       alt="Logo"
                       width={100}
                       height={100}
@@ -88,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
                       }}
                     />
                   </Box>
-                  <Typography>{companyName}</Typography>
+                  <Typography color="white">{whiteLabel.name}</Typography>
                 </Box>
               </Box>
               {!simple && <HeaderUser />}
