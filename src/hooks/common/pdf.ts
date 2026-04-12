@@ -1,6 +1,6 @@
 import { firebaseApp } from '@/config/firebase';
-import { DEFAULT_BANNER } from '@/constants/whitelabel/banner.constant';
 import { useSession } from '@/providers/auth';
+import { useWhiteLabel } from '@/providers/white-label';
 import { companyService } from '@/services/company.service';
 import { getBase64 } from '@/utils/base64';
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
@@ -29,6 +29,7 @@ const firebaseStorage = getStorage(firebaseApp);
 
 export const usePdfGenerator = () => {
   const { user } = useSession();
+  const { whiteLabel } = useWhiteLabel();
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfStorageUrl, setPdfStorageUrl] = useState<string | null>(null);
@@ -37,8 +38,7 @@ export const usePdfGenerator = () => {
   const blobUrlRef = useRef<string | null>(null);
 
   const getPdfHeaderUrl = async () => {
-    const company = companyService.getDefaultCompany();
-    return company?.whiteLabel?.banner ?? DEFAULT_BANNER;
+    return whiteLabel?.banner;
   };
 
   const makeDetailPDF = async (title: string, contents: Content[]) => {
