@@ -6,7 +6,14 @@ import {
   TextInput,
 } from '@/components/inputs';
 import { Occurrence } from '@/features/occurrence/types';
-import { Box, Button } from '@mui/material';
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from '@mui/material';
 import { useOccurrenceDrawer } from './occurrence.hook';
 
 export type OccurrenceDrawerProps = {
@@ -27,6 +34,9 @@ export const OccurrenceDrawer: React.FC<OccurrenceDrawerProps> = (props) => {
     defaultFiles,
     editing,
     handleRemoveDefaultFile,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   } = useOccurrenceDrawer(props);
 
   return (
@@ -45,6 +55,22 @@ export const OccurrenceDrawer: React.FC<OccurrenceDrawerProps> = (props) => {
           flexDirection="column"
           flex={1}
         >
+          {companyOptions.length > 1 && (
+            <FormControl fullWidth size="small">
+              <InputLabel>Empresa</InputLabel>
+              <Select
+                label="Empresa"
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+              >
+                {companyOptions.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
           <TextInput
             label="Título"
             name="title"

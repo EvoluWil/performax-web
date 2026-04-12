@@ -1,6 +1,7 @@
 import { OccurrenceTypeFormDto } from '@/features/occurrence/schemas';
 import { occurrenceTypeService } from '@/features/occurrence/services';
 import { OccurrenceType } from '@/features/occurrence/types';
+import { companyService } from '@/services/company.service';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 type OccurrenceTypeMutationInput = {
@@ -9,10 +10,22 @@ type OccurrenceTypeMutationInput = {
   data?: OccurrenceTypeFormDto;
 };
 
-export function useOccurrenceTypesQuery() {
+export function useOccurrenceTypesQuery(companyId?: string) {
+  const defaultCompanyId = companyService.getDefaultCompany()?.id;
+  const effectiveId = companyId || defaultCompanyId;
+
   return useQuery({
-    queryKey: ['occurrenceTypes'],
+    queryKey: ['occurrenceTypes', effectiveId ?? 'default'],
     queryFn: async () => {
+      if (companyId && companyId !== defaultCompanyId) {
+        const original = companyService.getDefaultCompany();
+        companyService.setDefaultCompany({ id: companyId } as any);
+        try {
+          return await occurrenceTypeService.get();
+        } finally {
+          if (original) companyService.setDefaultCompany(original);
+        }
+      }
       const types = await occurrenceTypeService.get();
       return types;
     },

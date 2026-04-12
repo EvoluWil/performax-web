@@ -10,7 +10,16 @@ import {
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
 import { formatRRuleToText } from '@/utils/rrule';
-import { Box, Button, ButtonGroup, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -48,6 +57,10 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     setValue,
     paidTo,
     setPaidTo,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
+    filteredCategories,
   } = useFinanceDrawer(props);
 
   const router = useRouter();
@@ -88,6 +101,22 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                   Este centro de custo requer aprovação antes de ser processado.
                 </Typography>
               </Box>
+            )}
+            {companyOptions.length > 1 && (
+              <FormControl fullWidth size="small">
+                <InputLabel>Empresa</InputLabel>
+                <Select
+                  label="Empresa"
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                >
+                  {companyOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             )}
             <SelectInput
               label="Fluxo"
@@ -136,18 +165,18 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
               onInputChange={(v) => setSearch('financeTypes', v)}
             />
             <AutocompleteInput
-              label="Categoria"
-              name="categoryId"
-              control={control}
-              options={options.financeCategories ?? []}
-              onInputChange={(v) => setSearch('financeCategories', v)}
-            />
-            <AutocompleteInput
               label="Segmento"
               name="segmentId"
               control={control}
               options={options.financeSegments ?? []}
               onInputChange={(v) => setSearch('financeSegments', v)}
+            />
+            <AutocompleteInput
+              label="Categoria"
+              name="categoryId"
+              control={control}
+              options={filteredCategories}
+              onInputChange={(v) => setSearch('financeCategories', v)}
             />
             {showResponsibleSelect && (
               <AutocompleteInput

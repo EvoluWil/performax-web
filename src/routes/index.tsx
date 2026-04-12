@@ -114,6 +114,12 @@ export const routes: Route[] = [
         modules: ['financial'],
       },
       {
+        id: 'Balanço',
+        path: '/panel/financial/balance',
+        permissions: ['financial'],
+        modules: ['financial'],
+      },
+      {
         id: 'financial-cadastros',
         label: 'Cadastros',
         path: '/panel/financial/types',

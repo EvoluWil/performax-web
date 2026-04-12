@@ -1,4 +1,5 @@
 import { firebaseApp } from '@/config/firebase';
+import { DEFAULT_BANNER } from '@/constants/whitelabel/banner.constant';
 import { useSession } from '@/providers/auth';
 import { companyService } from '@/services/company.service';
 import { getBase64 } from '@/utils/base64';
@@ -37,10 +38,7 @@ export const usePdfGenerator = () => {
 
   const getPdfHeaderUrl = async () => {
     const company = companyService.getDefaultCompany();
-    if (company?.whiteLabel?.banner) {
-      return company.whiteLabel.banner;
-    }
-    return '/pdf-header.png';
+    return company?.whiteLabel?.banner ?? DEFAULT_BANNER;
   };
 
   const makeDetailPDF = async (title: string, contents: Content[]) => {

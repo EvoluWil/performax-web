@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { Copyright } from '@/components/common';
@@ -8,8 +9,8 @@ import Link from 'next/link';
 
 export const Footer = () => {
   const { whiteLabel } = useWhiteLabel();
-  const logoSrc = whiteLabel?.logo || '/images/brand/logo.png';
-  const companyName = whiteLabel?.name || 'PERFORMAX';
+  const logoSrc = whiteLabel.logo;
+  const companyName = whiteLabel.name;
 
   const handleTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -28,10 +29,11 @@ export const Footer = () => {
       <Container>
         <Box
           alignItems="center"
-          display="flex"
+          display={{ md: 'grid', xs: 'flex' }}
           flexDirection={{ md: 'row', xs: 'column' }}
           gap={2}
           justifyContent="space-between"
+          gridTemplateColumns={{ md: '160px 1fr 160px', xs: '1fr' }}
         >
           <Box
             display="flex"
@@ -45,17 +47,23 @@ export const Footer = () => {
             }}
           >
             <Box display="flex" alignItems="center" gap={0.5}>
-              <Box width={60} height={60} mt={-0.5} sx={{ flexShrink: 0 }}>
-                <img
-                  src={logoSrc}
-                  alt="Logo"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
+              <Box display="flex" alignItems="center" gap={0.5}>
+                <Box width={60} height={60} mt={-0.5} sx={{ flexShrink: 0 }}>
+                  <img
+                    src={logoSrc}
+                    alt="Logo"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                    }}
+                  />
+                </Box>
               </Box>
+              <Typography color="primary" fontWeight="bold" variant="h6">
+                {companyName}
+              </Typography>
             </Box>
-            <Typography color="primary" fontWeight="bold" variant="h6">
-              {companyName}
-            </Typography>
           </Box>
 
           <Fab
@@ -63,13 +71,19 @@ export const Footer = () => {
             size="small"
             aria-label="add"
             onClick={handleTop}
-            sx={{ mb: 2, cursor: 'pointer' }}
+            sx={{ mb: 2, cursor: 'pointer', mx: 'auto' }}
           >
             <ArrowDropUp />
           </Fab>
           <Box alignItems="center" display="flex" flexDirection="column">
-            <Typography variant="body2">Siga nossas redes sociais</Typography>
-            <Box alignItems="center" display="flex" gap={1} />
+            {!whiteLabel?.id && (
+              <>
+                <Typography variant="body2">
+                  Siga nossas redes sociais
+                </Typography>
+                <Box alignItems="center" display="flex" gap={1} />
+              </>
+            )}
           </Box>
         </Box>
       </Container>

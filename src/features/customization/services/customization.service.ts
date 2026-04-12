@@ -13,6 +13,7 @@ export type UpsertWhiteLabelDto = {
   name?: string;
   logo?: string;
   banner?: string;
+  favicon?: string;
   primaryColor?: string;
   secondaryColor?: string;
 };

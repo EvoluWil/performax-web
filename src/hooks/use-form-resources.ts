@@ -59,6 +59,7 @@ function toOptions(
  */
 export function useFormResources(
   resources: ResourceKey[],
+  companyId?: string,
 ): UseFormResourcesReturn {
   const [search, setSearchState] = useState<SearchState>({});
 
@@ -70,12 +71,14 @@ export function useFormResources(
   const sortedResources = [...resources].sort();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['formResources', sortedResources, search],
+    queryKey: [
+      'formResources',
+      companyId ?? 'default',
+      sortedResources,
+      search,
+    ],
     queryFn: () =>
-      fetchFormResources({
-        resources: sortedResources,
-        search,
-      }),
+      fetchFormResources({ resources: sortedResources, search }, companyId),
     staleTime: 30_000, // 30s — resources are fairly static
     placeholderData: (prev) => prev, // keep previous options while reloading
     refetchOnWindowFocus: false,

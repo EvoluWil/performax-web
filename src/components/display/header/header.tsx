@@ -11,6 +11,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Navigator } from '../navigator/navigator';
@@ -23,8 +24,8 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
   const [open, setOpen] = useState(false);
   const { whiteLabel } = useWhiteLabel();
 
-  const logoSrc = whiteLabel?.logo || '/images/brand/logo.png';
-  const companyName = whiteLabel?.name || 'PERFORMAX';
+  const logoSrc = whiteLabel.logo;
+  const companyName = whiteLabel.logo ? '' : whiteLabel.name;
 
   return (
     <Box bgcolor="primary.main" color="white">
@@ -75,9 +76,11 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
                     mt={-0.5}
                     sx={{ flexShrink: 0 }}
                   >
-                    <img
+                    <Image
                       src={logoSrc}
                       alt="Logo"
+                      width={100}
+                      height={100}
                       style={{
                         width: '100%',
                         height: '100%',

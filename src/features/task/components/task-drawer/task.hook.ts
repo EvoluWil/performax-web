@@ -6,10 +6,13 @@ import {
 } from '@/features/task/schemas';
 import { Task } from '@/features/task/types';
 import { useUpload } from '@/hooks/common/upload';
+import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
+import { companyService } from '@/services/company.service';
+import { Company } from '@/types/company';
 import { File } from '@/types/file';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { formatChecklist } from '../../util/format-checklist';
@@ -25,11 +28,24 @@ export const useTaskDrawer = ({
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
 
-  const { options, setSearch } = useFormResources([
-    'clients',
-    'taskTypes',
-    'users',
-  ]);
+  const defaultCompanyId = companyService.getDefaultCompany()?.id;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(
+    defaultCompanyId || '',
+  );
+  const { data: companyGroup } = useCompanyGroupQuery(defaultCompanyId);
+  const companyOptions = useMemo(
+    () =>
+      (companyGroup?.companies ?? []).map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [companyGroup],
+  );
+
+  const { options, setSearch } = useFormResources(
+    ['clients', 'taskTypes', 'users'],
+    selectedCompanyId,
+  );
 
   const { control, handleSubmit, reset, setValue } = useForm<TaskFormDto>({
     defaultValues: taskFormInitialValues,
@@ -37,32 +53,44 @@ export const useTaskDrawer = ({
   });
 
   const handleTask = handleSubmit(async (data: TaskFormDto) => {
-    if (data.files && data.files.length > 0) {
-      const files = await sendFiles(data.files as any, `tasks/${data.title}`);
-      data.files = files;
-    }
-
-    if (!data.checklist || !data.checklist?.modules?.length) {
-      data.checklist = undefined;
-    }
-
-    if (!task) {
-      delete data.impedimentNote;
-    }
-
-    const result = await taskMutation.mutateAsync({
-      type: task ? 'update' : 'create',
-      data: data,
-      id: task?.id,
-    });
-
-    if (result) {
-      toast.success(
-        task ? 'OS atualizada com sucesso' : 'OS criada com sucesso',
+    const originalCompany = companyService.getDefaultCompany();
+    if (selectedCompanyId && selectedCompanyId !== originalCompany?.id) {
+      const picked = companyGroup?.companies.find(
+        (c) => c.id === selectedCompanyId,
       );
-      handleClose();
-      onClose();
-      if (onSuccess) onSuccess();
+      if (picked)
+        companyService.setDefaultCompany({ ...picked, ownerId: '' } as Company);
+    }
+    try {
+      if (data.files && data.files.length > 0) {
+        const files = await sendFiles(data.files as any, `tasks/${data.title}`);
+        data.files = files;
+      }
+
+      if (!data.checklist || !data.checklist?.modules?.length) {
+        data.checklist = undefined;
+      }
+
+      if (!task) {
+        delete data.impedimentNote;
+      }
+
+      const result = await taskMutation.mutateAsync({
+        type: task ? 'update' : 'create',
+        data: data,
+        id: task?.id,
+      });
+
+      if (result) {
+        toast.success(
+          task ? 'OS atualizada com sucesso' : 'OS criada com sucesso',
+        );
+        handleClose();
+        onClose();
+        if (onSuccess) onSuccess();
+      }
+    } finally {
+      if (originalCompany) companyService.setDefaultCompany(originalCompany);
     }
   });
 
@@ -129,5 +157,8 @@ export const useTaskDrawer = ({
     editing: !!task,
     hasRecurrence: !!task?.recurrence || task?.recurrenceMasterId,
     handleRemoveDefaultFile,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   };
 };

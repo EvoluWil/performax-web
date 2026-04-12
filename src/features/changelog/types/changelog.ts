@@ -9,7 +9,7 @@ export type Changelog = {
   id: string;
   version: string;
   title: string;
-  description: string;
+  description: string[];
   type: ChangelogType;
   date: string;
   deleted: boolean;

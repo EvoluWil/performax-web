@@ -1,8 +1,12 @@
+'use client';
+
 import { ResetPasswordForm } from '@/features/auth/pages';
+import { useWhiteLabel } from '@/providers/white-label';
 import { Box, Typography } from '@mui/material';
 import Image from 'next/image';
 
-export default async function ResetPasswordPage() {
+export default function ResetPasswordPage() {
+  const { whiteLabel } = useWhiteLabel();
   return (
     <Box
       sx={{
@@ -23,10 +27,10 @@ export default async function ResetPasswordPage() {
         justifyContent="center"
       >
         <Image
-          src="/images/brand/logo.png"
+          src={whiteLabel.logo}
           width="100"
           height="100"
-          alt="Performax!"
+          alt={whiteLabel.name}
         />
         <Typography
           variant="body2"

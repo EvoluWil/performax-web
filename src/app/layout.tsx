@@ -1,5 +1,7 @@
+import { DEFAULT_FAVICON } from '@/constants/whitelabel/favicon.constant';
 import { AppProviders } from '@/providers';
 import { CompanyWhiteLabel } from '@/types/company';
+import { mergeWhiteLabel } from '@/utils/white-label.utils';
 import { Box } from '@mui/material';
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
@@ -30,8 +32,14 @@ export default async function RootLayout({
         .whiteLabel ?? null)
     : null;
 
+  const faviconUrl =
+    mergeWhiteLabel(initialWhiteLabel).favicon || DEFAULT_FAVICON;
+
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="icon" href={faviconUrl} />
+      </head>
       <body className={`${poppins.variable}`}>
         <AppProviders initialWhiteLabel={initialWhiteLabel}>
           <Box display="flex" flexDirection="column" minHeight="100vh">

@@ -30,7 +30,7 @@ import {
   Typography,
 } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { rrulestr } from 'rrule';
@@ -182,6 +182,7 @@ type RecurringEditFormDto = {
   bankId: string;
   methodId: string;
   categoryId: string;
+  segmentId: string;
   recurrence: string;
 };
 
@@ -196,6 +197,7 @@ const recurringEditDefaults: RecurringEditFormDto = {
   bankId: '',
   methodId: '',
   categoryId: '',
+  segmentId: '',
   recurrence: '',
 };
 
@@ -212,19 +214,46 @@ export const FinanceRecurringList = () => {
     'financePaymentMethods',
     'financeTypes',
     'financeCategories',
+    'financeSegments',
   ]);
 
   const [editTarget, setEditTarget] = useState<FinanceRecurring | null>(null);
   const [openRRuleModal, setOpenRRuleModal] = useState(false);
 
-  const { control, reset, handleSubmit, setValue } =
+  const { control, reset, handleSubmit, setValue, getValues } =
     useForm<RecurringEditFormDto>({ defaultValues: recurringEditDefaults });
 
   const recurrence =
     (useWatch({ control, name: 'recurrence' }) as string) || '';
+  const selectedSegmentId =
+    (useWatch({ control, name: 'segmentId' }) as string) || '';
+
+  const filteredCategories = useMemo(() => {
+    const cats = options.financeCategories ?? [];
+    if (!selectedSegmentId) return cats;
+    return cats.filter(
+      (c) => (c.data?.segmentId as string | undefined) === selectedSegmentId,
+    );
+  }, [options.financeCategories, selectedSegmentId]);
+
+  useEffect(() => {
+    if (!selectedSegmentId) return;
+    const currentCategoryId = getValues('categoryId') as string | undefined;
+    if (!currentCategoryId) return;
+    const stillValid = filteredCategories.some(
+      (c) => c.value === currentCategoryId,
+    );
+    if (!stillValid) setValue('categoryId', '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSegmentId]);
 
   useEffect(() => {
     if (editTarget) {
+      const existingSegmentId = editTarget.categoryId
+        ? (((options.financeCategories ?? []).find(
+            (c) => c.value === editTarget.categoryId,
+          )?.data?.segmentId as string | undefined) ?? '')
+        : '';
       reset({
         title: editTarget.title,
         description: editTarget.description ?? '',
@@ -236,6 +265,7 @@ export const FinanceRecurringList = () => {
         bankId: editTarget.bankId ?? '',
         methodId: editTarget.methodId ?? '',
         categoryId: editTarget.categoryId ?? '',
+        segmentId: existingSegmentId,
         recurrence: editTarget.recurrence ?? '',
       });
     }
@@ -244,21 +274,24 @@ export const FinanceRecurringList = () => {
   const handleSaveEdit = handleSubmit(async (values) => {
     if (!editTarget) return;
     try {
+      const { segmentId: _segmentId, ...saveValues } = values;
       await mutation.mutateAsync({
         type: 'update',
         id: editTarget.id,
         data: {
-          ...values,
-          flow: values.flow as FinanceFlowEnum,
-          value: Math.round(Number(values.value || 0) * 100),
-          date: values.date ? (values.date as Date).toISOString() : undefined,
-          typeId: values.typeId || undefined,
-          bankId: values.bankId || undefined,
-          methodId: values.methodId || undefined,
-          categoryId: values.categoryId || undefined,
-          description: values.description || undefined,
-          observation: values.observation || undefined,
-          recurrence: values.recurrence || undefined,
+          ...saveValues,
+          flow: saveValues.flow as FinanceFlowEnum,
+          value: Math.round(Number(saveValues.value || 0) * 100),
+          date: saveValues.date
+            ? (saveValues.date as Date).toISOString()
+            : undefined,
+          typeId: saveValues.typeId || undefined,
+          bankId: saveValues.bankId || undefined,
+          methodId: saveValues.methodId || undefined,
+          categoryId: saveValues.categoryId || undefined,
+          description: saveValues.description || undefined,
+          observation: saveValues.observation || undefined,
+          recurrence: saveValues.recurrence || undefined,
         } as any,
       });
       toast.success('Recorrência atualizada');
@@ -393,10 +426,17 @@ export const FinanceRecurringList = () => {
             onInputChange={(v) => setSearch('financePaymentMethods', v)}
           />
           <AutocompleteInput
+            label="Segmento"
+            name="segmentId"
+            control={control}
+            options={options.financeSegments ?? []}
+            onInputChange={(v) => setSearch('financeSegments', v)}
+          />
+          <AutocompleteInput
             label="Categoria"
             name="categoryId"
             control={control}
-            options={options.financeCategories ?? []}
+            options={filteredCategories}
             onInputChange={(v) => setSearch('financeCategories', v)}
           />
           <TextInput

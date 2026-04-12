@@ -18,6 +18,9 @@ import {
   Collapse,
   Divider,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
   Paper,
   Typography,
 } from '@mui/material';
@@ -175,18 +178,38 @@ function ChangelogItem({ item, isLast }: { item: Changelog; isLast: boolean }) {
         </Box>
 
         <Collapse in={expanded} timeout="auto" unmountOnExit>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              lineHeight: 1.6,
-              whiteSpace: 'pre-line',
-              overflow: 'visible',
-              mt: 1,
-            }}
-          >
-            {item.description}
-          </Typography>
+          <List dense disablePadding sx={{ mt: 1 }}>
+            {item.description.map((line, i) => (
+              <ListItem
+                key={i}
+                disableGutters
+                sx={{ py: 0.25, alignItems: 'flex-start' }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    bgcolor: 'text.disabled',
+                    flexShrink: 0,
+                    mt: '7px',
+                    mr: 1.5,
+                  }}
+                />
+                <ListItemText
+                  primary={line}
+                  slotProps={{
+                    primary: {
+                      variant: 'body2',
+                      color: 'text.secondary',
+                      sx: { lineHeight: 1.6 },
+                    },
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
         </Collapse>
       </Paper>
     </Box>

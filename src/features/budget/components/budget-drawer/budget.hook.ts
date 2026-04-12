@@ -1,5 +1,7 @@
-import { useClientsQuery } from '@/features/client/hooks';
-import { useUsersQuery } from '@/features/user/hooks';
+import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
+import { useFormResources } from '@/hooks/use-form-resources';
+import { companyService } from '@/services/company.service';
+import { Company } from '@/types/company';
 import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
@@ -30,33 +32,34 @@ export const useBudgetDrawer = ({
   const budget = selectedBudget || null;
   const [loading, setLoading] = useState(false);
 
-  const { data: clientsQueryData } = useClientsQuery({
-    scopeModule: 'client',
-    pageSize: 1000,
-  });
+  const defaultCompanyId = companyService.getDefaultCompany()?.id;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(
+    defaultCompanyId || '',
+  );
+  const { data: companyGroup } = useCompanyGroupQuery(defaultCompanyId);
+  const companyOptions = useMemo(
+    () =>
+      (companyGroup?.companies ?? []).map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [companyGroup],
+  );
 
-  const { data: budgetTypes } = useBudgetTypesQuery();
+  const { options: resourceOptions } = useFormResources(
+    ['clients', 'users'],
+    selectedCompanyId,
+  );
 
-  const { data: usersResponse } = useUsersQuery({
-    scopeModule: 'budget',
-    pageSize: 1000,
-  });
-
-  const clients = useMemo(() => {
-    return clientsQueryData?.clients ?? [];
-  }, [clientsQueryData]);
-
-  const users = useMemo(() => {
-    return usersResponse?.users || [];
-  }, [usersResponse]);
+  const { data: budgetTypes } = useBudgetTypesQuery(selectedCompanyId);
 
   const options = useMemo(() => {
     return {
-      clients: formatterSelectOptions(clients, 'id', 'name'),
+      clients: resourceOptions.clients ?? [],
       types: formatterSelectOptions(budgetTypes, 'id', 'name'),
-      users: formatterSelectOptions(users, 'id', 'name'),
+      users: resourceOptions.users ?? [],
     };
-  }, [clients, budgetTypes, users]);
+  }, [resourceOptions, budgetTypes]);
 
   const { control, handleSubmit, reset, setValue } = useForm<BudgetFormDto>({
     defaultValues: budgetFormInitialValues,
@@ -85,11 +88,23 @@ export const useBudgetDrawer = ({
 
     try {
       setLoading(true);
+      const originalCompany = companyService.getDefaultCompany();
+      if (selectedCompanyId && selectedCompanyId !== originalCompany?.id) {
+        const picked = companyGroup?.companies.find(
+          (c) => c.id === selectedCompanyId,
+        );
+        if (picked)
+          companyService.setDefaultCompany({
+            ...picked,
+            ownerId: '',
+          } as Company);
+      }
       const result = await mutation.mutateAsync({
         type: budget ? 'update' : 'create',
         id: budget?.id,
         data: payload,
       });
+      if (originalCompany) companyService.setDefaultCompany(originalCompany);
 
       if (result) {
         toast.success(
@@ -160,5 +175,8 @@ export const useBudgetDrawer = ({
     open,
     options,
     editing: !!budget,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   };
 };

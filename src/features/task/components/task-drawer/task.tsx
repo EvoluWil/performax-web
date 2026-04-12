@@ -15,10 +15,14 @@ import {
   Box,
   Button,
   Divider,
+  FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
+  MenuItem,
+  Select,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -47,6 +51,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
     handleRemoveDefaultFile,
     setValue,
     hasRecurrence,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   } = useTaskDrawer(props);
   const [openChecklist, setOpenChecklist] = useState(false);
   const [openRecurrence, setOpenRecurrence] = useState(false);
@@ -79,6 +86,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
             flexDirection="column"
             flex={1}
           >
+            {companyOptions.length > 1 && (
+              <FormControl fullWidth size="small">
+                <InputLabel>Empresa</InputLabel>
+                <Select
+                  label="Empresa"
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                >
+                  {companyOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
             <TextInput
               label="Título"
               name="title"

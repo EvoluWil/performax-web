@@ -26,6 +26,7 @@ export type CompanyWhiteLabel = {
   name: string;
   logo: string;
   banner: string;
+  favicon: string;
   primaryColor: string;
   secondaryColor: string;
   createdAt: Date;

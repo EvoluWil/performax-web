@@ -21,8 +21,10 @@ type WhiteLabelCardProps = {
   whiteLabel: CompanyWhiteLabel | null | undefined;
   logoPreviewUrl: string | null;
   bannerPreviewUrl: string | null;
+  faviconPreviewUrl: string | null;
   onLogoChange: (file: File) => void;
   onBannerChange: (file: File) => void;
+  onFaviconChange: (file: File) => void;
 };
 
 export function WhiteLabelCard({
@@ -30,14 +32,18 @@ export function WhiteLabelCard({
   whiteLabel,
   logoPreviewUrl,
   bannerPreviewUrl,
+  faviconPreviewUrl,
   onLogoChange,
   onBannerChange,
+  onFaviconChange,
 }: WhiteLabelCardProps) {
   const logoUrl = useWatch({ control, name: 'logo' }) as string;
   const bannerUrl = useWatch({ control, name: 'banner' }) as string;
+  const faviconUrl = useWatch({ control, name: 'favicon' }) as string;
 
   const logoPreviewSrc = logoPreviewUrl || logoUrl || null;
   const bannerPreviewSrc = bannerPreviewUrl || bannerUrl || null;
+  const faviconPreviewSrc = faviconPreviewUrl || faviconUrl || null;
 
   return (
     <Card variant="outlined">
@@ -65,6 +71,17 @@ export function WhiteLabelCard({
                 aspectRatio="1 / 1"
                 height={160}
                 onChange={onLogoChange}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 'auto' }}>
+              <ImageUpload
+                label="Favicon"
+                previewSrc={faviconPreviewSrc}
+                aspectRatio="1 / 1"
+                height={160}
+                accept=".ico"
+                hint="Apenas arquivos .ico"
+                onChange={onFaviconChange}
               />
             </Grid>
           </Grid>

@@ -29,8 +29,12 @@ import {
 export const useCustomizationSettings = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const [faviconPreviewUrl, setFaviconPreviewUrl] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [openCreateCompany, setOpenCreateCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
@@ -85,6 +89,16 @@ export const useCustomizationSettings = () => {
   }, [bannerFile]);
 
   useEffect(() => {
+    if (!faviconFile) {
+      setFaviconPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(faviconFile);
+    setFaviconPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [faviconFile]);
+
+  useEffect(() => {
     const c = companyService.getDefaultCompany();
     if (c) {
       reset({
@@ -92,6 +106,7 @@ export const useCustomizationSettings = () => {
         wlName: whiteLabel?.name ?? '',
         logo: whiteLabel?.logo ?? '',
         banner: whiteLabel?.banner ?? '',
+        favicon: whiteLabel?.favicon ?? '',
         primaryColor: whiteLabel?.primaryColor ?? '#1976d2',
         secondaryColor: whiteLabel?.secondaryColor ?? '#9c27b0',
       });
@@ -109,6 +124,7 @@ export const useCustomizationSettings = () => {
     try {
       let logoUrl = values.logo;
       let bannerUrl = values.banner;
+      let faviconUrl = values.favicon;
 
       if (logoFile) {
         const result = await sendFile(
@@ -126,12 +142,21 @@ export const useCustomizationSettings = () => {
         if (result?.url) bannerUrl = result.url;
       }
 
+      if (faviconFile) {
+        const result = await sendFile(
+          faviconFile,
+          `white-label/${company?.id}/favicon`,
+        );
+        if (result?.url) faviconUrl = result.url;
+      }
+
       await companyMutation.mutateAsync({ name: values.companyName });
 
       const updatedWhiteLabel = await whiteLabelMutation.mutateAsync({
         name: values.wlName,
         logo: logoUrl,
         banner: bannerUrl,
+        favicon: faviconUrl,
         primaryColor: values.primaryColor,
         secondaryColor: values.secondaryColor,
       });
@@ -146,9 +171,14 @@ export const useCustomizationSettings = () => {
         });
       }
 
+      const faviconChanged = !!faviconFile;
       setLogoFile(null);
       setBannerFile(null);
+      setFaviconFile(null);
       toast.success('Configurações salvas com sucesso');
+      if (faviconChanged) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
     } catch {
       toast.error('Erro ao salvar configurações');
     } finally {
@@ -220,8 +250,11 @@ export const useCustomizationSettings = () => {
     setLogoFile,
     bannerFile,
     setBannerFile,
+    faviconFile,
+    setFaviconFile,
     logoPreviewUrl,
     bannerPreviewUrl,
+    faviconPreviewUrl,
     whiteLabel,
     ownedCompanies,
     currentCompanyId,

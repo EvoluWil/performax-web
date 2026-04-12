@@ -23,8 +23,10 @@ export const CustomizationSettings: React.FC = () => {
     loading,
     setLogoFile,
     setBannerFile,
+    setFaviconFile,
     logoPreviewUrl,
     bannerPreviewUrl,
+    faviconPreviewUrl,
     whiteLabel,
     ownedCompanies,
     currentCompanyId,
@@ -97,8 +99,10 @@ export const CustomizationSettings: React.FC = () => {
               whiteLabel={whiteLabel}
               logoPreviewUrl={logoPreviewUrl}
               bannerPreviewUrl={bannerPreviewUrl}
+              faviconPreviewUrl={faviconPreviewUrl}
               onLogoChange={setLogoFile}
               onBannerChange={setBannerFile}
+              onFaviconChange={setFaviconFile}
             />
           </Grid>
         )}

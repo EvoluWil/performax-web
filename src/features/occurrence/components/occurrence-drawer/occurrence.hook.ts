@@ -1,4 +1,3 @@
-import { useClientsQuery } from '@/features/client/hooks';
 import {
   useOccurrenceMutation,
   useOccurrenceTypesQuery,
@@ -9,8 +8,11 @@ import {
   occurrenceFormSchema,
 } from '@/features/occurrence/schemas';
 import { Occurrence } from '@/features/occurrence/types';
-import { useUsersQuery } from '@/features/user/hooks';
 import { useUpload } from '@/hooks/common/upload';
+import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
+import { useFormResources } from '@/hooks/use-form-resources';
+import { companyService } from '@/services/company.service';
+import { Company } from '@/types/company';
 import { File } from '@/types/file';
 import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,28 +34,34 @@ export const useOccurrenceDrawer = ({
   const occurrenceMutation = useOccurrenceMutation();
   const { sendFiles, deleteFile } = useUpload();
 
-  const { data: clientsQueryData } = useClientsQuery({
-    scopeModule: 'client',
-    pageSize: 1000,
-  });
+  const defaultCompanyId = companyService.getDefaultCompany()?.id;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(
+    defaultCompanyId || '',
+  );
+  const { data: companyGroup } = useCompanyGroupQuery(defaultCompanyId);
+  const companyOptions = useMemo(
+    () =>
+      (companyGroup?.companies ?? []).map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [companyGroup],
+  );
 
-  const { data: occurrenceTypes } = useOccurrenceTypesQuery();
+  const { options: resourceOptions } = useFormResources(
+    ['clients', 'users'],
+    selectedCompanyId,
+  );
 
-  const { data: usersResponse } = useUsersQuery({
-    scopeModule: 'occurrence',
-    pageSize: 1000,
-  });
+  const { data: occurrenceTypes } = useOccurrenceTypesQuery(selectedCompanyId);
 
   const options = useMemo(() => {
-    const clients = clientsQueryData?.clients ?? [];
-    const users = usersResponse?.users || [];
-
     return {
-      clients: formatterSelectOptions(clients, 'id', 'name'),
+      clients: resourceOptions.clients ?? [],
       types: formatterSelectOptions(occurrenceTypes, 'id', 'name'),
-      users: formatterSelectOptions(users, 'id', 'name'),
+      users: resourceOptions.users ?? [],
     };
-  }, [clientsQueryData, occurrenceTypes, usersResponse]);
+  }, [resourceOptions, occurrenceTypes]);
 
   const { control, handleSubmit, reset } = useForm<OccurrenceFormDto>({
     defaultValues: occurrenceFormInitialValues,
@@ -63,32 +71,44 @@ export const useOccurrenceDrawer = ({
   const handleOccurrence = handleSubmit(async (data: OccurrenceFormDto) => {
     let documents = occurrence?.documents || [];
 
-    if (data.documents && data.documents.length > 0) {
-      const files = await sendFiles(
-        data.documents as any,
-        `occurrences/${data.title}`,
+    const originalCompany = companyService.getDefaultCompany();
+    if (selectedCompanyId && selectedCompanyId !== originalCompany?.id) {
+      const picked = companyGroup?.companies.find(
+        (c) => c.id === selectedCompanyId,
       );
-      documents = [...documents, ...files];
+      if (picked)
+        companyService.setDefaultCompany({ ...picked, ownerId: '' } as Company);
     }
+    try {
+      if (data.documents && data.documents.length > 0) {
+        const files = await sendFiles(
+          data.documents as any,
+          `occurrences/${data.title}`,
+        );
+        documents = [...documents, ...files];
+      }
 
-    const result = await occurrenceMutation.mutateAsync({
-      type: occurrence ? 'update' : 'create',
-      data: {
-        ...data,
-        documents,
-      } as any,
-      id: occurrence?.id,
-    });
+      const result = await occurrenceMutation.mutateAsync({
+        type: occurrence ? 'update' : 'create',
+        data: {
+          ...data,
+          documents,
+        } as any,
+        id: occurrence?.id,
+      });
 
-    if (result) {
-      toast.success(
-        occurrence
-          ? 'Ocorrência atualizada com sucesso'
-          : 'Ocorrência criada com sucesso',
-      );
-      handleClose();
-      onClose();
-      if (onSuccess) onSuccess();
+      if (result) {
+        toast.success(
+          occurrence
+            ? 'Ocorrência atualizada com sucesso'
+            : 'Ocorrência criada com sucesso',
+        );
+        handleClose();
+        onClose();
+        if (onSuccess) onSuccess();
+      }
+    } finally {
+      if (originalCompany) companyService.setDefaultCompany(originalCompany);
     }
   });
 
@@ -154,5 +174,8 @@ export const useOccurrenceDrawer = ({
     defaultFiles: occurrence?.documents || [],
     editing: !!occurrence,
     handleRemoveDefaultFile,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   };
 };

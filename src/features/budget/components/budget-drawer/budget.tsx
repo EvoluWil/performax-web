@@ -1,7 +1,16 @@
 import { BaseDrawer } from '@/components/drawer';
 import { CurrencyInput, SelectInput, TextInput } from '@/components/inputs';
 import { Add, DeleteOutline } from '@mui/icons-material';
-import { Box, Button, Divider, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 import { useFieldArray, useWatch } from 'react-hook-form';
 import type { BudgetItemForm } from '../../schemas/budget-drawer.schema';
 import { Budget } from '../../types/budget';
@@ -24,6 +33,9 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
     editing,
     options,
     setValue,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
   } = useBudgetDrawer(props);
 
   // Items editor using react-hook-form field array
@@ -66,6 +78,22 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
           flexDirection="column"
           flex={1}
         >
+          {companyOptions.length > 1 && (
+            <FormControl fullWidth size="small">
+              <InputLabel>Empresa</InputLabel>
+              <Select
+                label="Empresa"
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+              >
+                {companyOptions.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
           <TextInput
             label="Título"
             name="title"

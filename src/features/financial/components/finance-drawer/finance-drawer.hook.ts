@@ -1,9 +1,12 @@
 'use client';
 
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
+import { companyService } from '@/services/company.service';
+import { Company } from '@/types/company';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useFinanceMutation } from '../../hooks/queries/finances.query';
@@ -35,21 +38,38 @@ export const useFinanceDrawer = ({
   const { isAdmin, subordinateIds, currentUserId } = useCompanyPermissions();
   const showResponsibleSelect = isAdmin || subordinateIds.length > 0;
 
+  const defaultCompanyId = companyService.getDefaultCompany()?.id;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(
+    defaultCompanyId || '',
+  );
+  const { data: companyGroup } = useCompanyGroupQuery(defaultCompanyId);
+  const companyOptions = useMemo(
+    () =>
+      (companyGroup?.companies ?? []).map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    [companyGroup],
+  );
+
   const {
     options,
     setSearch,
     isLoading: optionsLoading,
-  } = useFormResources([
-    'financeBanks',
-    'financePaymentMethods',
-    'financeTypes',
-    'financeCategories',
-    'financeSegments',
-    'financePayees',
-    'clients',
-    'employees',
-    'users',
-  ]);
+  } = useFormResources(
+    [
+      'financeBanks',
+      'financePaymentMethods',
+      'financeTypes',
+      'financeCategories',
+      'financeSegments',
+      'financePayees',
+      'clients',
+      'employees',
+      'users',
+    ],
+    selectedCompanyId,
+  );
 
   const mutation = useFinanceMutation(finance?.id);
 
@@ -59,6 +79,7 @@ export const useFinanceDrawer = ({
     reset,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<FinanceFormDto>({
     defaultValues: financeFormInitialValues,
@@ -67,6 +88,7 @@ export const useFinanceDrawer = ({
 
   const selectedFlow = watch('flow');
   const selectedTypeId = watch('typeId');
+  const selectedSegmentId = watch('segmentId') as string | undefined;
 
   const isOutFlow = selectedFlow === FinanceFlowEnum.OUT;
 
@@ -78,6 +100,25 @@ export const useFinanceDrawer = ({
   );
   const needApprove =
     (selectedTypeOption?.data?.needApprove as boolean) ?? false;
+
+  const filteredCategories = useMemo(() => {
+    const cats = options.financeCategories ?? [];
+    if (!selectedSegmentId) return cats;
+    return cats.filter(
+      (c) => (c.data?.segmentId as string | undefined) === selectedSegmentId,
+    );
+  }, [options.financeCategories, selectedSegmentId]);
+
+  useEffect(() => {
+    if (!selectedSegmentId) return;
+    const currentCategoryId = getValues('categoryId') as string | undefined;
+    if (!currentCategoryId) return;
+    const stillValid = filteredCategories.some(
+      (c) => c.value === currentCategoryId,
+    );
+    if (!stillValid) setValue('categoryId', undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSegmentId]);
 
   useEffect(() => {
     if (open && finance) {
@@ -116,6 +157,14 @@ export const useFinanceDrawer = ({
 
   const handleFinance = handleSubmit(async (values: FinanceFormDto) => {
     setLoading(true);
+    const originalCompany = companyService.getDefaultCompany();
+    if (selectedCompanyId && selectedCompanyId !== originalCompany?.id) {
+      const picked = companyGroup?.companies.find(
+        (c) => c.id === selectedCompanyId,
+      );
+      if (picked)
+        companyService.setDefaultCompany({ ...picked, ownerId: '' } as Company);
+    }
     try {
       const payload = {
         ...values,
@@ -140,12 +189,14 @@ export const useFinanceDrawer = ({
     } catch {
       toast.error('Erro ao salvar lançamento');
     } finally {
+      if (originalCompany) companyService.setDefaultCompany(originalCompany);
       setLoading(false);
     }
   });
 
   const handleClose = () => {
     reset(financeFormInitialValues);
+    setSelectedCompanyId(companyService.getDefaultCompany()?.id || '');
     onClose();
   };
 
@@ -167,5 +218,9 @@ export const useFinanceDrawer = ({
     showResponsibleSelect,
     paidTo,
     setPaidTo,
+    companyOptions,
+    selectedCompanyId,
+    setSelectedCompanyId,
+    filteredCategories,
   };
 };

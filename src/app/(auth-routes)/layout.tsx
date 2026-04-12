@@ -1,4 +1,4 @@
-import { Footer, Header } from '@/components/display';
+import { Footer } from '@/components/display';
 import { getUserSession } from '@/utils/session';
 import { Box } from '@mui/material';
 import { redirect } from 'next/navigation';
@@ -13,7 +13,6 @@ export default async function AuthLayout({ children }: PropsWithChildren) {
 
   return (
     <>
-      <Header simple />
       <Box component="main">{children}</Box>
       <Footer />
     </>

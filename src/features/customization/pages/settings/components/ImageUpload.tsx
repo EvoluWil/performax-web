@@ -9,6 +9,8 @@ type ImageUploadProps = {
   aspectRatio?: string;
   width?: number | string;
   height?: number | string;
+  accept?: string;
+  hint?: string;
   onChange: (file: File) => void;
 };
 
@@ -18,6 +20,8 @@ export function ImageUpload({
   aspectRatio,
   width = '100%',
   height,
+  accept = 'image/*',
+  hint,
   onChange,
 }: ImageUploadProps) {
   return (
@@ -90,7 +94,7 @@ export function ImageUpload({
         <input
           type="file"
           hidden
-          accept="image/*"
+          accept={accept}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) onChange(file);
@@ -98,6 +102,16 @@ export function ImageUpload({
           }}
         />
       </Box>
+      {hint && (
+        <Box mt={0.5} display="flex" alignItems="center" gap={0.5}>
+          <Typography variant="caption" display="block" mb={0.2}>
+            ⚠️
+          </Typography>
+          <Typography variant="caption" color="warning" display="block">
+            {hint}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }

@@ -18,8 +18,8 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
   const { whiteLabel } = useWhiteLabel();
   const dynamicTheme = useMemo(
     () =>
-      createDynamicTheme(whiteLabel?.primaryColor, whiteLabel?.secondaryColor),
-    [whiteLabel?.primaryColor, whiteLabel?.secondaryColor],
+      createDynamicTheme(whiteLabel.primaryColor, whiteLabel.secondaryColor),
+    [whiteLabel.primaryColor, whiteLabel.secondaryColor],
   );
 
   return (

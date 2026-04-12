@@ -31,11 +31,12 @@ export type FormResourcesRequest = {
 
 export async function fetchFormResources(
   payload: FormResourcesRequest,
+  companyId?: string,
 ): Promise<FormResourcesResult> {
-  const companyId = companyService.getDefaultCompany()?.id;
-  if (!companyId) return {};
+  const id = companyId || companyService.getDefaultCompany()?.id;
+  if (!id) return {};
   const { data } = await api.post<FormResourcesResult>(
-    `/companies/${companyId}/form-resources`,
+    `/companies/${id}/form-resources`,
     payload,
   );
   return data;

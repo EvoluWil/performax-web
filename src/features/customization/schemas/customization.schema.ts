@@ -7,6 +7,7 @@ export type CustomizationFormDto = {
   wlName: string;
   logo: string;
   banner: string;
+  favicon: string;
   primaryColor: string;
   secondaryColor: string;
 };
@@ -16,6 +17,7 @@ export const customizationFormInitialValues: CustomizationFormDto = {
   wlName: '',
   logo: '',
   banner: '',
+  favicon: '',
   primaryColor: '#1976d2',
   secondaryColor: '#9c27b0',
 };
@@ -25,6 +27,7 @@ export const customizationFormSchema = yup.object().shape({
   wlName: yup.string().nullable(),
   logo: yup.string().nullable(),
   banner: yup.string().nullable(),
+  favicon: yup.string().nullable(),
   primaryColor: yup.string().nullable(),
   secondaryColor: yup.string().nullable(),
 });
