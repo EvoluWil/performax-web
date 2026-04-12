@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export const Footer = () => {
   const { whiteLabel } = useWhiteLabel();
-  const logoSrc = whiteLabel.logo;
+  const logoSrc = whiteLabel.logoContrast;
   const companyName = whiteLabel.name;
 
   const handleTop = () => {

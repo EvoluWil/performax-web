@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
         justifyContent="center"
       >
         <Image
-          src={whiteLabel.logo}
+          src={whiteLabel.logoContrast}
           width="100"
           height="100"
           alt={whiteLabel.name}

@@ -22,7 +22,7 @@ export const SignInForm = () => {
   } = useSignIn();
 
   const { whiteLabel } = useWhiteLabel();
-  const logoSrc = whiteLabel.logo;
+  const logoSrc = whiteLabel.logoContrast;
   const companyName = whiteLabel.logo ? '' : whiteLabel.name;
   const hasCustomWhiteLabel = !!whiteLabel.id;
 

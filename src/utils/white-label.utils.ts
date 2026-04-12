@@ -1,12 +1,16 @@
 import { DEFAULT_BANNER } from '@/constants/whitelabel/banner.constant';
 import { DEFAULT_FAVICON } from '@/constants/whitelabel/favicon.constant';
-import { DEFAULT_LOGO } from '@/constants/whitelabel/logo.constant';
+import {
+  DEFAULT_LOGO,
+  DEFAULT_LOGO_CONTRAST,
+} from '@/constants/whitelabel/logo.constant';
 import { CompanyWhiteLabel } from '@/types/company';
 
 export const DEFAULT_WHITE_LABEL: CompanyWhiteLabel = {
   id: '',
   name: 'Performax',
   logo: DEFAULT_LOGO,
+  logoContrast: DEFAULT_LOGO_CONTRAST,
   banner: DEFAULT_BANNER,
   favicon: DEFAULT_FAVICON,
   primaryColor: '#6B2AEE',
@@ -41,6 +45,7 @@ export function mergeWhiteLabel(
     ...DEFAULT_WHITE_LABEL,
     ...raw,
     logo,
+    logoContrast: raw.logoContrast || logo,
     name,
     banner: raw.banner || DEFAULT_WHITE_LABEL.banner,
     favicon: raw.favicon || DEFAULT_WHITE_LABEL.favicon,
