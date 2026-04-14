@@ -12,9 +12,9 @@ export type BudgetFormDto = {
   description?: string;
   observation?: string;
   value?: number | string; // será calculado via items
-  typeId: string;
-  clientId?: string;
-  responsibleId?: string;
+  typeId: string | null;
+  clientId?: string | null;
+  responsibleId?: string | null;
   items?: BudgetItemForm[];
 };
 
@@ -22,10 +22,10 @@ export const budgetFormInitialValues: BudgetFormDto = {
   title: '',
   description: '',
   observation: '',
-  value: '' as any,
-  typeId: '',
-  clientId: '',
-  responsibleId: '',
+  value: '',
+  typeId: null,
+  clientId: null,
+  responsibleId: null,
   items: [],
 };
 
