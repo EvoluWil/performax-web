@@ -59,15 +59,29 @@ type FinanceReportRow = {
   title: string;
   flow: string;
   value: string;
+  tax: string;
+  retention: string;
   date: string;
+  paymentDate: string;
   bank: string;
+  method: string;
+  type: string;
   category: string;
+  client: string;
+  createdBy: string;
   status: string;
 };
 
 const columns: MRT_ColumnDef<Finance>[] = [
   { accessorKey: 'protocol', header: 'Protocolo' },
   { accessorKey: 'title', header: 'Título' },
+  {
+    accessorKey: 'type',
+    header: 'Centro de Custo',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
   {
     accessorKey: 'flow',
     header: 'Fluxo',
@@ -102,6 +116,33 @@ const columns: MRT_ColumnDef<Finance>[] = [
     },
   },
   {
+    accessorKey: 'paymentDate',
+    header: 'Data de Pagamento',
+    Cell({ cell }: any) {
+      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+    },
+  },
+  {
+    accessorKey: 'tax',
+    header: 'Impostos',
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      return v != null
+        ? Number(v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : '-';
+    },
+  },
+  {
+    accessorKey: 'retention',
+    header: 'Retenção',
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      return v != null
+        ? Number(v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : '-';
+    },
+  },
+  {
     accessorKey: 'bank',
     header: 'Banco',
     Cell({ cell }: any) {
@@ -109,8 +150,29 @@ const columns: MRT_ColumnDef<Finance>[] = [
     },
   },
   {
+    accessorKey: 'method',
+    header: 'Método',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
     accessorKey: 'category',
     header: 'Categoria',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'client',
+    header: 'Cliente',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'createdBy',
+    header: 'Criado por',
     Cell({ cell }: any) {
       return cell.getValue()?.name ?? '-';
     },
@@ -241,14 +303,27 @@ export const FinanceList = () => {
       const data: FinanceReportRow[] = report.finances.map((f) => ({
         protocol: f.protocol || '-',
         title: f.title || '-',
+        type: (f as any).type?.name || '-',
         flow: financeFlowLabels[f.flow]?.label || f.flow || '-',
         value: Number((f.value || 0) / 100).toLocaleString('pt-BR', {
           style: 'currency',
           currency: 'BRL',
         }),
+        tax: Number((f.tax || 0) / 100).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        retention: Number((f.retention || 0) / 100).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
         date: formatDate(f.date) || '-',
+        paymentDate: f.paymentDate ? formatDate(f.paymentDate) : '-',
         bank: f.bank?.name || '-',
+        method: (f as any).method?.name || '-',
         category: f.category?.name || '-',
+        client: f.client?.name || '-',
+        createdBy: f.createdBy?.name || '-',
         status:
           f.approved === false
             ? 'Aguardando aprov.'
