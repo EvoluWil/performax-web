@@ -17,7 +17,7 @@ import type {
 } from '../../types/finance';
 
 type FinanceMutationInput = {
-  type: 'create' | 'update' | 'delete';
+  type: 'create' | 'update' | 'delete' | 'revert-payment';
   id?: string;
   data?: Partial<FinanceFormDto>;
 };
@@ -67,6 +67,8 @@ export const useFinanceMutation = (financeId?: string) => {
         return financeService.update(input?.id as string, input?.data as any);
       case 'delete':
         return financeService.delete(input?.id as string);
+      case 'revert-payment':
+        return financeService.revertPayment(input?.id as string);
     }
   };
 

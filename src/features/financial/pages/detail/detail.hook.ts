@@ -69,6 +69,21 @@ export const useFinanceDetail = () => {
 
   const canMarkAsPaid =
     finance?.approved !== false && finance?.status !== FinanceStatusEnum.PAID;
+  const canRevertPayment = finance?.status === FinanceStatusEnum.PAID;
+
+  const handleRevertPayment = async () => {
+    if (!finance) return;
+    try {
+      await mutation.mutateAsync({
+        type: 'revert-payment',
+        id: finance.id,
+      });
+      toast.success('Pagamento revertido com sucesso');
+      await refetch();
+    } catch {
+      toast.error('Erro ao reverter pagamento');
+    }
+  };
 
   const handleDownloadPdf = async () => {
     if (!finance) return;
@@ -87,6 +102,8 @@ export const useFinanceDetail = () => {
     handleDelete,
     handleApprove,
     canMarkAsPaid,
+    canRevertPayment,
+    handleRevertPayment,
     editModalOpen,
     setEditModalOpen,
     approvalDrawerOpen,

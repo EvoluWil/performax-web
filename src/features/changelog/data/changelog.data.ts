@@ -2,6 +2,22 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '15',
+    version: '1.15.0',
+    title: 'Reversão de pagamento de lançamentos financeiros',
+    description: [
+      'Lançamentos marcados como pagos agora podem ter o pagamento revertido, retornando ao status Pendente.',
+      'A reversão apaga a data de pagamento e zera impostos e retenção registrados no momento do pagamento.',
+      'Em transferências entre empresas do grupo, a reversão é aplicada automaticamente nas duas pontas.',
+      'A carteira financeira é recalculada imediatamente após a reversão.',
+    ],
+    type: 'FEATURE',
+    date: '2026-04-29',
+    deleted: false,
+    createdAt: '2026-04-29',
+    updatedAt: '2026-04-29',
+  },
+  {
     id: '14',
     version: '1.14.0',
     title: 'Criação inline em autocompletes e melhorias no financeiro',

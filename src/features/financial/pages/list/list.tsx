@@ -19,6 +19,7 @@ import {
   EditOutlined,
   RefreshOutlined,
   ThumbsUpDownOutlined,
+  UndoOutlined,
 } from '@mui/icons-material';
 import {
   Box,
@@ -40,7 +41,10 @@ import { FinanceCard } from '../../components/finance-card/finance-card';
 import { FinanceDrawer } from '../../components/finance-drawer/finance-drawer';
 import { FinanceFilter } from '../../components/finance-filter/finance-filter';
 import { MarkAsPaidModal } from '../../components/mark-as-paid-modal/mark-as-paid-modal';
-import { useFinanceApprovalMutation } from '../../hooks/queries/finances.query';
+import {
+  useFinanceApprovalMutation,
+  useFinanceMutation,
+} from '../../hooks/queries/finances.query';
 import {
   Finance,
   FinanceFlowEnum,
@@ -208,6 +212,7 @@ export const FinanceList = () => {
   });
 
   const approvalMutation = useFinanceApprovalMutation();
+  const financeMutation = useFinanceMutation();
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('financial', 'write');
@@ -286,6 +291,24 @@ export const FinanceList = () => {
         row.approved !== false &&
         row.status !== FinanceStatusEnum.PAID &&
         row.status !== FinanceStatusEnum.REJECTED,
+    });
+
+    tableActions.push({
+      icon: () => <UndoOutlined />,
+      label: () => 'Reverter pagamento',
+      onClick: async (row) => {
+        try {
+          await financeMutation.mutateAsync({
+            type: 'revert-payment',
+            id: row.id,
+          });
+          toast.success('Pagamento revertido com sucesso');
+          await handleReload();
+        } catch {
+          toast.error('Erro ao reverter pagamento');
+        }
+      },
+      condition: (row) => row.status === FinanceStatusEnum.PAID,
     });
   }
 

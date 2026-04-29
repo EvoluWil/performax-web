@@ -23,6 +23,8 @@ export const FinanceDetail = () => {
     handleDelete,
     handleApprove,
     canMarkAsPaid,
+    canRevertPayment,
+    handleRevertPayment,
     editModalOpen,
     setEditModalOpen,
     approvalDrawerOpen,
@@ -68,6 +70,12 @@ export const FinanceDetail = () => {
                       label: 'Marcar como Pago',
                       onClick: () => setPaidModalOpen(true),
                       visible: canMarkAsPaid,
+                    },
+                    {
+                      key: 'revert-paid',
+                      label: 'Reverter pagamento',
+                      onClick: handleRevertPayment,
+                      visible: canRevertPayment,
                     },
                     {
                       key: 'edit',

@@ -87,6 +87,13 @@ class FinanceService extends BaseCompanyService {
     return data;
   }
 
+  async revertPayment(id: string): Promise<Finance> {
+    const { data } = await api.put<Finance>(
+      `${this.getUrlBase(this.path)}/${id}/revert-payment`,
+    );
+    return data;
+  }
+
   async transfer(payload: CreateTransferDto): Promise<Finance[]> {
     const { data } = await api.post<Finance[]>(
       `${this.getUrlBase(this.path)}/transfer`,
