@@ -1,10 +1,13 @@
+import { Client } from '@/features/client/types';
+import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
 import { companyService } from '@/services/company.service';
 import { Company } from '@/types/company';
+import { User } from '@/types/user';
 import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useBudgetTypesQuery } from '../../hooks/queries/budget-types.query';
@@ -14,6 +17,7 @@ import {
   budgetFormInitialValues,
   budgetFormSchema,
 } from '../../schemas/budget-drawer.schema';
+import { budgetTypeService } from '../../services/budget-type.service';
 import { budgetService } from '../../services/budget.service';
 import type { Budget } from '../../types/budget';
 type HookProps = {
@@ -29,6 +33,7 @@ export const useBudgetDrawer = ({
   budget: selectedBudget,
   onSuccess,
 }: HookProps) => {
+  const { hasPermission } = useCompanyPermissions();
   const budget = selectedBudget || null;
   const [loading, setLoading] = useState(false);
 
@@ -46,10 +51,118 @@ export const useBudgetDrawer = ({
     [companyGroup],
   );
 
-  const { options: resourceOptions } = useFormResources(
+  const { options: resourceOptions, setSearch } = useFormResources(
     ['clients', 'users'],
     selectedCompanyId,
   );
+
+  const canCreateClient = hasPermission('client', 'write');
+  const canCreateBudgetType = hasPermission('budget', 'write');
+  const canCreateUser = hasPermission('user', 'write');
+  const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
+  const [clientInitialName, setClientInitialName] = useState('');
+  const [responsibleDrawerOpen, setResponsibleDrawerOpen] = useState(false);
+  const [responsibleInitialName, setResponsibleInitialName] = useState('');
+
+  const clientCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+  const responsibleCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
+  const runWithSelectedCompany = async <T>(
+    fn: () => Promise<T>,
+  ): Promise<T> => {
+    const originalCompany = companyService.getDefaultCompany();
+
+    if (
+      selectedCompanyId &&
+      selectedCompanyId !== originalCompany?.id &&
+      companyGroup?.companies
+    ) {
+      const picked = companyGroup.companies.find(
+        (company) => company.id === selectedCompanyId,
+      );
+
+      if (picked) {
+        companyService.setDefaultCompany({ ...picked, ownerId: '' } as Company);
+      }
+    }
+
+    try {
+      return await fn();
+    } finally {
+      if (originalCompany) {
+        companyService.setDefaultCompany(originalCompany);
+      }
+    }
+  };
+
+  const handleCreateBudgetType = async (label: string) => {
+    const name = label.trim();
+    if (!name) throw new Error('invalid-label');
+
+    const created = await runWithSelectedCompany(() =>
+      budgetTypeService.create({ name, needApprove: false }),
+    );
+
+    return created.id;
+  };
+
+  const handleOpenCreateClient = (label: string) => {
+    setClientInitialName(label);
+    setClientDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      clientCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseClientDrawer = () => {
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+
+    if (clientCreateRef.current) {
+      clientCreateRef.current.reject(new Error('cancelled'));
+      clientCreateRef.current = null;
+    }
+  };
+
+  const handleClientCreated = (client: Client) => {
+    clientCreateRef.current?.resolve(client.id);
+    clientCreateRef.current = null;
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+  };
+
+  const handleOpenCreateResponsible = (label: string) => {
+    setResponsibleInitialName(label);
+    setResponsibleDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      responsibleCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseResponsibleDrawer = () => {
+    setResponsibleDrawerOpen(false);
+    setResponsibleInitialName('');
+
+    if (responsibleCreateRef.current) {
+      responsibleCreateRef.current.reject(new Error('cancelled'));
+      responsibleCreateRef.current = null;
+    }
+  };
+
+  const handleResponsibleCreated = (user: User) => {
+    responsibleCreateRef.current?.resolve(user.id);
+    responsibleCreateRef.current = null;
+    setResponsibleDrawerOpen(false);
+    setResponsibleInitialName('');
+  };
 
   const { data: budgetTypes } = useBudgetTypesQuery(selectedCompanyId);
 
@@ -175,6 +288,21 @@ export const useBudgetDrawer = ({
     open,
     options,
     editing: !!budget,
+    setSearch,
+    canCreateClient,
+    canCreateBudgetType,
+    canCreateUser,
+    handleCreateBudgetType,
+    handleOpenCreateClient,
+    clientDrawerOpen,
+    clientInitialName,
+    handleCloseClientDrawer,
+    handleClientCreated,
+    handleOpenCreateResponsible,
+    responsibleDrawerOpen,
+    responsibleInitialName,
+    handleCloseResponsibleDrawer,
+    handleResponsibleCreated,
     companyOptions,
     selectedCompanyId,
     setSelectedCompanyId,

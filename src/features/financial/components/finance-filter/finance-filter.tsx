@@ -1,6 +1,6 @@
 'use client';
 
-import { ButtonGroup, DateInput, SelectInput } from '@/components/inputs';
+import { AutocompleteInput, ButtonGroup, DateInput } from '@/components/inputs';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -100,13 +100,14 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 280, flex: 1 }}
             >
-              <SelectInput
+              <AutocompleteInput
                 label="Status"
                 name="status"
                 control={control}
                 options={statusOptions}
               />
-              <SelectInput
+
+              <AutocompleteInput
                 label="Centro de Custo"
                 name="typeId"
                 control={control}
@@ -115,7 +116,8 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                   ...(types ?? []).map((t) => ({ value: t.id, label: t.name })),
                 ]}
               />
-              <SelectInput
+
+              <AutocompleteInput
                 label="Categoria"
                 name="categoryId"
                 control={control}
@@ -134,7 +136,7 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 280, flex: 1 }}
             >
-              <SelectInput
+              <AutocompleteInput
                 label="Banco"
                 name="bankId"
                 control={control}
@@ -143,7 +145,8 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                   ...(banks ?? []).map((b) => ({ value: b.id, label: b.name })),
                 ]}
               />
-              <SelectInput
+
+              <AutocompleteInput
                 label="Segmento"
                 name="segmentId"
                 control={control}
@@ -155,7 +158,8 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                   })),
                 ]}
               />
-              <SelectInput
+
+              <AutocompleteInput
                 label="Favorecido"
                 name="payeeId"
                 control={control}

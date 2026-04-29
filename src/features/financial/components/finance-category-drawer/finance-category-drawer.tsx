@@ -1,8 +1,7 @@
 'use client';
 
 import { BaseDrawer } from '@/components/drawer';
-import { SelectInput, TextInput } from '@/components/inputs';
-import { useFormResources } from '@/hooks/use-form-resources';
+import { TextInput } from '@/components/inputs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, Button } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -29,7 +28,6 @@ export const FinanceCategoryDrawer: React.FC<FinanceCategoryDrawerProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const mutation = useFinanceCategoryMutation();
-  const { options } = useFormResources(['financeSegments']);
 
   const { control, handleSubmit, reset } = useForm<FinanceCategoryFormDto>({
     defaultValues: financeCategoryFormInitialValues,
@@ -40,7 +38,6 @@ export const FinanceCategoryDrawer: React.FC<FinanceCategoryDrawerProps> = ({
     if (open && financeCategory) {
       reset({
         name: financeCategory.name,
-        segmentId: financeCategory.segmentId ?? '',
       });
     } else if (open) {
       reset(financeCategoryFormInitialValues);
@@ -77,12 +74,6 @@ export const FinanceCategoryDrawer: React.FC<FinanceCategoryDrawerProps> = ({
       title={financeCategory ? 'Editar Categoria' : 'Nova Categoria'}
       content={
         <Box display="flex" flexDirection="column" gap={2}>
-          <SelectInput
-            label="Segmento"
-            name="segmentId"
-            control={control}
-            options={options.financeSegments ?? []}
-          />
           <TextInput label="Nome" name="name" control={control} />
           <Box display="flex" gap={2} mt="auto">
             <Button

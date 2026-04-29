@@ -63,10 +63,7 @@ export const financeFormSchema = yup.object().shape({
     .mixed<FinanceFlowEnum>()
     .oneOf(Object.values(FinanceFlowEnum))
     .required('Fluxo é obrigatório'),
-  typeId: yup
-    .string()
-    .nullable()
-    .transform((v) => v || undefined),
+  typeId: yup.string().required('Centro de custo é obrigatório'),
   clientId: yup
     .string()
     .nullable()

@@ -8,6 +8,8 @@ export type ClientDrawerProps = {
   open: boolean;
   onClose: () => void;
   client: Client | null;
+  initialName?: string;
+  onCreated?: (client: Client) => void;
 };
 
 export const ClientDrawer: React.FC<ClientDrawerProps> = (props) => {

@@ -36,8 +36,8 @@ export const budgetFormSchema = yup.object().shape({
   // value é calculado automaticamente a partir dos itens
   value: yup.mixed<number | string>().nullable(),
   typeId: yup.string().required('Tipo é obrigatório'),
-  clientId: yup.string().nullable(),
-  responsibleId: yup.string().nullable(),
+  clientId: yup.string().required('Cliente é obrigatório'),
+  responsibleId: yup.string().required('Responsável é obrigatório'),
   items: yup
     .array()
     .of(

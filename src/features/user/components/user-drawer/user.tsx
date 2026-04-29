@@ -8,6 +8,8 @@ export type UserDrawerProps = {
   open: boolean;
   onClose: () => void;
   user: User | null;
+  initialName?: string;
+  onCreated?: (user: User) => void;
 };
 
 export const UserDrawer: React.FC<UserDrawerProps> = (props) => {

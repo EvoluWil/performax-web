@@ -9,6 +9,8 @@ export type OccurrenceTypeDrawerProps = {
   open: boolean;
   onClose: () => void;
   occurrenceType: OccurrenceType | null;
+  initialName?: string;
+  onCreated?: (occurrenceType: OccurrenceType) => void;
 };
 
 export const OccurrenceTypeDrawer: React.FC<OccurrenceTypeDrawerProps> = (

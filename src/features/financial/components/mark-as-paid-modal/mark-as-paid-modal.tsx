@@ -73,8 +73,8 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
         data: {
           status: 'PAID' as any,
           paymentDate: values.paymentDate as any,
-          tax: values.tax,
-          retention: values.retention,
+          tax: Math.round(Number(values.tax || 0) * 100),
+          retention: Math.round(Number(values.retention || 0) * 100),
         } as any,
       });
       toast.success('Lançamento marcado como pago');

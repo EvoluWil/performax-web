@@ -53,6 +53,7 @@ export const taskFormSchema = yup.object().shape({
     .transform((value) => value && subHours(new Date(value), 3).toISOString()),
   clientId: yup.string().required('Cliente é obrigatório'),
   typeId: yup.string().required('Tipo de OS é obrigatório'),
+  responsibleId: yup.string().required('Responsável é obrigatório'),
   status: yup.string().required(),
   checklist: ChecklistDtoSchema.notRequired(),
   recurrence: yup.string().optional(),

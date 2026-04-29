@@ -10,7 +10,13 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { UserDrawerProps } from './user';
 
-export const useUserDrawer = ({ onClose, open, user }: UserDrawerProps) => {
+export const useUserDrawer = ({
+  onClose,
+  open,
+  user,
+  initialName,
+  onCreated,
+}: UserDrawerProps) => {
   const userMutation = useUserMutation();
 
   const { control, handleSubmit, reset } = useForm<UserFormDto>({
@@ -26,6 +32,7 @@ export const useUserDrawer = ({ onClose, open, user }: UserDrawerProps) => {
     });
 
     if (result) {
+      onCreated?.(result);
       toast.success(
         user ? 'Usuário atualizado com sucesso' : 'Usuário criado com sucesso',
       );
@@ -47,9 +54,9 @@ export const useUserDrawer = ({ onClose, open, user }: UserDrawerProps) => {
         email: user.email,
       });
     } else {
-      reset(userFormInitialValues);
+      reset({ ...userFormInitialValues, name: initialName ?? '' });
     }
-  }, [user, reset]);
+  }, [user, reset, initialName]);
 
   return {
     control,

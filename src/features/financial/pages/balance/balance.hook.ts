@@ -150,9 +150,6 @@ function buildRows(
       key = f.categoryId ?? '__sem_categoria__';
       const cat = f.categoryId ? categoryMap.get(f.categoryId) : undefined;
       label = cat?.name ?? 'Sem categoria';
-      if (cat?.segmentId) {
-        segmentName = segmentMap.get(cat.segmentId as string) ?? '';
-      }
     } else {
       key = f.typeId ?? '__sem_cc__';
       label = (f.typeId && typeMap.get(f.typeId)) || 'Sem centro de custo';

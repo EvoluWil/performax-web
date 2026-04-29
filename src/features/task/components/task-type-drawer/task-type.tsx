@@ -9,6 +9,8 @@ export type TaskTypeDrawerProps = {
   open: boolean;
   onClose: () => void;
   taskType: TaskType | null;
+  initialName?: string;
+  onCreated?: (taskType: TaskType) => void;
 };
 
 export const TaskTypeDrawer: React.FC<TaskTypeDrawerProps> = (props) => {

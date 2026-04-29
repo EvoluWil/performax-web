@@ -1,4 +1,4 @@
-import { DateInput, SelectInput } from '@/components/inputs';
+import { AutocompleteInput, DateInput } from '@/components/inputs';
 import { FormResourceOption } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
 import { Box, Button, CircularProgress, Grid, Typography } from '@mui/material';
@@ -33,7 +33,7 @@ export function BalanceFilters({
           <DateInput control={control} name="dateTo" label="Data fim" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-          <SelectInput
+          <AutocompleteInput
             control={control}
             name="flow"
             label="Fluxo"
@@ -45,7 +45,7 @@ export function BalanceFilters({
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SelectInput
+          <AutocompleteInput
             control={control}
             name="segmentId"
             label="Segmento"
@@ -56,7 +56,7 @@ export function BalanceFilters({
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SelectInput
+          <AutocompleteInput
             control={control}
             name="categoryId"
             label="Categoria"
@@ -67,7 +67,7 @@ export function BalanceFilters({
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SelectInput
+          <AutocompleteInput
             control={control}
             name="typeId"
             label="Centro de Custo"
@@ -78,7 +78,7 @@ export function BalanceFilters({
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SelectInput
+          <AutocompleteInput
             control={control}
             name="bankId"
             label="Banco"

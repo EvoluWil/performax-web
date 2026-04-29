@@ -1,3 +1,4 @@
+import { Client } from '@/features/client/types';
 import { useTaskMutation } from '@/features/task/hooks';
 import {
   TaskFormDto,
@@ -5,6 +6,7 @@ import {
   taskFormSchema,
 } from '@/features/task/schemas';
 import { Task } from '@/features/task/types';
+import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useUpload } from '@/hooks/common/upload';
 import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
@@ -12,9 +14,10 @@ import { companyService } from '@/services/company.service';
 import { Company } from '@/types/company';
 import { File } from '@/types/file';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { TaskType } from '../../types';
 import { formatChecklist } from '../../util/format-checklist';
 import { TaskDrawerProps } from './task';
 
@@ -24,6 +27,7 @@ export const useTaskDrawer = ({
   task: selectedTask,
   onSuccess,
 }: TaskDrawerProps) => {
+  const { hasPermission } = useCompanyPermissions();
   const [task, setTask] = useState<Task | null>(selectedTask || null);
   const taskMutation = useTaskMutation();
   const { sendFiles, deleteFile } = useUpload();
@@ -46,6 +50,76 @@ export const useTaskDrawer = ({
     ['clients', 'taskTypes', 'users'],
     selectedCompanyId,
   );
+
+  const canCreateClient = hasPermission('client', 'write');
+  const canCreateTaskType = hasPermission('task', 'write');
+
+  const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
+  const [clientInitialName, setClientInitialName] = useState('');
+  const [taskTypeDrawerOpen, setTaskTypeDrawerOpen] = useState(false);
+  const [taskTypeInitialName, setTaskTypeInitialName] = useState('');
+
+  const clientCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
+  const taskTypeCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
+  const handleOpenCreateClient = (label: string) => {
+    setClientInitialName(label);
+    setClientDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      clientCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseClientDrawer = () => {
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+
+    if (clientCreateRef.current) {
+      clientCreateRef.current.reject(new Error('cancelled'));
+      clientCreateRef.current = null;
+    }
+  };
+
+  const handleClientCreated = (client: Client) => {
+    clientCreateRef.current?.resolve(client.id);
+    clientCreateRef.current = null;
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+  };
+
+  const handleOpenCreateTaskType = (label: string) => {
+    setTaskTypeInitialName(label);
+    setTaskTypeDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      taskTypeCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseTaskTypeDrawer = () => {
+    setTaskTypeDrawerOpen(false);
+    setTaskTypeInitialName('');
+
+    if (taskTypeCreateRef.current) {
+      taskTypeCreateRef.current.reject(new Error('cancelled'));
+      taskTypeCreateRef.current = null;
+    }
+  };
+
+  const handleTaskTypeCreated = (taskType: TaskType) => {
+    taskTypeCreateRef.current?.resolve(taskType.id);
+    taskTypeCreateRef.current = null;
+    setTaskTypeDrawerOpen(false);
+    setTaskTypeInitialName('');
+  };
 
   const { control, handleSubmit, reset, setValue } = useForm<TaskFormDto>({
     defaultValues: taskFormInitialValues,
@@ -153,6 +227,18 @@ export const useTaskDrawer = ({
     open,
     options,
     setSearch,
+    canCreateClient,
+    canCreateTaskType,
+    handleOpenCreateClient,
+    handleOpenCreateTaskType,
+    clientDrawerOpen,
+    taskTypeDrawerOpen,
+    clientInitialName,
+    taskTypeInitialName,
+    handleCloseClientDrawer,
+    handleCloseTaskTypeDrawer,
+    handleClientCreated,
+    handleTaskTypeCreated,
     defaultFiles: task?.files || [],
     editing: !!task,
     hasRecurrence: !!task?.recurrence || task?.recurrenceMasterId,

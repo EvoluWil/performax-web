@@ -1,10 +1,11 @@
 import { BaseDrawer } from '@/components/drawer';
 import {
+  AutocompleteInput,
   DateTimeInput,
   FileInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
+import { ClientDrawer } from '@/features/client/components/client-drawer/client';
 import { Occurrence } from '@/features/occurrence/types';
 import {
   Box,
@@ -14,6 +15,7 @@ import {
   MenuItem,
   Select,
 } from '@mui/material';
+import { OccurrenceTypeDrawer } from '../occurrence-type-drawer/occurrence-type';
 import { useOccurrenceDrawer } from './occurrence.hook';
 
 export type OccurrenceDrawerProps = {
@@ -31,6 +33,19 @@ export const OccurrenceDrawer: React.FC<OccurrenceDrawerProps> = (props) => {
     handleClose,
     open,
     options,
+    setSearch,
+    canCreateClient,
+    canCreateOccurrenceType,
+    handleOpenCreateClient,
+    handleOpenCreateOccurrenceType,
+    clientDrawerOpen,
+    occurrenceTypeDrawerOpen,
+    clientInitialName,
+    occurrenceTypeInitialName,
+    handleCloseClientDrawer,
+    handleCloseOccurrenceTypeDrawer,
+    handleClientCreated,
+    handleOccurrenceTypeCreated,
     defaultFiles,
     editing,
     handleRemoveDefaultFile,
@@ -40,127 +55,151 @@ export const OccurrenceDrawer: React.FC<OccurrenceDrawerProps> = (props) => {
   } = useOccurrenceDrawer(props);
 
   return (
-    <BaseDrawer
-      open={open}
-      setOpen={handleClose}
-      height="auto"
-      title={editing ? 'Editar ocorrência' : 'Nova ocorrência'}
-      content={
-        <Box
-          gap={2}
-          component="form"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          flexDirection="column"
-          flex={1}
-        >
-          {companyOptions.length > 1 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>Empresa</InputLabel>
-              <Select
-                label="Empresa"
-                value={selectedCompanyId}
-                onChange={(e) => setSelectedCompanyId(e.target.value)}
-              >
-                {companyOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-          <TextInput
-            label="Título"
-            name="title"
-            placeholder="Digite o título"
-            control={control}
-          />
-
-          <TextInput
-            label="Descrição"
-            name="description"
-            placeholder="Descreva a ocorrência"
-            control={control}
-            multiline
-            minRows={3}
-          />
-
-          <TextInput
-            label="Observação"
-            name="observation"
-            placeholder="Digite observações"
-            control={control}
-            multiline
-            minRows={3}
-          />
-
-          <DateTimeInput
-            label="Data da ocorrência"
-            name="date"
-            control={control}
-          />
-
-          <SelectInput
-            label="Cliente"
-            name="clientId"
-            control={control}
-            options={options.clients || []}
-          />
-
-          <SelectInput
-            label="Tipo de ocorrência"
-            name="typeId"
-            control={control}
-            options={options.types || []}
-          />
-
-          <SelectInput
-            label="Responsável"
-            name="responsibleId"
-            control={control}
-            options={options.users || []}
-          />
-
-          <FileInput
-            label="Adicionar documentos"
-            name="documents"
-            control={control}
-            multiple
-            defaultFiles={defaultFiles}
-            onRemoveDefaultFile={handleRemoveDefaultFile}
-          />
-
+    <>
+      <BaseDrawer
+        open={open}
+        setOpen={handleClose}
+        height="auto"
+        title={editing ? 'Editar ocorrência' : 'Nova ocorrência'}
+        content={
           <Box
-            mt="auto"
-            display="flex"
             gap={2}
-            justifyContent="space-between"
-            width="100%"
+            component="form"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flexDirection="column"
+            flex={1}
           >
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleClose}
-              loading={loading}
-              fullWidth
+            {companyOptions.length > 1 && (
+              <FormControl fullWidth size="small">
+                <InputLabel>Empresa</InputLabel>
+                <Select
+                  label="Empresa"
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                >
+                  {companyOptions.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            <TextInput
+              label="Título"
+              name="title"
+              placeholder="Digite o título"
+              control={control}
+            />
+
+            <TextInput
+              label="Descrição"
+              name="description"
+              placeholder="Descreva a ocorrência"
+              control={control}
+              multiline
+              minRows={3}
+            />
+
+            <TextInput
+              label="Observação"
+              name="observation"
+              placeholder="Digite observações"
+              control={control}
+              multiline
+              minRows={3}
+            />
+
+            <DateTimeInput
+              label="Data da ocorrência"
+              name="date"
+              control={control}
+            />
+
+            <AutocompleteInput
+              label="Cliente"
+              name="clientId"
+              control={control}
+              options={options.clients || []}
+              onInputChange={(v) => setSearch('clients', v)}
+              enableCreate={canCreateClient}
+              createLabel="Adicionar cliente"
+              onCreate={handleOpenCreateClient}
+            />
+
+            <AutocompleteInput
+              label="Tipo de ocorrência"
+              name="typeId"
+              control={control}
+              options={options.types || []}
+              enableCreate={canCreateOccurrenceType}
+              createLabel="Adicionar tipo de ocorrência"
+              onCreate={handleOpenCreateOccurrenceType}
+            />
+
+            <AutocompleteInput
+              label="Responsável"
+              name="responsibleId"
+              control={control}
+              options={options.users || []}
+              onInputChange={(v) => setSearch('users', v)}
+            />
+
+            <FileInput
+              label="Adicionar documentos"
+              name="documents"
+              control={control}
+              multiple
+              defaultFiles={defaultFiles}
+              onRemoveDefaultFile={handleRemoveDefaultFile}
+            />
+
+            <Box
+              mt="auto"
+              display="flex"
+              gap={2}
+              justifyContent="space-between"
+              width="100%"
             >
-              Cancelar
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleOccurrence}
-              type="submit"
-              loading={loading}
-              fullWidth
-            >
-              Confirmar
-            </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleClose}
+                loading={loading}
+                fullWidth
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOccurrence}
+                type="submit"
+                loading={loading}
+                fullWidth
+              >
+                Confirmar
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      }
-    />
+        }
+      />
+      <ClientDrawer
+        open={clientDrawerOpen}
+        onClose={handleCloseClientDrawer}
+        client={null}
+        initialName={clientInitialName}
+        onCreated={handleClientCreated}
+      />
+      <OccurrenceTypeDrawer
+        open={occurrenceTypeDrawerOpen}
+        onClose={handleCloseOccurrenceTypeDrawer}
+        occurrenceType={null}
+        initialName={occurrenceTypeInitialName}
+        onCreated={handleOccurrenceTypeCreated}
+      />
+    </>
   );
 };

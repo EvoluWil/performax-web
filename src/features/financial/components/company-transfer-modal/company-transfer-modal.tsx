@@ -1,9 +1,9 @@
 'use client';
 
 import {
+  AutocompleteInput,
   CurrencyInput,
   DateInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import {
@@ -121,7 +121,7 @@ export const CompanyTransferModal: React.FC<CompanyTransferModalProps> = ({
         </Typography>
 
         <Box display="flex" flexDirection="column" gap={2}>
-          <SelectInput
+          <AutocompleteInput
             label="Empresa de destino"
             name="companyInId"
             control={control}
@@ -145,19 +145,19 @@ export const CompanyTransferModal: React.FC<CompanyTransferModalProps> = ({
               control={control}
             />
           </Box>
-          <SelectInput
+          <AutocompleteInput
             label="Banco"
             name="bankId"
             control={control}
             options={bankOptions}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Método de Pagamento"
             name="methodId"
             control={control}
             options={methodOptions}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Categoria"
             name="categoryId"
             control={control}

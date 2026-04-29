@@ -14,6 +14,8 @@ export const useOccurrenceTypeDrawer = ({
   onClose,
   open,
   occurrenceType,
+  initialName,
+  onCreated,
 }: OccurrenceTypeDrawerProps) => {
   const occurrenceTypeMutation = useOccurrenceTypeMutation();
 
@@ -36,6 +38,9 @@ export const useOccurrenceTypeDrawer = ({
             ? 'Tipo de ocorrência atualizado com sucesso'
             : 'Tipo de ocorrência criado com sucesso',
         );
+        if (!occurrenceType) {
+          onCreated?.(result);
+        }
         handleClose();
         onClose();
       }
@@ -54,9 +59,9 @@ export const useOccurrenceTypeDrawer = ({
         needApprove: occurrenceType.needApprove,
       });
     } else {
-      reset(occurrenceTypeFormInitialValues);
+      reset({ ...occurrenceTypeFormInitialValues, name: initialName || '' });
     }
-  }, [occurrenceType, reset]);
+  }, [occurrenceType, reset, initialName]);
 
   return {
     control,

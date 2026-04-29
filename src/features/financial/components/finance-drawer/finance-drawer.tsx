@@ -5,10 +5,11 @@ import {
   AutocompleteInput,
   CurrencyInput,
   DateInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
+import { ClientDrawer } from '@/features/client/components/client-drawer/client';
+import { UserDrawer } from '@/features/user/components';
 import { formatRRuleToText } from '@/utils/rrule';
 import {
   Box,
@@ -54,13 +55,32 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     isOutFlow,
     needApprove,
     showResponsibleSelect,
+    canCreateFinancialField,
+    canCreateClient,
+    canCreateUser,
+    handleCreateFinanceBank,
+    handleCreateFinancePaymentMethod,
+    handleCreateFinanceType,
+    handleCreateFinanceSegment,
+    handleCreateFinanceCategory,
+    handleCreateFinancePayee,
+    handleCreateEmployee,
+    handleOpenCreateClient,
+    clientDrawerOpen,
+    clientInitialName,
+    handleCloseClientDrawer,
+    handleClientCreated,
+    handleOpenCreateResponsible,
+    responsibleDrawerOpen,
+    responsibleInitialName,
+    handleCloseResponsibleDrawer,
+    handleResponsibleCreated,
     setValue,
     paidTo,
     setPaidTo,
     companyOptions,
     selectedCompanyId,
     setSelectedCompanyId,
-    filteredCategories,
   } = useFinanceDrawer(props);
 
   const router = useRouter();
@@ -118,7 +138,7 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 </Select>
               </FormControl>
             )}
-            <SelectInput
+            <AutocompleteInput
               label="Fluxo"
               name="flow"
               control={control}
@@ -143,50 +163,6 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 control={control}
               />
             </Box>
-            <AutocompleteInput
-              label="Banco"
-              name="bankId"
-              control={control}
-              options={options.financeBanks ?? []}
-              onInputChange={(v) => setSearch('financeBanks', v)}
-            />
-            <AutocompleteInput
-              label="Método de Pagamento"
-              name="methodId"
-              control={control}
-              options={options.financePaymentMethods ?? []}
-              onInputChange={(v) => setSearch('financePaymentMethods', v)}
-            />
-            <AutocompleteInput
-              label="Centro de Custo"
-              name="typeId"
-              control={control}
-              options={options.financeTypes ?? []}
-              onInputChange={(v) => setSearch('financeTypes', v)}
-            />
-            <AutocompleteInput
-              label="Segmento"
-              name="segmentId"
-              control={control}
-              options={options.financeSegments ?? []}
-              onInputChange={(v) => setSearch('financeSegments', v)}
-            />
-            <AutocompleteInput
-              label="Categoria"
-              name="categoryId"
-              control={control}
-              options={filteredCategories}
-              onInputChange={(v) => setSearch('financeCategories', v)}
-            />
-            {showResponsibleSelect && (
-              <AutocompleteInput
-                label="Responsável"
-                name="responsibleId"
-                control={control}
-                options={options.users ?? []}
-                onInputChange={(v) => setSearch('users', v)}
-              />
-            )}
             {isOutFlow && (
               <ButtonGroup fullWidth size="small">
                 <Button
@@ -194,6 +170,7 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                   onClick={() => {
                     setPaidTo('client');
                     setValue('employeeId', '');
+                    setValue('payeeId', '');
                   }}
                 >
                   Cliente
@@ -203,9 +180,20 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                   onClick={() => {
                     setPaidTo('employee');
                     setValue('clientId', '');
+                    setValue('payeeId', '');
                   }}
                 >
                   Funcionário
+                </Button>
+                <Button
+                  variant={paidTo === 'other' ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    setPaidTo('other');
+                    setValue('clientId', '');
+                    setValue('employeeId', '');
+                  }}
+                >
+                  Outro
                 </Button>
               </ButtonGroup>
             )}
@@ -216,6 +204,9 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 control={control}
                 options={options.employees ?? []}
                 onInputChange={(v) => setSearch('employees', v)}
+                enableCreate={canCreateFinancialField}
+                createLabel="Adicionar funcionário"
+                onCreate={handleCreateEmployee}
               />
             )}
             {(!isOutFlow || paidTo === 'client') && (
@@ -225,15 +216,84 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 control={control}
                 options={options.clients ?? []}
                 onInputChange={(v) => setSearch('clients', v)}
+                enableCreate={canCreateClient}
+                createLabel="Adicionar cliente"
+                onCreate={handleOpenCreateClient}
               />
             )}
-            {isOutFlow && (
+            {isOutFlow && paidTo === 'other' && (
               <AutocompleteInput
                 label="Favorecido"
                 name="payeeId"
                 control={control}
                 options={options.financePayees ?? []}
                 onInputChange={(v) => setSearch('financePayees', v)}
+                enableCreate={canCreateFinancialField}
+                createLabel="Adicionar favorecido"
+                onCreate={handleCreateFinancePayee}
+              />
+            )}
+            <AutocompleteInput
+              label="Centro de Custo"
+              name="typeId"
+              control={control}
+              options={options.financeTypes ?? []}
+              onInputChange={(v) => setSearch('financeTypes', v)}
+              enableCreate={canCreateFinancialField}
+              createLabel="Adicionar centro de custo"
+              onCreate={handleCreateFinanceType}
+            />
+            <AutocompleteInput
+              label="Segmento"
+              name="segmentId"
+              control={control}
+              options={options.financeSegments ?? []}
+              onInputChange={(v) => setSearch('financeSegments', v)}
+              enableCreate={canCreateFinancialField}
+              createLabel="Adicionar segmento"
+              onCreate={handleCreateFinanceSegment}
+            />
+            <AutocompleteInput
+              label="Categoria"
+              name="categoryId"
+              control={control}
+              options={options.financeCategories ?? []}
+              onInputChange={(v) => setSearch('financeCategories', v)}
+              enableCreate={canCreateFinancialField}
+              createLabel="Adicionar categoria"
+              onCreate={handleCreateFinanceCategory}
+            />
+
+            <AutocompleteInput
+              label="Banco"
+              name="bankId"
+              control={control}
+              options={options.financeBanks ?? []}
+              onInputChange={(v) => setSearch('financeBanks', v)}
+              enableCreate={canCreateFinancialField}
+              createLabel="Adicionar banco"
+              onCreate={handleCreateFinanceBank}
+            />
+            <AutocompleteInput
+              label="Método de Pagamento"
+              name="methodId"
+              control={control}
+              options={options.financePaymentMethods ?? []}
+              onInputChange={(v) => setSearch('financePaymentMethods', v)}
+              enableCreate={canCreateFinancialField}
+              createLabel="Adicionar método de pagamento"
+              onCreate={handleCreateFinancePaymentMethod}
+            />
+            {showResponsibleSelect && (
+              <AutocompleteInput
+                label="Responsável"
+                name="responsibleId"
+                control={control}
+                options={options.users ?? []}
+                onInputChange={(v) => setSearch('users', v)}
+                enableCreate={canCreateUser}
+                createLabel="Adicionar responsável"
+                onCreate={handleOpenCreateResponsible}
               />
             )}
             <TextInput
@@ -374,6 +434,20 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
           setValue('recurrence', rrule);
           setOpenRecurrence(false);
         }}
+      />
+      <ClientDrawer
+        open={clientDrawerOpen}
+        onClose={handleCloseClientDrawer}
+        client={null}
+        initialName={clientInitialName}
+        onCreated={handleClientCreated}
+      />
+      <UserDrawer
+        open={responsibleDrawerOpen}
+        onClose={handleCloseResponsibleDrawer}
+        user={null}
+        initialName={responsibleInitialName}
+        onCreated={handleResponsibleCreated}
       />
     </>
   );

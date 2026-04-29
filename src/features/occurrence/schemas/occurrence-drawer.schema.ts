@@ -31,8 +31,8 @@ export const occurrenceFormSchema = yup.object().shape({
     .string()
     .required('Data é obrigatória')
     .transform((value) => (value ? new Date(value).toISOString() : value)),
-  clientId: yup.string().optional(),
+  clientId: yup.string().required('Cliente é obrigatório'),
   typeId: yup.string().required('Tipo de ocorrência é obrigatório'),
-  responsibleId: yup.string().optional(),
+  responsibleId: yup.string().required('Responsável é obrigatório'),
   documents: yup.array().optional(),
 });

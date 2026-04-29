@@ -14,6 +14,8 @@ export const useTaskTypeDrawer = ({
   onClose,
   open,
   taskType,
+  initialName,
+  onCreated,
 }: TaskTypeDrawerProps) => {
   const taskTypeMutation = useTaskTypeMutation();
 
@@ -35,6 +37,9 @@ export const useTaskTypeDrawer = ({
           ? 'Tipo de OS atualizado com sucesso'
           : 'Tipo de OS criado com sucesso',
       );
+      if (!taskType) {
+        onCreated?.(result);
+      }
       handleClose();
       onClose();
     }
@@ -52,9 +57,9 @@ export const useTaskTypeDrawer = ({
         needApprove: taskType.needApprove,
       });
     } else {
-      reset(taskTypeFormInitialValues);
+      reset({ ...taskTypeFormInitialValues, name: initialName || '' });
     }
-  }, [taskType, reset]);
+  }, [taskType, reset, initialName]);
 
   return {
     control,

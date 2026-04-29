@@ -8,6 +8,7 @@ import {
   TextInput,
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
+import { ClientDrawer } from '@/features/client/components/client-drawer/client';
 import { ChecklistDto, Task } from '@/features/task/types';
 import { formatRRuleToText } from '@/utils/rrule';
 import { DeleteOutline } from '@mui/icons-material';
@@ -28,6 +29,7 @@ import {
 import { useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import { ChecklistModal } from '..';
+import { TaskTypeDrawer } from '../task-type-drawer/task-type';
 import { useTaskDrawer } from './task.hook';
 
 export type TaskDrawerProps = {
@@ -47,6 +49,18 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
     editing,
     options,
     setSearch,
+    canCreateClient,
+    canCreateTaskType,
+    handleOpenCreateClient,
+    handleOpenCreateTaskType,
+    clientDrawerOpen,
+    taskTypeDrawerOpen,
+    clientInitialName,
+    taskTypeInitialName,
+    handleCloseClientDrawer,
+    handleCloseTaskTypeDrawer,
+    handleClientCreated,
+    handleTaskTypeCreated,
     defaultFiles,
     handleRemoveDefaultFile,
     setValue,
@@ -141,6 +155,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               control={control}
               options={options.clients ?? []}
               onInputChange={(v) => setSearch('clients', v)}
+              enableCreate={canCreateClient}
+              createLabel="Adicionar cliente"
+              onCreate={handleOpenCreateClient}
             />
             <AutocompleteInput
               label="Tipo de OS"
@@ -148,6 +165,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
               control={control}
               options={options.taskTypes ?? []}
               onInputChange={(v) => setSearch('taskTypes', v)}
+              enableCreate={canCreateTaskType}
+              createLabel="Adicionar tipo de OS"
+              onCreate={handleOpenCreateTaskType}
             />
             <TextInput
               label="Observações"
@@ -462,6 +482,20 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
           setValue('recurrence', rrule);
           setOpenRecurrence(false);
         }}
+      />
+      <ClientDrawer
+        open={clientDrawerOpen}
+        onClose={handleCloseClientDrawer}
+        client={null}
+        initialName={clientInitialName}
+        onCreated={handleClientCreated}
+      />
+      <TaskTypeDrawer
+        open={taskTypeDrawerOpen}
+        onClose={handleCloseTaskTypeDrawer}
+        taskType={null}
+        initialName={taskTypeInitialName}
+        onCreated={handleTaskTypeCreated}
       />
     </>
   );

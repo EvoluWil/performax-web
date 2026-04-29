@@ -6,7 +6,6 @@ import {
   AutocompleteInput,
   CurrencyInput,
   DateInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
@@ -393,7 +392,7 @@ export const FinanceRecurringList = () => {
             pt: '16px !important',
           }}
         >
-          <SelectInput
+          <AutocompleteInput
             label="Fluxo"
             name="flow"
             control={control}

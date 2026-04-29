@@ -14,6 +14,8 @@ export const useClientDrawer = ({
   onClose,
   open,
   client,
+  initialName,
+  onCreated,
 }: ClientDrawerProps) => {
   const clientMutation = useClientMutation();
 
@@ -35,6 +37,9 @@ export const useClientDrawer = ({
           ? 'Cliente atualizado com sucesso'
           : 'Cliente criado com sucesso',
       );
+      if (!client) {
+        onCreated?.(result);
+      }
       handleClose();
       onClose();
     }
@@ -53,9 +58,9 @@ export const useClientDrawer = ({
         cnpj: client.cnpj,
       });
     } else {
-      reset(clientFormInitialValues);
+      reset({ ...clientFormInitialValues, name: initialName || '' });
     }
-  }, [client, reset]);
+  }, [client, reset, initialName]);
 
   return {
     control,

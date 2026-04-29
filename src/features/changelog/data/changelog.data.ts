@@ -2,6 +2,23 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '14',
+    version: '1.14.0',
+    title: 'Criação inline em autocompletes e melhorias no financeiro',
+    description: [
+      'Campos de autocomplete nos lançamentos financeiros agora permitem criar registros diretamente pelo campo: banco, método de pagamento, centro de custo, segmento, categoria, favorecido, funcionário, cliente e responsável.',
+      'Campos de autocomplete no orçamento agora permitem criar tipo de orçamento e responsável diretamente pelo campo.',
+      'Fluxo de saída financeira ganhou a opção "Outro", exibindo o campo Favorecido apenas quando essa opção estiver selecionada.',
+      'Centro de custo passa a ser obrigatório no cadastro de lançamentos financeiros.',
+      'Corrigido bug onde impostos e retenção ao marcar como pago eram interpretados em reais em vez de centavos, causando valores incorretos.',
+    ],
+    type: 'IMPROVEMENT',
+    date: '2026-04-29',
+    deleted: false,
+    createdAt: '2026-04-29',
+    updatedAt: '2026-04-29',
+  },
+  {
     id: '13',
     version: '1.13.0',
     title: 'Balanço Financeiro e melhorias no White Label',

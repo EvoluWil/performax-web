@@ -1,3 +1,4 @@
+import { Client } from '@/features/client/types';
 import {
   useOccurrenceMutation,
   useOccurrenceTypesQuery,
@@ -8,6 +9,7 @@ import {
   occurrenceFormSchema,
 } from '@/features/occurrence/schemas';
 import { Occurrence } from '@/features/occurrence/types';
+import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useUpload } from '@/hooks/common/upload';
 import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
@@ -16,9 +18,10 @@ import { Company } from '@/types/company';
 import { File } from '@/types/file';
 import { formatterSelectOptions } from '@/utils/select';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { OccurrenceType } from '../../types';
 import { OccurrenceDrawerProps } from './occurrence';
 
 export const useOccurrenceDrawer = ({
@@ -27,6 +30,7 @@ export const useOccurrenceDrawer = ({
   occurrence: selectedOccurrence,
   onSuccess,
 }: OccurrenceDrawerProps) => {
+  const { hasPermission } = useCompanyPermissions();
   const [occurrence, setOccurrence] = useState<Occurrence | null>(
     selectedOccurrence || null,
   );
@@ -48,10 +52,82 @@ export const useOccurrenceDrawer = ({
     [companyGroup],
   );
 
-  const { options: resourceOptions } = useFormResources(
+  const { options: resourceOptions, setSearch } = useFormResources(
     ['clients', 'users'],
     selectedCompanyId,
   );
+
+  const canCreateClient = hasPermission('client', 'write');
+  const canCreateOccurrenceType = hasPermission('occurrence', 'write');
+
+  const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
+  const [clientInitialName, setClientInitialName] = useState('');
+  const [occurrenceTypeDrawerOpen, setOccurrenceTypeDrawerOpen] =
+    useState(false);
+  const [occurrenceTypeInitialName, setOccurrenceTypeInitialName] =
+    useState('');
+
+  const clientCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
+  const occurrenceTypeCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+
+  const handleOpenCreateClient = (label: string) => {
+    setClientInitialName(label);
+    setClientDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      clientCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseClientDrawer = () => {
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+
+    if (clientCreateRef.current) {
+      clientCreateRef.current.reject(new Error('cancelled'));
+      clientCreateRef.current = null;
+    }
+  };
+
+  const handleClientCreated = (client: Client) => {
+    clientCreateRef.current?.resolve(client.id);
+    clientCreateRef.current = null;
+    setClientDrawerOpen(false);
+    setClientInitialName('');
+  };
+
+  const handleOpenCreateOccurrenceType = (label: string) => {
+    setOccurrenceTypeInitialName(label);
+    setOccurrenceTypeDrawerOpen(true);
+
+    return new Promise<string>((resolve, reject) => {
+      occurrenceTypeCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseOccurrenceTypeDrawer = () => {
+    setOccurrenceTypeDrawerOpen(false);
+    setOccurrenceTypeInitialName('');
+
+    if (occurrenceTypeCreateRef.current) {
+      occurrenceTypeCreateRef.current.reject(new Error('cancelled'));
+      occurrenceTypeCreateRef.current = null;
+    }
+  };
+
+  const handleOccurrenceTypeCreated = (occurrenceType: OccurrenceType) => {
+    occurrenceTypeCreateRef.current?.resolve(occurrenceType.id);
+    occurrenceTypeCreateRef.current = null;
+    setOccurrenceTypeDrawerOpen(false);
+    setOccurrenceTypeInitialName('');
+  };
 
   const { data: occurrenceTypes } = useOccurrenceTypesQuery(selectedCompanyId);
 
@@ -171,6 +247,19 @@ export const useOccurrenceDrawer = ({
     handleClose,
     open,
     options,
+    setSearch,
+    canCreateClient,
+    canCreateOccurrenceType,
+    handleOpenCreateClient,
+    handleOpenCreateOccurrenceType,
+    clientDrawerOpen,
+    occurrenceTypeDrawerOpen,
+    clientInitialName,
+    occurrenceTypeInitialName,
+    handleCloseClientDrawer,
+    handleCloseOccurrenceTypeDrawer,
+    handleClientCreated,
+    handleOccurrenceTypeCreated,
     defaultFiles: occurrence?.documents || [],
     editing: !!occurrence,
     handleRemoveDefaultFile,
