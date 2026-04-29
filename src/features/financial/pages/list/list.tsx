@@ -68,6 +68,8 @@ type FinanceReportRow = {
   type: string;
   category: string;
   client: string;
+  employee: string;
+  payee: string;
   createdBy: string;
   status: string;
 };
@@ -177,6 +179,20 @@ const columns: MRT_ColumnDef<Finance>[] = [
     },
   },
   {
+    accessorKey: 'employee',
+    header: 'Funcionário',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'payee',
+    header: 'Favorecido',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
     accessorKey: 'createdBy',
     header: 'Criado por',
     Cell({ cell }: any) {
@@ -199,6 +215,21 @@ const columns: MRT_ColumnDef<Finance>[] = [
         );
       }
       const status = cell.getValue() as FinanceStatusEnum;
+      const isLate =
+        status === FinanceStatusEnum.PAID &&
+        row.original.paymentDate &&
+        row.original.date &&
+        new Date(row.original.paymentDate) > new Date(row.original.date);
+      if (isLate) {
+        return (
+          <Chip
+            label="Pago em atraso"
+            sx={{ color: 'orange', borderColor: 'orange' }}
+            variant="outlined"
+            size="small"
+          />
+        );
+      }
       const meta = financeStatusLabels[status] || {
         label: status,
         color: 'default',
@@ -329,11 +360,18 @@ export const FinanceList = () => {
         method: (f as any).method?.name || '-',
         category: f.category?.name || '-',
         client: f.client?.name || '-',
+        employee: (f as any).employee?.name || '-',
+        payee: f.payee?.name || '-',
         createdBy: f.createdBy?.name || '-',
         status:
           f.approved === false
             ? 'Aguardando aprov.'
-            : financeStatusLabels[f.status]?.label || f.status || '-',
+            : f.status === FinanceStatusEnum.PAID &&
+                f.paymentDate &&
+                f.date &&
+                new Date(f.paymentDate) > new Date(f.date)
+              ? 'Pago em atraso'
+              : financeStatusLabels[f.status]?.label || f.status || '-',
       }));
 
       const subtitleParts = [`Total: ${formattedTotal}`];
