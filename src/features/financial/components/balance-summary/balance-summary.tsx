@@ -56,7 +56,7 @@ export function BalanceSummary({ totals }: Props) {
           value={totals.out}
           positive={false}
         />
-        <SummaryCard label="Saldo" value={saldo} />
+        <SummaryCard label="Resultado do período" value={saldo} />
       </Box>
     </Paper>
   );

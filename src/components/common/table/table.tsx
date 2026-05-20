@@ -94,7 +94,11 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
     },
     manualPagination: !!pagination,
     rowCount: rowCount ?? data.length,
-    ...(pagination && { state: { pagination } }),
+    state: {
+      ...(pagination && { pagination }),
+      isLoading: loading && !data?.length,
+      showProgressBars: loading && !!data?.length,
+    },
     ...(onPaginationChange && {
       onPaginationChange: (updater: any) => {
         const current = pagination ?? { pageIndex: 0, pageSize: 30 };
@@ -135,14 +139,8 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         )) || [],
   });
 
-  if (!data?.length && onReload) {
-    return (
-      <Empty
-        message={loading ? 'Carregando...' : emptyMessage}
-        onReload={onReload}
-        showReloadButton={!loading}
-      />
-    );
+  if (!data?.length && !loading && onReload) {
+    return <Empty message={emptyMessage} onReload={onReload} />;
   }
 
   return <MaterialReactTable table={table} />;

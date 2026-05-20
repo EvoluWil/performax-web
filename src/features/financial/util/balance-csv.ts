@@ -11,6 +11,7 @@ const VIEW_MODE_LABELS: Record<ViewMode, string> = {
   segment: 'Por Segmento',
   category: 'Por Categoria',
   type: 'Por Centro de Custo',
+  client: 'Por Cliente',
 };
 
 function q(value: string | number) {
@@ -99,7 +100,9 @@ export function generateBalanceCSV(
   csvRows.push(q('RESUMO'));
   csvRows.push([q('Total Receitas'), q(BRL(totals.in))].join(','));
   csvRows.push([q('Total Despesas'), q(BRL(totals.out))].join(','));
-  csvRows.push([q('Saldo'), q(BRL(totals.in - totals.out))].join(','));
+  csvRows.push(
+    [q('Resultado do período'), q(BRL(totals.in - totals.out))].join(','),
+  );
   csvRows.push([q('Rec. Pago'), q(BRL(totals.inPaid))].join(','));
   csvRows.push([q('Desp. Pago'), q(BRL(totals.outPaid))].join(','));
   csvRows.push([q('Total em Aberto'), q(BRL(totals.openTotal))].join(','));

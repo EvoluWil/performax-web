@@ -5,6 +5,7 @@ import {
   FormResourcesResult,
   ResourceItem,
 } from '@/services/form-resources.service';
+import { endOfMonth, startOfMonth } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { financeService } from '../../services/finance.service';
@@ -37,6 +38,7 @@ export type BalanceRow = {
   inOpen: number;
   outOpen: number;
   openTotal: number;
+  finances: Finance[];
 };
 
 export type BalanceTotals = {
@@ -47,7 +49,7 @@ export type BalanceTotals = {
   openTotal: number;
 };
 
-export type ViewMode = 'period' | 'segment' | 'category' | 'type';
+export type ViewMode = 'period' | 'segment' | 'category' | 'type' | 'client';
 
 const MONTHS_PT = [
   'Janeiro',
@@ -65,8 +67,8 @@ const MONTHS_PT = [
 ];
 
 const initialValues: BalanceFilterDto = {
-  dateFrom: '',
-  dateTo: '',
+  dateFrom: startOfMonth(new Date()).toISOString(),
+  dateTo: endOfMonth(new Date()).toISOString(),
   flow: 'ALL',
   bankId: '',
   categoryId: '',
@@ -110,6 +112,7 @@ function emptyRow(period: string, segmentName?: string): BalanceRow {
     inOpen: 0,
     outOpen: 0,
     openTotal: 0,
+    finances: [],
   };
 }
 
@@ -128,6 +131,9 @@ function buildRows(
   );
   const typeMap = new Map<string, string>(
     (raw.financeTypes ?? []).map((t: ResourceItem) => [t.id, t.name]),
+  );
+  const clientMap = new Map<string, string>(
+    (raw.clients ?? []).map((c: ResourceItem) => [c.id, c.name]),
   );
 
   for (const f of finances) {
@@ -150,6 +156,9 @@ function buildRows(
       key = f.categoryId ?? '__sem_categoria__';
       const cat = f.categoryId ? categoryMap.get(f.categoryId) : undefined;
       label = cat?.name ?? 'Sem categoria';
+    } else if (viewMode === 'client') {
+      key = f.clientId ?? '__sem_cliente__';
+      label = (f.clientId && clientMap.get(f.clientId)) || 'Sem cliente';
     } else {
       key = f.typeId ?? '__sem_cc__';
       label = (f.typeId && typeMap.get(f.typeId)) || 'Sem centro de custo';
@@ -159,7 +168,9 @@ function buildRows(
       map.set(key, emptyRow(label, segmentName));
     }
 
-    accumulate(map.get(key)!, f);
+    const row = map.get(key)!;
+    row.finances.push(f);
+    accumulate(row, f);
   }
 
   const rows = Array.from(map.values());
@@ -185,11 +196,12 @@ export function useFinanceBalance() {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('period');
 
-  const { control, handleSubmit, reset } = useForm<BalanceFilterDto>({
+  const { control, handleSubmit, reset, setValue } = useForm<BalanceFilterDto>({
     defaultValues: initialValues,
   });
 
   const { options, raw } = useFormResources([
+    'clients',
     'financeBanks',
     'financeCategories',
     'financeTypes',
@@ -233,6 +245,10 @@ export function useFinanceBalance() {
 
       const result = await financeService.get({
         select: 'all',
+        populate: [
+          { path: 'category', select: 'id name' },
+          { path: 'client', select: 'id name' },
+        ],
         filter: and.length ? [{ and }] : undefined,
         sort: { field: 'date', criteria: 'asc' },
         limit: 5000,
@@ -287,5 +303,6 @@ export function useFinanceBalance() {
     options,
     viewMode,
     setViewMode,
+    setValue,
   };
 }

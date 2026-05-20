@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
@@ -243,7 +244,6 @@ export const FinanceRecurringList = () => {
       (c) => c.value === currentCategoryId,
     );
     if (!stillValid) setValue('categoryId', '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSegmentId]);
 
   useEffect(() => {
@@ -273,7 +273,7 @@ export const FinanceRecurringList = () => {
   const handleSaveEdit = handleSubmit(async (values) => {
     if (!editTarget) return;
     try {
-      const { segmentId: _segmentId, ...saveValues } = values;
+      const { ...saveValues } = values;
       await mutation.mutateAsync({
         type: 'update',
         id: editTarget.id,

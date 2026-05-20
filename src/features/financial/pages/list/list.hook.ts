@@ -1,3 +1,4 @@
+import { Pagination } from '@/components/common/table/table';
 import { companyService } from '@/services/company.service';
 import { useMediaQuery } from '@mui/material';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
@@ -33,6 +34,7 @@ export const defaultColumns = [
 
 export const useFinanceList = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [isChangingPage, setIsChangingPage] = useState(false);
   const [term, setTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useState<FinanceFilterDto | null>(null);
@@ -55,8 +57,15 @@ export const useFinanceList = () => {
   const currentCompanyId = defaultCompany?.id ?? '';
   const groupId = defaultCompany?.groupId ?? '';
 
-  const { data, refetch, isPending, isFetching } =
-    useFinancesQuery(currentQuery);
+  const {
+    data,
+    refetch,
+    isPending,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFinancesQuery(currentQuery);
 
   const { data: wallet } = useWalletQuery();
   const walletRecalculateMutation = useWalletRecalculateMutation();
@@ -64,6 +73,11 @@ export const useFinanceList = () => {
 
   const finances = data?.finances ?? [];
   const count = data?.count ?? 0;
+
+  const paginatedFinances = finances.slice(
+    pagination.pageIndex * pagination.pageSize,
+    (pagination.pageIndex + 1) * pagination.pageSize,
+  );
 
   const { push } = useRouter();
 
@@ -228,12 +242,37 @@ export const useFinanceList = () => {
 
   const handleSearch = (search: string) => {
     setTerm(search);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     setCurrentQuery(buildQuery(filter, search));
   };
 
   const handleFilter = (data: FinanceFilterDto) => {
     setFilter(data);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     setCurrentQuery(buildQuery(data, term));
+  };
+
+  const handlePaginationChange = async (newPagination: Pagination) => {
+    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+
+    if (newPagination.pageIndex === pagination.pageIndex) {
+      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      return;
+    }
+
+    const requiredCount =
+      (newPagination.pageIndex + 1) * newPagination.pageSize;
+
+    setPagination(newPagination);
+
+    if (finances.length < requiredCount && hasNextPage && !isFetchingNextPage) {
+      setIsChangingPage(true);
+      try {
+        await fetchNextPage();
+      } finally {
+        setIsChangingPage(false);
+      }
+    }
   };
 
   const handleRecalculate = async () => {
@@ -288,7 +327,7 @@ export const useFinanceList = () => {
   }, []);
 
   return {
-    finances,
+    finances: paginatedFinances,
     count,
     handleReload,
     handleSearch,
@@ -303,7 +342,7 @@ export const useFinanceList = () => {
     openModal,
     selectedFinance,
     showFilter,
-    loading: isPending || isFetching,
+    loading: isPending || isFetching || isChangingPage,
     wallet,
     walletRecalculating: walletRecalculateMutation.isPending,
     walletUpdating: walletUpdateMutation.isPending,
@@ -313,7 +352,7 @@ export const useFinanceList = () => {
     openTransferModal,
     setOpenTransferModal,
     pagination,
-    setPagination,
+    handlePaginationChange,
     filter,
     currentCompanyId,
     groupId,

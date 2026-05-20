@@ -273,7 +273,7 @@ export const FinanceList = () => {
     openTransferModal,
     setOpenTransferModal,
     pagination,
-    setPagination,
+    handlePaginationChange,
     currentCompanyId,
     groupId,
     viewMode,
@@ -576,7 +576,9 @@ export const FinanceList = () => {
           onRowClick={handleRowClick}
           rowCount={count}
           pagination={pagination}
-          onPaginationChange={setPagination}
+          onPaginationChange={handlePaginationChange}
+          loading={loading}
+          onReload={handleReload}
         />
       ) : (
         <Box

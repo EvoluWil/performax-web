@@ -48,8 +48,8 @@ export const usePdfGenerator = () => {
       content: [
         {
           image: logoImage,
-          width: 300,
-          alignment: 'center',
+          width: 515,
+          margin: [0, 0, 0, 16],
         },
         {
           text: title,
@@ -124,8 +124,8 @@ export const usePdfGenerator = () => {
       content: [
         {
           image: logoImage,
-          width: 300,
-          alignment: 'center',
+          width: 515,
+          margin: [0, 0, 0, 16],
         },
         {
           text: title,
