@@ -27,10 +27,10 @@ export function BalanceFilters({
       </Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <DateInput control={control} name="dateFrom" label="Data início" />
+          <DateInput control={control} name="dateFrom" label="Data início *" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <DateInput control={control} name="dateTo" label="Data fim" />
+          <DateInput control={control} name="dateTo" label="Data fim *" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2 }}>
           <AutocompleteInput

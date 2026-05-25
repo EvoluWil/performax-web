@@ -12,7 +12,10 @@ import {
   useWalletRecalculateMutation,
   useWalletUpdateMutation,
 } from '../../hooks/queries/wallet.query';
-import { FinanceFilterDto } from '../../schemas/finance-filter.schema';
+import {
+  FinanceFilterDto,
+  makeFinanceFilterInitialValues,
+} from '../../schemas/finance-filter.schema';
 import {
   financeService,
   getFinanceQuery,
@@ -32,17 +35,128 @@ export const defaultColumns = [
   'status',
 ];
 
+const buildQuery = (
+  filterData: FinanceFilterDto | null,
+  searchTerm: string,
+): Query => {
+  const queryFilter: Query = {
+    ...getFinanceQuery,
+    filter: [],
+  } as any;
+
+  if (!queryFilter.filter) return queryFilter;
+
+  if (searchTerm) {
+    queryFilter.filter.push({
+      or: ['title', 'description', 'protocol'].map((field) => ({
+        path: field,
+        operator: 'contains',
+        value: searchTerm,
+        insensitive: true,
+      })),
+    } as any);
+  }
+
+  if (filterData?.flows && filterData.flows.length > 0) {
+    queryFilter.filter.push({
+      or: filterData.flows.map((flow) => ({
+        path: 'flow',
+        operator: 'equals',
+        value: flow,
+      })),
+    } as any);
+  } else if (filterData?.flow) {
+    queryFilter.filter.push({
+      path: 'flow',
+      value: filterData.flow,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.status) {
+    queryFilter.filter.push({
+      path: 'status',
+      value: filterData.status,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.typeId) {
+    queryFilter.filter.push({
+      path: 'typeId',
+      value: filterData.typeId,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.bankId) {
+    queryFilter.filter.push({
+      path: 'bankId',
+      value: filterData.bankId,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.categoryId) {
+    queryFilter.filter.push({
+      path: 'categoryId',
+      value: filterData.categoryId,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.segmentId) {
+    queryFilter.filter.push({
+      path: 'segmentId',
+      value: filterData.segmentId,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.payeeId) {
+    queryFilter.filter.push({
+      path: 'payeeId',
+      value: filterData.payeeId,
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.dateFrom) {
+    queryFilter.filter.push({
+      path: 'date',
+      operator: 'gte',
+      value: new Date(filterData.dateFrom),
+      filterGroup: 'and',
+    } as any);
+  }
+
+  if (filterData?.dateTo) {
+    queryFilter.filter.push({
+      path: 'date',
+      operator: 'lte',
+      value: new Date(filterData.dateTo),
+      filterGroup: 'and',
+    } as any);
+  }
+
+  return queryFilter;
+};
+
 export const useFinanceList = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
   const [isChangingPage, setIsChangingPage] = useState(false);
   const [term, setTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<FinanceFilterDto | null>(null);
+  const [filter, setFilter] = useState<FinanceFilterDto>(
+    makeFinanceFilterInitialValues,
+  );
   const [openModal, setOpenModal] = useState(false);
   const [selectedFinance, setSelectedFinance] = useState<Finance | null>(null);
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [openWalletEditModal, setOpenWalletEditModal] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState<Query>(getFinanceQuery);
+  const [currentQuery, setCurrentQuery] = useState<Query>(() =>
+    buildQuery(makeFinanceFilterInitialValues(), ''),
+  );
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
     useState(false);
@@ -80,113 +194,6 @@ export const useFinanceList = () => {
   );
 
   const { push } = useRouter();
-
-  const buildQuery = (
-    filterData: FinanceFilterDto | null,
-    searchTerm: string,
-  ): Query => {
-    const queryFilter: Query = {
-      ...getFinanceQuery,
-      filter: [],
-    } as any;
-
-    if (!queryFilter.filter) return queryFilter;
-
-    if (searchTerm) {
-      queryFilter.filter.push({
-        or: ['title', 'description', 'protocol'].map((field) => ({
-          path: field,
-          operator: 'contains',
-          value: searchTerm,
-          insensitive: true,
-        })),
-      } as any);
-    }
-
-    if (filterData?.flows && filterData.flows.length > 0) {
-      queryFilter.filter.push({
-        or: filterData.flows.map((flow) => ({
-          path: 'flow',
-          operator: 'equals',
-          value: flow,
-        })),
-      } as any);
-    } else if (filterData?.flow) {
-      queryFilter.filter.push({
-        path: 'flow',
-        value: filterData.flow,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.status) {
-      queryFilter.filter.push({
-        path: 'status',
-        value: filterData.status,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.typeId) {
-      queryFilter.filter.push({
-        path: 'typeId',
-        value: filterData.typeId,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.bankId) {
-      queryFilter.filter.push({
-        path: 'bankId',
-        value: filterData.bankId,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.categoryId) {
-      queryFilter.filter.push({
-        path: 'categoryId',
-        value: filterData.categoryId,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.segmentId) {
-      queryFilter.filter.push({
-        path: 'segmentId',
-        value: filterData.segmentId,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.payeeId) {
-      queryFilter.filter.push({
-        path: 'payeeId',
-        value: filterData.payeeId,
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.dateFrom) {
-      queryFilter.filter.push({
-        path: 'date',
-        operator: 'gte',
-        value: new Date(filterData.dateFrom),
-        filterGroup: 'and',
-      } as any);
-    }
-
-    if (filterData?.dateTo) {
-      queryFilter.filter.push({
-        path: 'date',
-        operator: 'lte',
-        value: new Date(filterData.dateTo),
-        filterGroup: 'and',
-      } as any);
-    }
-
-    return queryFilter;
-  };
 
   const handleReload = async () => {
     const { data: reloadedData } = await refetch();

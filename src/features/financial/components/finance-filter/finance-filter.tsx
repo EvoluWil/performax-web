@@ -1,8 +1,9 @@
 'use client';
 
 import { AutocompleteInput, ButtonGroup, DateInput } from '@/components/inputs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useFinanceBanksQuery } from '../../hooks/queries/finance-banks.query';
 import { useFinanceCategoriesQuery } from '../../hooks/queries/finance-categories.query';
@@ -11,7 +12,8 @@ import { useFinanceSegmentsQuery } from '../../hooks/queries/finance-segments.qu
 import { useFinanceTypesQuery } from '../../hooks/queries/finance-types.query';
 import {
   FinanceFilterDto,
-  financeFilterInitialValues,
+  financeFilterSchema,
+  makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
 import {
   FinanceFlowEnum,
@@ -57,16 +59,23 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   const [quickFlow, setQuickFlow] = useState<string[]>(ALL_FLOWS);
 
   const { control, handleSubmit, reset } = useForm<FinanceFilterDto>({
-    defaultValues: financeFilterInitialValues,
+    defaultValues: makeFinanceFilterInitialValues(),
+    resolver: yupResolver(financeFilterSchema) as any,
   });
 
   const handleFilter = handleSubmit((values) => onFilter(values));
 
   const handleClear = () => {
-    reset(financeFilterInitialValues);
+    const initial = makeFinanceFilterInitialValues();
+    reset(initial);
     setQuickFlow(ALL_FLOWS);
-    onFilter({ ...financeFilterInitialValues, flows: undefined });
+    onFilter({ ...initial, flows: undefined });
   };
+
+  useEffect(() => {
+    handleSubmit((values) => onFilter(values))();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleQuickFlow = (selected: string[]) => {
     setQuickFlow(selected);
@@ -179,11 +188,15 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
               sx={{ minWidth: 280, flex: 1 }}
             >
               <DateInput
-                label="Data inicial"
+                label="Data inicial *"
                 name="dateFrom"
                 control={control}
               />
-              <DateInput label="Data final" name="dateTo" control={control} />
+              <DateInput
+                label="Data final *"
+                name="dateTo"
+                control={control}
+              />
               <Box display="flex" gap={2}>
                 <Button variant="outlined" onClick={handleClear} fullWidth>
                   Limpar

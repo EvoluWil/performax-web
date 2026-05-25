@@ -1,3 +1,4 @@
+import { endOfMonth, startOfMonth } from 'date-fns';
 import * as yup from 'yup';
 import { FinanceFlowEnum, FinanceStatusEnum } from '../types/finance';
 
@@ -10,11 +11,11 @@ export type FinanceFilterDto = {
   categoryId?: string;
   segmentId?: string;
   payeeId?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  dateFrom: string;
+  dateTo: string;
 };
 
-export const financeFilterInitialValues: FinanceFilterDto = {
+export const makeFinanceFilterInitialValues = (): FinanceFilterDto => ({
   flow: undefined,
   flows: undefined,
   status: undefined,
@@ -23,9 +24,11 @@ export const financeFilterInitialValues: FinanceFilterDto = {
   categoryId: '',
   segmentId: '',
   payeeId: '',
-  dateFrom: '',
-  dateTo: '',
-};
+  dateFrom: startOfMonth(new Date()).toISOString(),
+  dateTo: endOfMonth(new Date()).toISOString(),
+});
+
+export const financeFilterInitialValues = makeFinanceFilterInitialValues();
 
 export const financeFilterSchema = yup.object().shape({
   flow: yup
@@ -41,6 +44,6 @@ export const financeFilterSchema = yup.object().shape({
   categoryId: yup.string().nullable(),
   segmentId: yup.string().nullable(),
   payeeId: yup.string().nullable(),
-  dateFrom: yup.string().nullable(),
-  dateTo: yup.string().nullable(),
+  dateFrom: yup.string().required('Data inicial é obrigatória'),
+  dateTo: yup.string().required('Data final é obrigatória'),
 });

@@ -5,9 +5,11 @@ import {
   FormResourcesResult,
   ResourceItem,
 } from '@/services/form-resources.service';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { endOfMonth, startOfMonth } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
 import { financeService } from '../../services/finance.service';
 import {
   Finance,
@@ -66,7 +68,7 @@ const MONTHS_PT = [
   'Dezembro',
 ];
 
-const initialValues: BalanceFilterDto = {
+const makeInitialValues = (): BalanceFilterDto => ({
   dateFrom: startOfMonth(new Date()).toISOString(),
   dateTo: endOfMonth(new Date()).toISOString(),
   flow: 'ALL',
@@ -74,7 +76,17 @@ const initialValues: BalanceFilterDto = {
   categoryId: '',
   typeId: '',
   segmentId: '',
-};
+});
+
+const balanceFilterSchema = yup.object().shape({
+  dateFrom: yup.string().required('Data início é obrigatória'),
+  dateTo: yup.string().required('Data fim é obrigatória'),
+  flow: yup.string().nullable(),
+  bankId: yup.string().nullable(),
+  categoryId: yup.string().nullable(),
+  typeId: yup.string().nullable(),
+  segmentId: yup.string().nullable(),
+});
 
 function accumulate(row: BalanceRow, finance: Finance): void {
   const value = (finance.value ?? 0) / 100;
@@ -197,7 +209,8 @@ export function useFinanceBalance() {
   const [viewMode, setViewMode] = useState<ViewMode>('period');
 
   const { control, handleSubmit, reset, setValue } = useForm<BalanceFilterDto>({
-    defaultValues: initialValues,
+    defaultValues: makeInitialValues(),
+    resolver: yupResolver(balanceFilterSchema) as any,
   });
 
   const { options, raw } = useFormResources([
@@ -263,7 +276,7 @@ export function useFinanceBalance() {
   });
 
   const handleClear = () => {
-    reset(initialValues);
+    reset(makeInitialValues());
     setRows([]);
     setRawFinances([]);
   };

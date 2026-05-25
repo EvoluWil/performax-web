@@ -13,7 +13,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { BalanceRow, ViewMode } from '../../pages/balance/balance.hook';
 import {
   Finance,
@@ -271,7 +271,7 @@ export function BalanceTable({ rows, viewMode }: Props) {
                 viewMode === 'category' && r.segmentName !== lastSegmentName;
               if (showSegmentHeader) lastSegmentName = r.segmentName;
               return (
-                <>
+                <Fragment key={r.period + i}>
                   {showSegmentHeader && (
                     <TableRow
                       key={`seg-${r.segmentName ?? 'none'}-${i}`}
@@ -295,7 +295,7 @@ export function BalanceTable({ rows, viewMode }: Props) {
                     index={i}
                     viewMode={viewMode}
                   />
-                </>
+                </Fragment>
               );
             })}
           </TableBody>
