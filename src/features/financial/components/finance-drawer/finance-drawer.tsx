@@ -9,6 +9,7 @@ import {
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
 import { ClientDrawer } from '@/features/client/components/client-drawer/client';
+import { EmployeeDrawer } from '@/features/employee/components';
 import { UserDrawer } from '@/features/user/components';
 import { formatRRuleToText } from '@/utils/rrule';
 import {
@@ -57,6 +58,7 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     showResponsibleSelect,
     canCreateFinancialField,
     canCreateClient,
+    canCreateEmployee,
     canCreateUser,
     handleCreateFinanceBank,
     handleCreateFinancePaymentMethod,
@@ -64,7 +66,7 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     handleCreateFinanceSegment,
     handleCreateFinanceCategory,
     handleCreateFinancePayee,
-    handleCreateEmployee,
+    handleOpenCreateEmployee,
     handleOpenCreateClient,
     clientDrawerOpen,
     clientInitialName,
@@ -75,6 +77,10 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     responsibleInitialName,
     handleCloseResponsibleDrawer,
     handleResponsibleCreated,
+    employeeDrawerOpen,
+    employeeInitialName,
+    handleCloseEmployeeDrawer,
+    handleEmployeeCreated,
     setValue,
     paidTo,
     setPaidTo,
@@ -204,9 +210,9 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 control={control}
                 options={options.employees ?? []}
                 onInputChange={(v) => setSearch('employees', v)}
-                enableCreate={canCreateFinancialField}
+                enableCreate={canCreateEmployee}
                 createLabel="Adicionar funcionário"
-                onCreate={handleCreateEmployee}
+                onCreate={handleOpenCreateEmployee}
               />
             )}
             {(!isOutFlow || paidTo === 'client') && (
@@ -448,6 +454,13 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
         user={null}
         initialName={responsibleInitialName}
         onCreated={handleResponsibleCreated}
+      />
+      <EmployeeDrawer
+        open={employeeDrawerOpen}
+        onClose={handleCloseEmployeeDrawer}
+        employee={null}
+        initialName={employeeInitialName}
+        onCreated={handleEmployeeCreated}
       />
     </>
   );

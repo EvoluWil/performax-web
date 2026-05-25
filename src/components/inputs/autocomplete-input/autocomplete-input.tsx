@@ -1,11 +1,15 @@
 'use client';
 
+import AddIcon from '@mui/icons-material/Add';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 
@@ -147,7 +151,7 @@ export function AutocompleteInput<T extends FieldValues>({
                         variant="contained"
                         fullWidth
                         size="small"
-                        onMouseDown={(event) => event.preventDefault()}
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={handleCreate}
                         disabled={creating}
                       >
@@ -173,6 +177,22 @@ export function AutocompleteInput<T extends FieldValues>({
                       <>
                         {busy && <CircularProgress size={16} />}
                         {params.InputProps.endAdornment}
+                        {enableCreate && onCreate && (
+                          <InputAdornment position="end">
+                            <Tooltip title={createLabel}>
+                              <IconButton
+                                size="small"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={handleCreate}
+                                disabled={creating}
+                                edge="end"
+                                tabIndex={-1}
+                              >
+                                <AddIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </InputAdornment>
+                        )}
                       </>
                     ),
                   },

@@ -1,7 +1,7 @@
 'use client';
 
-import { api } from '@/config/api';
 import { Client } from '@/features/client/types';
+import { Employee } from '@/features/employee/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useCompanyGroupQuery } from '@/hooks/queries/company-group.query';
 import { useFormResources } from '@/hooks/use-form-resources';
@@ -51,6 +51,8 @@ export const useFinanceDrawer = ({
   const [clientInitialName, setClientInitialName] = useState('');
   const [responsibleDrawerOpen, setResponsibleDrawerOpen] = useState(false);
   const [responsibleInitialName, setResponsibleInitialName] = useState('');
+  const [employeeDrawerOpen, setEmployeeDrawerOpen] = useState(false);
+  const [employeeInitialName, setEmployeeInitialName] = useState('');
 
   const clientCreateRef = useRef<{
     resolve: (id: string) => void;
@@ -60,12 +62,18 @@ export const useFinanceDrawer = ({
     resolve: (id: string) => void;
     reject: (error: Error) => void;
   } | null>(null);
+  const employeeCreateRef = useRef<{
+    resolve: (id: string) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
 
   const { isAdmin, subordinateIds, currentUserId, hasPermission } =
     useCompanyPermissions();
   const showResponsibleSelect = isAdmin || subordinateIds.length > 0;
   const canCreateFinancialField = hasPermission('financial', 'write');
   const canCreateClient = hasPermission('client', 'write');
+  const canCreateEmployee =
+    hasPermission('employee', 'write') || hasPermission('client', 'write');
   const canCreateUser = hasPermission('user', 'write');
 
   const defaultCompanyId = companyService.getDefaultCompany()?.id;
@@ -219,21 +227,30 @@ export const useFinanceDrawer = ({
     return created.id;
   };
 
-  const handleCreateEmployee = async (label: string) => {
-    const name = normalizeName(label);
-    const companyId =
-      selectedCompanyId || companyService.getDefaultCompany()?.id;
+  const handleOpenCreateEmployee = (label: string) => {
+    setEmployeeInitialName(normalizeName(label));
+    setEmployeeDrawerOpen(true);
 
-    if (!companyId) {
-      throw new Error('missing-company');
+    return new Promise<string>((resolve, reject) => {
+      employeeCreateRef.current = { resolve, reject };
+    });
+  };
+
+  const handleCloseEmployeeDrawer = () => {
+    setEmployeeDrawerOpen(false);
+    setEmployeeInitialName('');
+
+    if (employeeCreateRef.current) {
+      employeeCreateRef.current.reject(new Error('cancelled'));
+      employeeCreateRef.current = null;
     }
+  };
 
-    const { data } = await api.post<{ id: string }>(
-      `/companies/${companyId}/employees`,
-      { name },
-    );
-
-    return data.id;
+  const handleEmployeeCreated = (employee: Employee) => {
+    employeeCreateRef.current?.resolve(employee.id);
+    employeeCreateRef.current = null;
+    setEmployeeDrawerOpen(false);
+    setEmployeeInitialName('');
   };
 
   const handleOpenCreateClient = (label: string) => {
@@ -397,6 +414,7 @@ export const useFinanceDrawer = ({
     showResponsibleSelect,
     canCreateFinancialField,
     canCreateClient,
+    canCreateEmployee,
     canCreateUser,
     handleCreateFinanceBank,
     handleCreateFinancePaymentMethod,
@@ -404,7 +422,7 @@ export const useFinanceDrawer = ({
     handleCreateFinanceSegment,
     handleCreateFinanceCategory,
     handleCreateFinancePayee,
-    handleCreateEmployee,
+    handleOpenCreateEmployee,
     handleOpenCreateClient,
     clientDrawerOpen,
     clientInitialName,
@@ -415,6 +433,10 @@ export const useFinanceDrawer = ({
     responsibleInitialName,
     handleCloseResponsibleDrawer,
     handleResponsibleCreated,
+    employeeDrawerOpen,
+    employeeInitialName,
+    handleCloseEmployeeDrawer,
+    handleEmployeeCreated,
     paidTo,
     setPaidTo,
     companyOptions,

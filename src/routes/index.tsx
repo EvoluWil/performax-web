@@ -1,5 +1,6 @@
 import {
   AppRegistration,
+  BadgeOutlined,
   BusinessCenter,
   ContactsOutlined,
   MonetizationOn,
@@ -248,6 +249,14 @@ export const routes: Route[] = [
     id: 'Clientes',
     icon: <ContactsOutlined sx={{ color: 'white' }} />,
     path: '/panel/clients',
+    permissions: ['client'],
+    modules: ['client'],
+    scope: 'read',
+  },
+  {
+    id: 'Funcionários',
+    icon: <BadgeOutlined sx={{ color: 'white' }} />,
+    path: '/panel/employees',
     permissions: ['client'],
     modules: ['client'],
     scope: 'read',
