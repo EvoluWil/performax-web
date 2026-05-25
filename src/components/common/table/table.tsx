@@ -77,9 +77,9 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         },
       },
     },
-    muiTableBodyRowProps: ({ staticRowIndex }) => ({
+    muiTableBodyRowProps: ({ row }) => ({
       onClick: () => {
-        onRowClick(data[staticRowIndex as number]);
+        onRowClick(row.original);
       },
       sx: {
         cursor: 'pointer',
@@ -115,26 +115,22 @@ export const Table: <T>(props: TableProps<T>) => JSX.Element = ({
         right: ['mrt-row-actions'],
       },
     },
-    renderRowActionMenuItems: ({ closeMenu, staticRowIndex }) =>
+    renderRowActionMenuItems: ({ closeMenu, row }) =>
       actions
         ?.filter((action) =>
-          action?.condition
-            ? action.condition(data[staticRowIndex as number])
-            : true,
+          action?.condition ? action.condition(row.original) : true,
         )
         ?.map((action) => (
           <MenuItem
-            key={action.label(data[staticRowIndex as number])}
+            key={action.label(row.original)}
             onClick={() => {
-              action.onClick(data[staticRowIndex as number]);
+              action.onClick(row.original);
               closeMenu();
             }}
             sx={{ m: 0 }}
           >
-            <ListItemIcon>
-              {action.icon(data[staticRowIndex as number])}
-            </ListItemIcon>
-            {action.label(data[staticRowIndex as number])}
+            <ListItemIcon>{action.icon(row.original)}</ListItemIcon>
+            {action.label(row.original)}
           </MenuItem>
         )) || [],
   });
