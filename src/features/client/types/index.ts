@@ -1,3 +1,3 @@
-import { Client } from './client';
+import { Client, ClientCompliance, ClientComplianceStatus } from './client';
 
-export type { Client };
+export type { Client, ClientCompliance, ClientComplianceStatus };

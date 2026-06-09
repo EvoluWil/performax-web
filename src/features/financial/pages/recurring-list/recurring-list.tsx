@@ -272,6 +272,18 @@ export const FinanceRecurringList = () => {
 
   const handleSaveEdit = handleSubmit(async (values) => {
     if (!editTarget) return;
+
+    const { isConfirmed } = await swal.fire({
+      title: 'Atualizar recorrência?',
+      html: 'Ao salvar, <b>todos os lançamentos futuros pendentes e aprovados</b> vinculados a esta recorrência serão atualizados com os novos dados. Lançamentos já pagos não serão afetados.',
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, atualizar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!isConfirmed) return;
+
     try {
       const { ...saveValues } = values;
       await mutation.mutateAsync({
@@ -293,7 +305,7 @@ export const FinanceRecurringList = () => {
           recurrence: saveValues.recurrence || undefined,
         } as any,
       });
-      toast.success('Recorrência atualizada');
+      toast.success('Recorrência e lançamentos futuros atualizados');
       setEditTarget(null);
     } catch {
       toast.error('Erro ao atualizar recorrência');
@@ -308,13 +320,15 @@ export const FinanceRecurringList = () => {
   const handleDelete = (id: string) => {
     swal.fire({
       title: 'Excluir recorrência?',
+      html: '<b>Atenção:</b> todos os lançamentos futuros pendentes e aprovados vinculados a esta recorrência também serão excluídos permanentemente. Lançamentos já pagos não serão afetados.',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Sim, excluir',
+      confirmButtonColor: '#d32f2f',
+      confirmButtonText: 'Sim, excluir recorrência e futuros',
       cancelButtonText: 'Cancelar',
       preConfirm: async () => {
         await mutation.mutateAsync({ type: 'delete', id });
-        toast.success('Recorrência excluída com sucesso');
+        toast.success('Recorrência e lançamentos futuros excluídos com sucesso');
       },
     });
   };

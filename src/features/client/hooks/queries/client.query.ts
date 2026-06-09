@@ -7,6 +7,7 @@ import { applyScopedFilter } from '@/utils/query';
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -112,6 +113,18 @@ export const useClientMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ['clients'],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['client-detail'],
+      });
     },
   });
 };
+
+export function useClientDetailQuery(clientId: string) {
+  return useQuery({
+    queryKey: ['client-detail', clientId],
+    queryFn: () => clientService.getById(clientId),
+    refetchOnWindowFocus: false,
+    enabled: !!clientId,
+  });
+}

@@ -76,6 +76,9 @@ export const useFinanceMutation = (financeId?: string) => {
     mutationFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['financeAdvances'] });
+      queryClient.invalidateQueries({ queryKey: ['financeAdvancesAvailable'] });
+      queryClient.invalidateQueries({ queryKey: ['financeWallet'] });
       if (financeId) {
         queryClient.invalidateQueries({
           queryKey: ['finance-detail', financeId],

@@ -23,6 +23,8 @@ export const FinanceDetail = () => {
     handleDelete,
     handleApprove,
     canMarkAsPaid,
+    canEditFinance,
+    canApprove,
     canRevertPayment,
     handleRevertPayment,
     editModalOpen,
@@ -63,7 +65,7 @@ export const FinanceDetail = () => {
                       key: 'approve',
                       label: 'Aprovar / Reprovar',
                       onClick: () => setApprovalDrawerOpen(true),
-                      visible: finance.approved === false,
+                      visible: canApprove,
                     },
                     {
                       key: 'paid',
@@ -81,7 +83,7 @@ export const FinanceDetail = () => {
                       key: 'edit',
                       label: 'Editar',
                       onClick: () => setEditModalOpen(true),
-                      visible: true,
+                      visible: canEditFinance,
                     },
                     {
                       key: 'download',
@@ -102,7 +104,7 @@ export const FinanceDetail = () => {
           ]}
         />
 
-        {finance.approved === false && (
+        {finance.approved === false && canApprove && (
           <PendingApprovalAlert onAction={() => setApprovalDrawerOpen(true)} />
         )}
 

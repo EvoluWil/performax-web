@@ -121,6 +121,12 @@ export const routes: Route[] = [
         modules: ['financial'],
       },
       {
+        id: 'Adiantamentos',
+        path: '/panel/financial/advances',
+        permissions: ['financial'],
+        modules: ['financial'],
+      },
+      {
         id: 'financial-cadastros',
         label: 'Cadastros',
         path: '/panel/financial/types',
@@ -252,6 +258,29 @@ export const routes: Route[] = [
     permissions: ['client'],
     modules: ['client'],
     scope: 'read',
+    subRoutes: [
+      {
+        id: 'Clientes',
+        path: '/panel/clients',
+        permissions: ['client'],
+        modules: ['client'],
+        scope: 'read',
+      },
+      {
+        id: 'Contratos',
+        path: '/panel/clients/contracts',
+        permissions: ['client'],
+        modules: ['client'],
+        scope: 'read',
+      },
+      {
+        id: 'Tipos de contrato',
+        path: '/panel/clients/contracts/types',
+        permissions: ['client'],
+        modules: ['client'],
+        scope: 'write',
+      },
+    ],
   },
   {
     id: 'Funcionários',

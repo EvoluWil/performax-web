@@ -10,6 +10,7 @@ export type ClientDrawerProps = {
   client: Client | null;
   initialName?: string;
   onCreated?: (client: Client) => void;
+  onSuccess?: () => void;
 };
 
 export const ClientDrawer: React.FC<ClientDrawerProps> = (props) => {

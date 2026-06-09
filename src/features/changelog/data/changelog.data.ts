@@ -2,6 +2,32 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '16',
+    version: '1.16.0',
+    title: 'Contratos, recorrências financeiras e adiantamentos de pagamento',
+    description: [
+      'Clientes agora possuem tela de detalhes com ações de editar, excluir e visualizar contratos vinculados.',
+      'Novo módulo de Contratos com cadastro, tipos de contrato, filtros por cliente/tipo e relatório PDF com colunas personalizáveis.',
+      'Ao salvar um contrato, o sistema gera automaticamente o PDF do documento e armazena o link no registro.',
+      'Upload do contrato assinado em PDF, com visualização separada do PDF gerado automaticamente.',
+      'Reajuste percentual por tipo de contrato, com histórico e aplicação automática em todos os contratos ativos do tipo.',
+      'Contratos com data de vencimento, status ativo/inativo e vínculo com recorrência financeira; inativação cancela lançamentos futuros.',
+      'Após salvar um contrato, opção de criar recorrência financeira vinculada com confirmação dos cadastros (banco, método, categoria, etc.).',
+      'Contrato assinado enviado separadamente do formulário, via ação dedicada na listagem.',
+      'Detalhe do cliente exibe quem criou o cadastro e chip de adimplência com base em parcelas vencidas não pagas.',
+      'Menu Clientes reorganizado com submenus para Clientes, Contratos e Tipos de contrato.',
+      'Nova tela de Recorrências financeiras com cadastro, edição, regra de repetição (RRULE), próxima ocorrência e geração manual de lançamentos.',
+      'Novo módulo de Adiantamentos de pagamento: registro de valores antecipados, acompanhamento de saldo utilizado e vínculo ao marcar lançamentos como pagos.',
+      'Ao marcar um lançamento como pago, é possível indicar "Pago com adiantamento", abatendo do saldo disponível sem alterar novamente a carteira.',
+      'Lançamentos pagos via adiantamento são tratados corretamente no balanço financeiro.',
+    ],
+    type: 'FEATURE',
+    date: '2026-06-09',
+    deleted: false,
+    createdAt: '2026-06-09',
+    updatedAt: '2026-06-09',
+  },
+  {
     id: '15',
     version: '1.15.0',
     title: 'Reversão de pagamento de lançamentos financeiros',

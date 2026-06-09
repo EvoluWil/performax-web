@@ -120,7 +120,6 @@ function EntryRow({ finance }: { finance: Finance }) {
 
 function CollapsibleRow({
   row,
-  index,
   viewMode,
 }: {
   row: BalanceRow;

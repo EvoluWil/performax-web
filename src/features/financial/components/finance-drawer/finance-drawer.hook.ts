@@ -12,6 +12,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { useFinanceReceivableMutation } from '../../hooks/queries/finance-receivables.query';
 import { useFinanceMutation } from '../../hooks/queries/finances.query';
 import {
   FinanceFormDto,
@@ -27,7 +28,7 @@ import {
   financeTypeService,
 } from '../../services';
 import type { Finance } from '../../types/finance';
-import { FinanceFlowEnum, FinanceStatusEnum } from '../../types/finance';
+import { FinanceFlowEnum, FinanceStatusEnum, isFinanceCancelled } from '../../types/finance';
 
 type HookProps = {
   onClose: () => void;
@@ -44,6 +45,8 @@ export const useFinanceDrawer = ({
 }: HookProps) => {
   const finance = selectedFinance || null;
   const [loading, setLoading] = useState(false);
+  const [isDuplicata, setIsDuplicata] = useState(false);
+  const [installmentCount, setInstallmentCount] = useState(2);
   const [paidTo, setPaidTo] = useState<'client' | 'employee' | 'other'>(
     'client',
   );
@@ -110,6 +113,7 @@ export const useFinanceDrawer = ({
   );
 
   const mutation = useFinanceMutation(finance?.id);
+  const receivableMutation = useFinanceReceivableMutation();
 
   const {
     control,
@@ -342,6 +346,10 @@ export const useFinanceDrawer = ({
   }, [open, finance, reset, showResponsibleSelect, currentUserId]);
 
   const handleFinance = handleSubmit(async (values: FinanceFormDto) => {
+    if (finance && isFinanceCancelled(finance.status)) {
+      toast.error('Lançamentos cancelados não podem ser editados.');
+      return;
+    }
     setLoading(true);
     const originalCompany = companyService.getDefaultCompany();
     if (selectedCompanyId && selectedCompanyId !== originalCompany?.id) {
@@ -373,6 +381,36 @@ export const useFinanceDrawer = ({
           data: payload,
         });
         toast.success('Lançamento atualizado com sucesso');
+      } else if (isDuplicata) {
+        await receivableMutation.mutateAsync({
+          type: 'create',
+          data: {
+            title: values.title,
+            description: values.description,
+            observation: values.observation,
+            totalValue: Math.round(Number(values.value || 0) * 100),
+            installmentCount,
+            firstDueDate: values.date
+              ? new Date(values.date).toISOString()
+              : new Date().toISOString(),
+            flow: values.flow as FinanceFlowEnum,
+            bankId: values.bankId,
+            methodId: values.methodId,
+            typeId: values.typeId || undefined,
+            categoryId: values.categoryId || undefined,
+            segmentId: values.segmentId || undefined,
+            payeeId:
+              paidTo === 'other' ? values.payeeId || undefined : undefined,
+            clientId:
+              paidTo === 'client' ? values.clientId || undefined : undefined,
+            employeeId:
+              paidTo === 'employee' ? values.employeeId || undefined : undefined,
+            responsibleId: values.responsibleId || undefined,
+          },
+        });
+        toast.success(
+          `Duplicata criada com ${installmentCount} parcelas`,
+        );
       } else {
         await mutation.mutateAsync({
           type: 'create',
@@ -392,6 +430,8 @@ export const useFinanceDrawer = ({
 
   const handleClose = () => {
     reset(financeFormInitialValues);
+    setIsDuplicata(false);
+    setInstallmentCount(2);
     setSelectedCompanyId(companyService.getDefaultCompany()?.id || '');
     onClose();
   };
@@ -442,5 +482,9 @@ export const useFinanceDrawer = ({
     companyOptions,
     selectedCompanyId,
     setSelectedCompanyId,
+    isDuplicata,
+    setIsDuplicata,
+    installmentCount,
+    setInstallmentCount,
   };
 };

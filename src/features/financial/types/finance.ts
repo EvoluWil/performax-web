@@ -11,6 +11,7 @@ export enum FinanceStatusEnum {
   APPROVED = 'APPROVED',
   PAID = 'PAID',
   REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum FinanceFlowEnum {
@@ -27,7 +28,11 @@ export const financeStatusLabels: Record<
   [FinanceStatusEnum.APPROVED]: { label: 'Aprovado', color: 'green' },
   [FinanceStatusEnum.PAID]: { label: 'Pago', color: 'teal' },
   [FinanceStatusEnum.REJECTED]: { label: 'Rejeitado', color: 'red' },
+  [FinanceStatusEnum.CANCELLED]: { label: 'Cancelado', color: 'gray' },
 };
+
+export const isFinanceCancelled = (status?: FinanceStatusEnum) =>
+  status === FinanceStatusEnum.CANCELLED;
 
 export const financeFlowLabels: Record<
   FinanceFlowEnum,
@@ -71,9 +76,18 @@ export type Finance = {
   linkedFinanceId?: string;
   recurrenceMasterId?: string;
 
+  receivableId?: string;
+  receivableInstallment?: number;
+  isInstallment?: boolean;
+  advanceId?: string;
+  paidFromAdvance?: boolean;
+  isAdvanceDeposit?: boolean;
+
   // populated
   createdBy?: User;
   recurringMaster?: { id: string; recurrence?: string };
+  receivable?: { id: string; installmentCount: number; title: string };
+  advance?: { id: string; title: string; protocol: string };
   type?: FinanceType;
   client?: Client;
   method?: FinancePaymentMethod;

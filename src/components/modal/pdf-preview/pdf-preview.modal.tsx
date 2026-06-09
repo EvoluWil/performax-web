@@ -18,7 +18,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export type PdfPreviewModalProps = {
   open: boolean;
@@ -40,8 +40,16 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
   onDownload,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [iframeLoading, setIframeLoading] = useState(true);
 
+  const previewUrl = pdfBlobUrl ?? pdfStorageUrl;
   const shareUrl = pdfStorageUrl ?? null;
+
+  useEffect(() => {
+    if (open && previewUrl) {
+      setIframeLoading(true);
+    }
+  }, [open, previewUrl]);
 
   const handleCopyLink = async () => {
     if (!shareUrl) return;
@@ -109,20 +117,39 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
 
       <Divider />
 
-      <DialogContent sx={{ flex: 1, p: 0, overflow: 'hidden' }}>
-        {pdfBlobUrl ? (
-          <iframe
-            src={pdfBlobUrl}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            title={title}
-          />
+      <DialogContent sx={{ flex: 1, p: 0, overflow: 'hidden', position: 'relative' }}>
+        {previewUrl ? (
+          <>
+            {iframeLoading && (
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                height="100%"
+                position="absolute"
+                width="100%"
+                zIndex={1}
+                bgcolor="background.paper"
+              >
+                <CircularProgress size={32} />
+              </Box>
+            )}
+            <iframe
+              src={previewUrl}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              title={title}
+              onLoad={() => setIframeLoading(false)}
+            />
+          </>
         ) : (
           <Box
             display="flex"
             alignItems="center"
             justifyContent="center"
             height="100%"
+            gap={1.5}
           >
+            <CircularProgress size={24} />
             <Typography color="text.secondary">Gerando PDF...</Typography>
           </Box>
         )}
@@ -144,6 +171,7 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
           startIcon={<DownloadOutlined />}
           onClick={onDownload}
           size="small"
+          disabled={!previewUrl}
         >
           Download
         </Button>

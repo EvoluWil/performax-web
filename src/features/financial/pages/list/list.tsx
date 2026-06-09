@@ -51,6 +51,7 @@ import {
   FinanceStatusEnum,
   financeFlowLabels,
   financeStatusLabels,
+  isFinanceCancelled,
 } from '../../types/finance';
 import { defaultColumns, useFinanceList } from './list.hook';
 
@@ -76,7 +77,34 @@ type FinanceReportRow = {
 
 const columns: MRT_ColumnDef<Finance>[] = [
   { accessorKey: 'protocol', header: 'Protocolo' },
-  { accessorKey: 'title', header: 'Título' },
+  {
+    accessorKey: 'title',
+    header: 'Título',
+    Cell({ row }: any) {
+      const finance = row.original as Finance;
+      return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <span>{finance.title}</span>
+          {finance.isInstallment && finance.receivableInstallment != null && (
+            <Chip
+              label={`Parcela ${finance.receivableInstallment}`}
+              size="small"
+              color="warning"
+              variant="outlined"
+            />
+          )}
+          {finance.paidFromAdvance && (
+            <Chip
+              label="Adiantado"
+              size="small"
+              color="info"
+              variant="outlined"
+            />
+          )}
+        </Box>
+      );
+    },
+  },
   {
     accessorKey: 'type',
     header: 'Centro de Custo',
@@ -399,7 +427,9 @@ export const FinanceList = () => {
       icon: () => <EditOutlined />,
       label: () => 'Editar lançamento',
       onClick: handleSelectFinanceToEdit,
-      condition: (row) => row.status !== FinanceStatusEnum.PAID,
+      condition: (row) =>
+        row.status !== FinanceStatusEnum.PAID &&
+        !isFinanceCancelled(row.status),
     });
 
     tableActions.push({
@@ -409,7 +439,8 @@ export const FinanceList = () => {
       condition: (row) =>
         row.approved !== false &&
         row.status !== FinanceStatusEnum.PAID &&
-        row.status !== FinanceStatusEnum.REJECTED,
+        row.status !== FinanceStatusEnum.REJECTED &&
+        row.status !== FinanceStatusEnum.CANCELLED,
     });
 
     tableActions.push({
@@ -442,7 +473,8 @@ export const FinanceList = () => {
       icon: () => <ThumbsUpDownOutlined />,
       label: () => 'Aprovar / Reprovar',
       onClick: (row) => setApprovalFinance(row),
-      condition: (row) => row.approved === false,
+      condition: (row) =>
+        row.approved === false && !isFinanceCancelled(row.status),
     });
   }
 
@@ -603,7 +635,9 @@ export const FinanceList = () => {
                   finance={finance}
                   onClick={handleRowClick}
                   onEdit={
-                    canEdit && finance.status !== FinanceStatusEnum.PAID
+                    canEdit &&
+                    finance.status !== FinanceStatusEnum.PAID &&
+                    !isFinanceCancelled(finance.status)
                       ? () => handleSelectFinanceToEdit(finance)
                       : undefined
                   }

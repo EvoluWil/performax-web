@@ -150,6 +150,8 @@ function buildRows(
 
   for (const f of finances) {
     if (f.flow === FinanceFlowEnum.TRANSFER) continue;
+    if (f.isInstallment) continue;
+    if (f.paidFromAdvance) continue;
 
     let key: string;
     let label: string;

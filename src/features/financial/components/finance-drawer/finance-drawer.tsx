@@ -17,9 +17,12 @@ import {
   Button,
   ButtonGroup,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
+  Switch,
+  TextField,
   Typography,
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
@@ -87,6 +90,10 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
     companyOptions,
     selectedCompanyId,
     setSelectedCompanyId,
+    isDuplicata,
+    setIsDuplicata,
+    installmentCount,
+    setInstallmentCount,
   } = useFinanceDrawer(props);
 
   const router = useRouter();
@@ -319,7 +326,69 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
               minRows={2}
             />
 
-            {(!editing || !!recurrenceMasterId || !!recurrence) && (
+            {!editing && (
+              <Box
+                p={2}
+                width="100%"
+                display="flex"
+                flexDirection="column"
+                gap={2}
+                border={({ palette }) =>
+                  `1px solid ${isDuplicata ? palette.warning.main : palette.divider}`
+                }
+                borderRadius={1}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Typography
+                    variant="h6"
+                    textAlign="left"
+                    color={isDuplicata ? 'warning.main' : 'text.secondary'}
+                    width="100%"
+                  >
+                    Duplicata
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isDuplicata}
+                        onChange={(e) => setIsDuplicata(e.target.checked)}
+                        color="warning"
+                      />
+                    }
+                    label=""
+                    sx={{ m: 0 }}
+                  />
+                </Box>
+                {isDuplicata && (
+                  <>
+                    <Typography variant="caption" color="text.secondary">
+                      O valor total entrará no saldo imediatamente. As parcelas
+                      são geradas mensalmente a partir da data de vencimento e
+                      não somam ao saldo quando pagas.
+                    </Typography>
+                    <TextField
+                      label="Número de parcelas"
+                      type="number"
+                      size="small"
+                      value={installmentCount}
+                      onChange={(e) =>
+                        setInstallmentCount(
+                          Math.min(360, Math.max(1, Number(e.target.value))),
+                        )
+                      }
+                      inputProps={{ min: 1, max: 360 }}
+                      fullWidth
+                    />
+                  </>
+                )}
+              </Box>
+            )}
+
+            {(!editing || !!recurrenceMasterId || !!recurrence) && !isDuplicata && (
               <Box
                 p={2}
                 width="100%"

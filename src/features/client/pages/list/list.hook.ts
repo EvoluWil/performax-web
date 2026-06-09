@@ -2,11 +2,13 @@ import { Pagination } from '@/components/common/table/table';
 import { useClientMutation, useClientsQuery } from '@/features/client/hooks';
 import { Client } from '@/features/client/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 
 export const useClientList = () => {
+  const { push } = useRouter();
   const { getScopedUserIds } = useCompanyPermissions();
 
   const scopedClientIds = useMemo(
@@ -43,8 +45,7 @@ export const useClientList = () => {
   };
 
   const handleSelectClientToEdit = (client: Client) => {
-    setSelectedClient(client);
-    setOpenModal(true);
+    push(`/panel/clients/${client.id}`);
   };
 
   const handleDeleteClient = async (clientId: string) => {

@@ -16,6 +16,7 @@ export const useClientDrawer = ({
   client,
   initialName,
   onCreated,
+  onSuccess,
 }: ClientDrawerProps) => {
   const clientMutation = useClientMutation();
 
@@ -39,6 +40,8 @@ export const useClientDrawer = ({
       );
       if (!client) {
         onCreated?.(result);
+      } else {
+        onSuccess?.();
       }
       handleClose();
       onClose();

@@ -21,6 +21,7 @@ import {
   getFinanceQuery,
 } from '../../services/finance.service';
 import type { Finance } from '../../types/finance';
+import { isFinanceCancelled } from '../../types/finance';
 
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-finances';
 
@@ -211,6 +212,10 @@ export const useFinanceList = () => {
   };
 
   const handleSelectFinanceToEdit = async (row: Finance) => {
+    if (isFinanceCancelled(row.status)) {
+      toast.info('Lançamentos cancelados não podem ser editados.');
+      return;
+    }
     try {
       const full = await financeService.getById(row.id);
       setSelectedFinance(full);

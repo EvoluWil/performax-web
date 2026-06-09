@@ -85,7 +85,7 @@ export const ClientList = () => {
         data={clients}
         emptyMessage="Nenhum resultado encontrado"
         onReload={handleReload}
-        onRowClick={canEdit ? handleSelectClientToEdit : () => null}
+        onRowClick={handleSelectClientToEdit}
         actions={actions}
         pagination={pagination}
         onPaginationChange={handlePaginationChange}

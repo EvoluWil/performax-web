@@ -68,7 +68,14 @@ export const useFinanceDetail = () => {
   };
 
   const canMarkAsPaid =
-    finance?.approved !== false && finance?.status !== FinanceStatusEnum.PAID;
+    finance?.approved !== false &&
+    finance?.status !== FinanceStatusEnum.PAID &&
+    finance?.status !== FinanceStatusEnum.CANCELLED &&
+    finance?.status !== FinanceStatusEnum.REJECTED;
+  const canEditFinance = finance?.status !== FinanceStatusEnum.CANCELLED;
+  const canApprove =
+    finance?.approved === false &&
+    finance?.status !== FinanceStatusEnum.CANCELLED;
   const canRevertPayment = finance?.status === FinanceStatusEnum.PAID;
 
   const handleRevertPayment = async () => {
@@ -102,6 +109,8 @@ export const useFinanceDetail = () => {
     handleDelete,
     handleApprove,
     canMarkAsPaid,
+    canEditFinance,
+    canApprove,
     canRevertPayment,
     handleRevertPayment,
     editModalOpen,
