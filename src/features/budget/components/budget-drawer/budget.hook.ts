@@ -20,6 +20,7 @@ import {
 import { budgetTypeService } from '../../services/budget-type.service';
 import { budgetService } from '../../services/budget.service';
 import type { Budget } from '../../types/budget';
+import { budgetFromCents, budgetToCents } from '../../util/currency';
 type HookProps = {
   onClose: () => void;
   open: boolean;
@@ -189,9 +190,10 @@ export const useBudgetDrawer = ({
         item?.quantity === ''
           ? undefined
           : Number(item.quantity),
+      value: budgetToCents(item?.value),
     }));
 
-    const total = (data.items || []).reduce((sum, it: any) => {
+    const total = normalizedItems.reduce((sum, it: any) => {
       const qty = Number(it?.quantity ?? 1) || 0;
       const val = Number(it?.value ?? 0) || 0;
       return sum + qty * val;
@@ -248,7 +250,7 @@ export const useBudgetDrawer = ({
         title: b.title || '',
         description: b.description || '',
         observation: b.observation || '',
-        value: (b.value as any) ?? '',
+        value: budgetFromCents(b.value as number) ?? '',
         clientId: (b.client as any)?.id || b.clientId || '',
         typeId: b.typeId || '',
         responsibleId: (b.responsible as any)?.id || b.responsibleId || '',
@@ -256,7 +258,7 @@ export const useBudgetDrawer = ({
           label: it?.label ?? '',
           type: it?.type ?? 'PRODUCT',
           quantity: it?.quantity ?? 1,
-          value: it?.value ?? 0,
+          value: budgetFromCents(it?.value ?? 0),
         })),
       });
     };
@@ -265,7 +267,10 @@ export const useBudgetDrawer = ({
       if (budget) {
         if (!Array.isArray((budget as any).items)) {
           try {
-            const full = await budgetService.getById(budget.id);
+            const full = await budgetService.getById(
+              budget.id,
+              budget.companyId,
+            );
             fill(full);
             return;
           } catch {

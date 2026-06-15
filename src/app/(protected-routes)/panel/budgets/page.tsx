@@ -1,14 +1,5 @@
-import { BudgetList } from "@/features/budget/pages";
-import { budgetService } from "@/features/budget/services/budget.service";
-import { QueryClient } from "@tanstack/react-query";
+import { BudgetList } from '@/features/budget/pages';
 
-export default async function BudgetsPage() {
-  const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ["budgets"],
-    queryFn: () => budgetService.get(),
-  });
-
+export default function BudgetsPage() {
   return <BudgetList />;
 }

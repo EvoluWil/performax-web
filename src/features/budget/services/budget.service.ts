@@ -31,9 +31,9 @@ class BudgetService extends BaseCompanyService {
     return data;
   }
 
-  async getById(id: string): Promise<Budget> {
+  async getById(id: string, companyId?: string): Promise<Budget> {
     const { data } = await api.get<Budget>(
-      `${this.getUrlBase(this.path)}/${id}`,
+      `${this.getUrlBase(this.path, companyId)}/${id}`,
     );
     return data;
   }

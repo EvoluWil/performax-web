@@ -26,6 +26,7 @@ import {
   BudgetStatusEnum,
   budgetStatusLabels,
 } from '../../types/budget';
+import { formatBudgetCurrency } from '../../util/currency';
 import { useBudgetList } from './list.hook';
 
 const columns: MRT_ColumnDef<Budget>[] = [
@@ -50,10 +51,7 @@ const columns: MRT_ColumnDef<Budget>[] = [
     header: 'Valor',
 
     Cell({ cell }: any) {
-      return Number(cell.getValue()).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-      });
+      return formatBudgetCurrency(cell.getValue());
     },
   },
   {
@@ -200,20 +198,14 @@ export const BudgetList = () => {
         0,
       );
 
-      const formattedTotalValue = Intl.NumberFormat('pt-BR', {
-        currency: 'BRL',
-        style: 'currency',
-      }).format(totalValue);
+      const formattedTotalValue = formatBudgetCurrency(totalValue);
 
       const data: BudgetReportRow[] = report.budgets.map((budget) => ({
         protocol: budget.protocol || '-',
         title: budget.title || '-',
         client: budget.client?.name || '-',
         responsible: budget.responsible?.name || '-',
-        value: Number(budget.value || 0).toLocaleString('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-        }),
+        value: formatBudgetCurrency(Number(budget.value || 0)),
         createdAt: formatDate(budget.createdAt) || '-',
         status: budget.status
           ? budgetStatusLabels[budget.status]?.label || '-'

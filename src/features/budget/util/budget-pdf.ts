@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import { Budget, budgetStatusLabels } from "../types/budget";
+import { formatBudgetCurrency } from "../util/currency";
 
 export const generateBudgetPdfObject = async (budget: Budget | null) => {
   if (!budget) return [];
@@ -118,24 +119,18 @@ export const generateBudgetPdfObject = async (budget: Budget | null) => {
     let total = 0;
     for (const it of items) {
       const qty = it.quantity ?? 0;
-      const unit = it.value ?? 0;
-      const subtotal = qty * unit;
-      total += subtotal;
+      const unitCents = it.value ?? 0;
+      const subtotalCents = qty * unitCents;
+      total += subtotalCents;
       rows.push([
         { text: it.label ?? "-" },
         { text: String(qty), alignment: "right" },
         {
-          text: unit.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          }),
+          text: formatBudgetCurrency(unitCents),
           alignment: "right",
         },
         {
-          text: subtotal.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          }),
+          text: formatBudgetCurrency(subtotalCents),
           alignment: "right",
         },
       ]);
@@ -146,10 +141,7 @@ export const generateBudgetPdfObject = async (budget: Budget | null) => {
       {},
       {},
       {
-        text: total.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        }),
+        text: formatBudgetCurrency(total),
         alignment: "right",
         bold: true,
       },

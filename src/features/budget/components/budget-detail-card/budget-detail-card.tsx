@@ -9,6 +9,7 @@ import {
 } from "@mui/icons-material";
 import { Box, Chip, Divider, Paper, Stack, Typography } from "@mui/material";
 import { Budget, budgetStatusLabels } from "../../types/budget";
+import { formatBudgetCurrency } from "../../util/currency";
 
 type Props = {
   budget: Budget;
@@ -21,8 +22,7 @@ export const BudgetDetailCard: React.FC<Props> = ({ budget }) => {
 
   const items = budget.items || [];
 
-  const formatCurrency = (n?: number) =>
-    (n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const formatCurrency = formatBudgetCurrency;
 
   return (
     <Box>
@@ -89,8 +89,8 @@ export const BudgetDetailCard: React.FC<Props> = ({ budget }) => {
                   <Stack spacing={1} sx={{ mt: 1 }}>
                     {items.map((it, idx) => {
                       const qty = it.quantity ?? 0;
-                      const unit = it.value ?? 0;
-                      const subtotal = qty * unit;
+                      const unitCents = it.value ?? 0;
+                      const subtotalCents = qty * unitCents;
                       return (
                         <Box
                           key={`item-${idx}`}
@@ -106,8 +106,8 @@ export const BudgetDetailCard: React.FC<Props> = ({ budget }) => {
                         >
                           <Box>{it.label}</Box>
                           <Box>{qty}</Box>
-                          <Box>{formatCurrency(unit)}</Box>
-                          <Box>{formatCurrency(subtotal)}</Box>
+                          <Box>{formatCurrency(unitCents)}</Box>
+                          <Box>{formatCurrency(subtotalCents)}</Box>
                         </Box>
                       );
                     })}
