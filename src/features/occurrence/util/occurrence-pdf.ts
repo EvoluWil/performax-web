@@ -5,7 +5,7 @@ import { formatCnpj } from '@/utils/cnpj';
 import { getFileName } from '@/utils/file';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 
 const mapFilesForPdf = async (sourceFiles: File[] = []) => {
   const files = [];
@@ -37,7 +37,7 @@ const mapFilesForPdf = async (sourceFiles: File[] = []) => {
 const buildFilesSection = (
   title: string,
   files: Array<File & { image?: string; width?: number; height?: number; name?: string }>,
-) => {
+): Content[] => {
   if (files.length === 0) return [];
 
   return [
@@ -57,11 +57,11 @@ const buildFilesSection = (
           ],
         ],
       },
-      margin: [0, 20, 0, 0],
+      margin: [0, 20, 0, 0] as [number, number, number, number],
     },
     {
       columnGap: 10,
-      margin: [0, 10, 0, 0],
+      margin: [0, 10, 0, 0] as [number, number, number, number],
       columns: files.map((file: any) => {
         if (file?.image) {
           return {
@@ -77,7 +77,7 @@ const buildFilesSection = (
           link: file.url,
           style: 'subtitle',
           bold: true,
-          margin: [0, 30],
+          margin: [0, 30] as [number, number],
           color: '#0000EE',
           decoration: 'underline',
         };
