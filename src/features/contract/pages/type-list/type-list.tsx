@@ -1,15 +1,19 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { createContractTypeCsvImportConfig } from '@/features/shared/config/type-csv-import.configs';
 import { formatDate } from '@/utils/date';
 import { DeleteOutlined, TrendingUpOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ContractTypeAdjustmentModal } from '../../components/contract-type-adjustment-modal/contract-type-adjustment-modal';
 import { ContractTypeDrawer } from '../../components/contract-type-drawer/contract-type';
+import { useContractTypeMutation } from '../../hooks/queries/contract-types.query';
+import { ContractTypeFormDto } from '../../schemas/contract-type.schema';
 import { ContractType } from '../../types/contract-type';
 import { useContractTypeList } from './type-list.hook';
 
@@ -49,6 +53,19 @@ export const ContractTypeList = () => {
 
   const [adjustmentTarget, setAdjustmentTarget] =
     useState<ContractType | null>(null);
+  const contractTypeMutation = useContractTypeMutation();
+
+  const handleCreate = useCallback(
+    (row: ContractTypeFormDto) =>
+      contractTypeMutation.mutateAsync({ type: 'create', data: row }),
+    [contractTypeMutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createContractTypeCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('client', 'write');
@@ -81,6 +98,7 @@ export const ContractTypeList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -111,6 +129,13 @@ export const ContractTypeList = () => {
           contractType={adjustmentTarget}
         />
       )}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
+      />
     </>
   );
 };

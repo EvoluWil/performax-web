@@ -1,12 +1,17 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { useCallback } from 'react';
+import { createBudgetTypeCsvImportConfig } from '@/features/shared/config/type-csv-import.configs';
 import { BudgetTypeDrawer } from '../../components/budget-type-drawer/budget-type';
+import { useBudgetTypeMutation } from '../../hooks/queries/budget-types.query';
+import { BudgetTypeFormDto } from '../../schemas/budget-type.schema';
 import { BudgetType } from '../../types/budget-type';
 import { useBudgetTypeList } from './type-list.hook';
 
@@ -31,6 +36,20 @@ export const BudgetTypeList = () => {
     handleDeleteBudgetType,
     handleSelectBudgetTypeToEdit,
   } = useBudgetTypeList();
+  const budgetTypeMutation = useBudgetTypeMutation();
+
+  const handleCreate = useCallback(
+    (row: BudgetTypeFormDto) =>
+      budgetTypeMutation.mutateAsync({ type: 'create', data: row }),
+    [budgetTypeMutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createBudgetTypeCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('budget', 'write');
   const canAdmin = permissionsReady && hasPermission('budget', 'admin');
@@ -54,6 +73,7 @@ export const BudgetTypeList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -76,6 +96,13 @@ export const BudgetTypeList = () => {
           onClose={handleCloseAdd}
         />
       )}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
+      />
     </>
   );
 };

@@ -1,13 +1,18 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import { TaskTypeDrawer } from '@/features/task/components';
+import { createTaskTypeCsvImportConfig } from '@/features/shared/config/type-csv-import.configs';
+import { useTaskTypeMutation } from '@/features/task/hooks';
+import { TaskTypeFormDto } from '@/features/task/schemas/task-type-drawer.schema';
 import { TaskType } from '@/features/task/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { useCallback } from 'react';
 import { useTaskTypeList } from './type-list.hook';
 
 const columns: MRT_ColumnDef<TaskType>[] = [
@@ -34,6 +39,20 @@ export const TaskTypeList = () => {
     handleDeleteTaskType,
     handleSelectTaskTypeToEdit,
   } = useTaskTypeList();
+  const taskTypeMutation = useTaskTypeMutation();
+
+  const handleCreate = useCallback(
+    (row: TaskTypeFormDto) =>
+      taskTypeMutation.mutateAsync({ type: 'create', data: row }),
+    [taskTypeMutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createTaskTypeCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('task', 'write');
   const canAdmin = permissionsReady && hasPermission('task', 'admin');
@@ -57,6 +76,7 @@ export const TaskTypeList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -79,6 +99,13 @@ export const TaskTypeList = () => {
           onClose={handleCloseAdd}
         />
       )}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
+      />
     </>
   );
 };

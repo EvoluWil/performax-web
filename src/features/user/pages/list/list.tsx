@@ -2,6 +2,7 @@
 
 import { Table } from '@/components/common';
 import { ListHeader } from '@/components/common/list-header/list-header';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import {
   UserClientsDrawer,
@@ -9,6 +10,8 @@ import {
   UserRoleDrawer,
   UserSubordinatesDrawer,
 } from '@/features/user/components';
+import { createUserCsvImportConfig } from '@/features/user/config/user-csv-import.config';
+import { useUserMutation } from '@/features/user/hooks';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { companyService } from '@/services/company.service';
 import { User } from '@/types/user';
@@ -21,6 +24,8 @@ import {
 } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { useCallback } from 'react';
+import { UserFormDto } from '@/features/user/schemas/user-drawer.schema';
 import { useUserList } from './list.hook';
 
 const resolveRoleLabel = (data: User & { isOwner?: boolean }) => {
@@ -106,6 +111,19 @@ export const UserList = () => {
     handlePaginationChange,
     count,
   } = useUserList();
+  const userMutation = useUserMutation();
+
+  const handleCreate = useCallback(
+    (row: UserFormDto) => userMutation.mutateAsync({ type: 'create', data: row }),
+    [userMutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createUserCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('user', 'write');
   const canAdmin = permissionsReady && hasPermission('user', 'admin');
@@ -150,6 +168,7 @@ export const UserList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome, CPF ou e-mail"
@@ -199,6 +218,13 @@ export const UserList = () => {
           onClose={handleCloseClientsModal}
         />
       )}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
+      />
     </>
   );
 };

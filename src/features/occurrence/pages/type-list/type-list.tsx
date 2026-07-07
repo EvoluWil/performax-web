@@ -1,13 +1,18 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import { OccurrenceTypeDrawer } from '@/features/occurrence/components';
+import { createOccurrenceTypeCsvImportConfig } from '@/features/shared/config/type-csv-import.configs';
+import { useOccurrenceTypeMutation } from '@/features/occurrence/hooks';
+import { OccurrenceTypeFormDto } from '@/features/occurrence/schemas/occurrence-type-drawer.schema';
 import { OccurrenceType } from '@/features/occurrence/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
+import { useCallback } from 'react';
 import { useOccurrenceTypeList } from './type-list.hook';
 
 const columns: MRT_ColumnDef<OccurrenceType>[] = [
@@ -34,6 +39,20 @@ export const OccurrenceTypeList = () => {
     handleDeleteOccurrenceType,
     handleSelectOccurrenceTypeToEdit,
   } = useOccurrenceTypeList();
+  const occurrenceTypeMutation = useOccurrenceTypeMutation();
+
+  const handleCreate = useCallback(
+    (row: OccurrenceTypeFormDto) =>
+      occurrenceTypeMutation.mutateAsync({ type: 'create', data: row }),
+    [occurrenceTypeMutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createOccurrenceTypeCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('occurrence', 'write');
   const canAdmin = permissionsReady && hasPermission('occurrence', 'admin');
@@ -58,6 +77,7 @@ export const OccurrenceTypeList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
@@ -80,6 +100,13 @@ export const OccurrenceTypeList = () => {
           onClose={handleCloseAdd}
         />
       )}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
+      />
     </>
   );
 };

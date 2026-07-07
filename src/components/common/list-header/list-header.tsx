@@ -7,6 +7,7 @@ import {
   Refresh,
   SplitscreenOutlined,
   TableRows,
+  UploadFileOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -22,21 +23,25 @@ import React, { useState } from "react";
 
 type ListHeaderProps = {
   onAdd?: () => void;
+  onImport?: () => void;
   onReload: () => Promise<void>;
   onSearch: (search: string) => Promise<void> | void;
   onShowFilters?: () => void;
   onCustomizeColumns?: () => void;
   searchTitle: string;
   addTitle: string;
+  importTitle?: string;
   viewMode?: "table" | "list";
   onToggleView?: () => void;
 };
 
 export const ListHeader: React.FC<ListHeaderProps> = ({
   onAdd,
+  onImport,
   onReload,
   onSearch,
   addTitle,
+  importTitle = "Importar CSV",
   searchTitle,
   onShowFilters,
   viewMode,
@@ -84,6 +89,16 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
             sx={{ width: { xs: "100%", md: "auto" } }}
             gap={1}
           >
+            {onImport && (
+              <Button
+                variant="outlined"
+                onClick={onImport}
+                startIcon={<UploadFileOutlined />}
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                {importTitle}
+              </Button>
+            )}
             {onAdd && (
               <Button
                 variant="contained"

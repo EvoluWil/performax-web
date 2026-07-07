@@ -1,19 +1,22 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 import { FinanceBankDrawer } from '../../components/finance-bank-drawer/finance-bank-drawer';
+import { createFinanceBankCsvImportConfig } from '../../config/finance-bank-csv-import.config';
 import {
   useFinanceBankMutation,
   useFinanceBanksQuery,
 } from '../../hooks/queries/finance-banks.query';
+import type { FinanceBankFormDto } from '../../schemas/finance-bank-drawer.schema';
 import type { FinanceBank } from '../../types/finance-bank';
 
 const columns: MRT_ColumnDef<FinanceBank>[] = [
@@ -27,6 +30,18 @@ export const FinanceBankList = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selected, setSelected] = useState<FinanceBank | null>(null);
   const [term, setTerm] = useState('');
+
+  const handleCreate = useCallback(
+    (row: FinanceBankFormDto) =>
+      mutation.mutateAsync({ type: 'create', data: row }),
+    [mutation],
+  );
+
+  const { importOpen, setImportOpen, config } = useListCsvImport(
+    createFinanceBankCsvImportConfig,
+    handleCreate,
+    [handleCreate],
+  );
 
   const { hasPermission, isReady } = useCompanyPermissions();
   const canAdmin = isReady && hasPermission('financial', 'admin');
@@ -72,6 +87,7 @@ export const FinanceBankList = () => {
       </Typography>
       <ListHeader
         onAdd={canAdmin ? () => setOpenModal(true) : undefined}
+        onImport={canAdmin ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={(s) => setTerm(s)}
         searchTitle="Pesquise por nome ou código"
@@ -93,6 +109,12 @@ export const FinanceBankList = () => {
           setSelected(null);
         }}
         financeBank={selected}
+      />
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={config}
+        onComplete={handleReload}
       />
     </>
   );
