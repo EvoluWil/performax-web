@@ -68,6 +68,21 @@ export const OccurrenceDetailCard: React.FC<OccurrenceDetailCardProps> = ({
             </Box>
           )}
 
+          {!!occurrence.conclusionNote && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Tratativa
+              </Typography>
+              <Box px={2}>
+                <FieldRow
+                  props={{ flexDirection: 'column' }}
+                  label="Descrição da tratativa:"
+                  value={occurrence.conclusionNote || '-'}
+                />
+              </Box>
+            </Box>
+          )}
+
           {(occurrence.documents || []).length !== 0 && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -82,6 +97,25 @@ export const OccurrenceDetailCard: React.FC<OccurrenceDetailCardProps> = ({
               >
                 {(occurrence.documents || []).map((file, idx) => (
                   <RenderFile key={`occ-file-${idx}`} file={file} />
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {(occurrence.conclusionFiles || []).length !== 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Arquivos de fechamento
+              </Typography>
+              <Box
+                display="flex"
+                alignItems="center"
+                mb={1}
+                gap={2}
+                flexWrap="wrap"
+              >
+                {(occurrence.conclusionFiles || []).map((file, idx) => (
+                  <RenderFile key={`occ-conclusion-file-${idx}`} file={file} />
                 ))}
               </Box>
             </Box>
@@ -153,6 +187,12 @@ export const OccurrenceDetailCard: React.FC<OccurrenceDetailCardProps> = ({
                   occurrence.updatedAt ? formatDate(occurrence.updatedAt) : '-'
                 }
               />
+              {occurrence.completedAt && (
+                <FieldRow
+                  label="Concluída em:"
+                  value={formatDate(occurrence.completedAt)}
+                />
+              )}
             </Stack>
           </Paper>
         </Box>

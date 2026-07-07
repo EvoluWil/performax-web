@@ -18,6 +18,11 @@ type ConclusionModalProps = {
   onClose: () => void;
   onSubmit: (payload: ConclusionSchemaType) => Promise<void>;
   hasIncompleteChecklist?: boolean;
+  title?: string;
+  description?: string;
+  noteLabel?: string;
+  submitLabel?: string;
+  checklistWarningMessage?: string;
 };
 
 export const ConclusionModal: React.FC<ConclusionModalProps> = ({
@@ -25,6 +30,11 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
   onClose,
   onSubmit,
   hasIncompleteChecklist,
+  title = 'Finalizar OS',
+  description = 'Envie um resumo final e, opcionalmente, arquivos que devem ser anexados ao encerramento da OS.',
+  noteLabel = 'Resumo final',
+  submitLabel = 'Finalizar OS',
+  checklistWarningMessage = 'Existem itens do checklist incompletos. Ao finalizar a OS, confirme que isso é intencional.',
 }) => {
   const { control, handleClose, handleSave, loading } = useConclusion({
     open,
@@ -41,16 +51,14 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
         </CloseButtonStyled>
 
         <Box>
-          <Typography variant="h6">Finalizar OS</Typography>
+          <Typography variant="h6">{title}</Typography>
           <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-            Envie um resumo final e, opcionalmente, arquivos que devem ser
-            anexados ao encerramento da OS.
+            {description}
           </Typography>
 
           {hasIncompleteChecklist && (
             <Alert severity="warning" sx={{ mt: 2 }}>
-              Existem itens do checklist incompletos. Ao finalizar a OS,
-              confirme que isso é intencional.
+              {checklistWarningMessage}
             </Alert>
           )}
 
@@ -58,7 +66,7 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
             <TextInput
               name="conclusionNote"
               control={control}
-              label="Resumo final"
+              label={noteLabel}
               multiline
               minRows={4}
             />
@@ -97,7 +105,7 @@ export const ConclusionModal: React.FC<ConclusionModalProps> = ({
             disabled={loading}
             loading={loading}
           >
-            Finalizar OS
+            {submitLabel}
           </Button>
         </Box>
       </ModalContainer>

@@ -9,6 +9,7 @@ import { Loading } from '@/components/common/loading/loading';
 import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { BudgetStatusModal } from '@/features/budget/components/status-modal/status.modal';
+import { ConclusionModal } from '@/features/task/components/conclusion-modal/conclusion.modal';
 import {
   OccurrenceDetailCard,
   OccurrenceDrawer,
@@ -36,6 +37,9 @@ export const OccurrenceDetail = () => {
     handleChangeStatus,
     handleDownloadPdf,
     handleDelete,
+    toggleConclusionModal,
+    conclusionModalOpen,
+    handleFinalize,
     refetch,
     pdfModalOpen,
     pdfBlobUrl,
@@ -55,7 +59,6 @@ export const OccurrenceDetail = () => {
     OccurrenceStatusEnum.PENDING,
     OccurrenceStatusEnum.APPROVED,
     OccurrenceStatusEnum.IN_PROGRESS,
-    OccurrenceStatusEnum.COMPLETED,
     OccurrenceStatusEnum.REJECTED,
   ] as const;
   const statusOptions = orderedStatuses.map((s) => ({
@@ -92,6 +95,14 @@ export const OccurrenceDetail = () => {
                       label: 'Alterar status',
                       onClick: () => setStatusModalOpen(true),
                       visible: occurrence.approved !== false,
+                    },
+                    {
+                      key: 'finalize',
+                      label: 'Finalizar',
+                      onClick: toggleConclusionModal,
+                      visible:
+                        occurrence.approved !== false &&
+                        occurrence.status === OccurrenceStatusEnum.IN_PROGRESS,
                     },
                     {
                       key: 'edit',
@@ -147,6 +158,17 @@ export const OccurrenceDetail = () => {
             await handleChangeStatus(status);
             setStatusModalOpen(false);
           }}
+        />
+      )}
+      {conclusionModalOpen && (
+        <ConclusionModal
+          open={conclusionModalOpen}
+          onClose={toggleConclusionModal}
+          onSubmit={handleFinalize}
+          title="Finalizar ocorrência"
+          description="Informe a descrição da tratativa e, opcionalmente, anexe arquivos relacionados ao encerramento."
+          noteLabel="Descrição da tratativa"
+          submitLabel="Concluir ocorrência"
         />
       )}
       <PdfPreviewModal

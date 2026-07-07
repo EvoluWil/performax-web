@@ -1,5 +1,5 @@
 import { Occurrence } from '@/features/occurrence/types';
-import { imageExtensions } from '@/types/file';
+import { File, imageExtensions } from '@/types/file';
 import { base64ByElement } from '@/utils/base64';
 import { formatCnpj } from '@/utils/cnpj';
 import { getFileName } from '@/utils/file';
@@ -7,18 +7,10 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
-type OccurrencePdfInput = Occurrence & {
-  resolution?: string | null;
-};
-
-export const generateOccurrencePdfObject = async (
-  occurrence: OccurrencePdfInput | null,
-) => {
-  if (!occurrence) return [];
-
+const mapFilesForPdf = async (sourceFiles: File[] = []) => {
   const files = [];
 
-  for await (const file of occurrence.documents || []) {
+  for await (const file of sourceFiles) {
     const extension = (file?.type || '').toLowerCase();
 
     if (imageExtensions.includes(extension)) {
@@ -39,8 +31,71 @@ export const generateOccurrencePdfObject = async (
     }
   }
 
+  return files;
+};
+
+const buildFilesSection = (
+  title: string,
+  files: Array<File & { image?: string; width?: number; height?: number; name?: string }>,
+) => {
+  if (files.length === 0) return [];
+
+  return [
+    {
+      table: {
+        headerRows: 1,
+        widths: ['*'],
+        body: [
+          [
+            {
+              text: title,
+              alignment: 'center',
+              fontSize: 12,
+              bold: true,
+              fillColor: '#f2f2f2',
+            },
+          ],
+        ],
+      },
+      margin: [0, 20, 0, 0],
+    },
+    {
+      columnGap: 10,
+      margin: [0, 10, 0, 0],
+      columns: files.map((file: any) => {
+        if (file?.image) {
+          return {
+            image: file.image,
+            width: file.width,
+            height: file.height,
+            link: file.url,
+          };
+        }
+
+        return {
+          text: `${file.name?.substring(0, 10) || 'arquivo'}.${file.type || ''}`,
+          link: file.url,
+          style: 'subtitle',
+          bold: true,
+          margin: [0, 30],
+          color: '#0000EE',
+          decoration: 'underline',
+        };
+      }),
+    },
+  ];
+};
+
+export const generateOccurrencePdfObject = async (
+  occurrence: Occurrence | null,
+) => {
+  if (!occurrence) return [];
+
+  const documents = await mapFilesForPdf(occurrence.documents || []);
+  const conclusionFiles = await mapFilesForPdf(occurrence.conclusionFiles || []);
+
   const occurrenceDate = occurrence.date || occurrence.createdAt;
-  const resolutionText = occurrence.resolution || occurrence.observation;
+  const resolutionText = occurrence.conclusionNote || occurrence.observation;
 
   const content: TDocumentDefinitions['content'] = [
     {
@@ -151,52 +206,10 @@ export const generateOccurrencePdfObject = async (
     });
   }
 
-  if (files.length > 0) {
-    content.push(
-      {
-        table: {
-          headerRows: 1,
-          widths: ['*'],
-          body: [
-            [
-              {
-                text: 'DOCUMENTOS ANEXADOS',
-                alignment: 'center',
-                fontSize: 12,
-                bold: true,
-                fillColor: '#f2f2f2',
-              },
-            ],
-          ],
-        },
-        margin: [0, 20, 0, 0],
-      },
-      {
-        columnGap: 10,
-        margin: [0, 10, 0, 0],
-        columns: files.map((file: any) => {
-          if (file?.image) {
-            return {
-              image: file.image,
-              width: file.width,
-              height: file.height,
-              link: file.url,
-            };
-          }
-
-          return {
-            text: `${file.name?.substring(0, 10) || 'arquivo'}.${file.type || ''}`,
-            link: file.url,
-            style: 'subtitle',
-            bold: true,
-            margin: [0, 30],
-            color: '#0000EE',
-            decoration: 'underline',
-          };
-        }),
-      },
-    );
-  }
+  content.push(
+    ...buildFilesSection('DOCUMENTOS ANEXADOS', documents),
+    ...buildFilesSection('ARQUIVOS DE FECHAMENTO', conclusionFiles),
+  );
 
   return content;
 };

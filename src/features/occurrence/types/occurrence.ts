@@ -44,6 +44,9 @@ export type Occurrence = {
   responsible?: User;
   deleted: boolean;
   companyId: string;
+  conclusionNote?: string;
+  conclusionFiles?: File[];
+  completedAt?: Date;
 };
 
 export type CreateOccurrenceDto = {

@@ -1,6 +1,8 @@
 'use client';
 
+import { ConclusionSchemaType } from '@/features/task/components/conclusion-modal/conclusion.schema';
 import { generateOccurrencePdfObject } from '@/features/occurrence/util/occurrence-pdf';
+import { sendFiles } from '@/hooks/common/upload';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -14,6 +16,7 @@ export const useOccurrenceDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [conclusionModalOpen, setConclusionModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -84,6 +87,39 @@ export const useOccurrenceDetail = () => {
     await refetch();
   };
 
+  const toggleConclusionModal = () => setConclusionModalOpen((prev) => !prev);
+
+  const handleFinalize = async (payload: ConclusionSchemaType) => {
+    if (!occurrence) return;
+
+    try {
+      const conclusionFiles = [];
+      if (payload.files && payload.files.length > 0) {
+        const files = await sendFiles(
+          payload.files as any,
+          `occurrences/${occurrence.id}/conclusion`,
+        );
+        conclusionFiles.push(...files);
+      }
+
+      await occurrenceMutation.mutateAsync({
+        type: 'update',
+        id: occurrence.id,
+        data: {
+          status: 'COMPLETED',
+          conclusionNote: payload.conclusionNote,
+          conclusionFiles,
+        },
+      });
+      setConclusionModalOpen(false);
+      await refetch();
+    } catch (err: any) {
+      window.alert(
+        'Falha ao finalizar a ocorrência: ' + (err?.message || err),
+      );
+    }
+  };
+
   const loading = occurrenceMutation.isPending || isRefetching || isLoading;
 
   useEffect(() => {
@@ -104,6 +140,9 @@ export const useOccurrenceDetail = () => {
     handleDownloadPdf,
     handleDelete,
     handleChangeStatus,
+    toggleConclusionModal,
+    conclusionModalOpen,
+    handleFinalize,
     refetch,
     pdfModalOpen,
     pdfBlobUrl,
