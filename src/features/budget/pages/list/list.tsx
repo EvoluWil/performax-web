@@ -1,6 +1,7 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
 import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
@@ -17,7 +18,8 @@ import {
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { createBudgetCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
 import { BudgetCard } from '../../components/budget-card/budget-card';
 import { BudgetDrawer } from '../../components/budget-drawer/budget';
 import { BudgetFilter } from '../../components/budget-filter/budget-filter';
@@ -27,6 +29,8 @@ import {
   budgetStatusLabels,
 } from '../../types/budget';
 import { formatBudgetCurrency } from '../../util/currency';
+import { useBudgetMutation } from '../../hooks/queries/budgets.query';
+import type { BudgetFormDto } from '../../schemas/budget-drawer.schema';
 import { useBudgetList } from './list.hook';
 
 const columns: MRT_ColumnDef<Budget>[] = [
@@ -133,6 +137,19 @@ export const BudgetList = () => {
     getBudgetReportData,
     handleApprove,
   } = useBudgetList();
+
+  const budgetMutation = useBudgetMutation();
+
+  const handleImportCreate = useCallback(
+    (row: BudgetFormDto) =>
+      budgetMutation.mutateAsync({ type: 'create', data: row }),
+    [budgetMutation],
+  );
+
+  const { importOpen, setImportOpen, config: csvImportConfig } =
+    useListCsvImport(createBudgetCsvImportConfig, handleImportCreate, [
+      handleImportCreate,
+    ]);
 
   const [approvalBudget, setApprovalBudget] = useState<Budget | null>(null);
   const [approvalLoading, setApprovalLoading] = useState(false);
@@ -256,6 +273,7 @@ export const BudgetList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por título, descrição ou protocolo"
@@ -362,6 +380,13 @@ export const BudgetList = () => {
           setApprovalLoading(false);
           setApprovalBudget(null);
         }}
+      />
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={csvImportConfig}
+        onComplete={handleReload}
       />
     </>
   );

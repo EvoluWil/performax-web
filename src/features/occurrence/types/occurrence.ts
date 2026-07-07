@@ -58,4 +58,7 @@ export type CreateOccurrenceDto = {
   typeId: string;
   responsibleId?: string;
   documents?: File[];
+  status?: OccurrenceStatusEnum | string;
+  conclusionNote?: string;
+  conclusionFiles?: File[];
 };

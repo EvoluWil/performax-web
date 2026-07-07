@@ -6,17 +6,17 @@ import {
 import * as yup from 'yup';
 
 export type EmployeeImportRow = EmployeeFormDto & {
-  clienteCnpj?: string;
+  cliente?: string;
 };
 
 const employeeImportSchema = employeeFormSchema.shape({
-  clienteCnpj: yup.string().optional(),
+  cliente: yup.string().optional(),
   clientId: yup.string().optional(),
 }) as yup.ObjectSchema<EmployeeImportRow>;
 
 export function createEmployeeCsvImportConfig(
-  onCreate: (row: EmployeeImportRow) => Promise<unknown>,
-): CsvImportConfig<EmployeeImportRow> {
+  onCreate: (row: EmployeeFormDto) => Promise<unknown>,
+): CsvImportConfig<EmployeeImportRow, EmployeeFormDto> {
   return {
     entityLabel: 'funcionários',
     columns: [
@@ -33,34 +33,25 @@ export function createEmployeeCsvImportConfig(
         example: '123.456.789-00',
       },
       {
-        key: 'clienteCnpj',
-        header: 'CNPJ Cliente',
-        example: '12.345.678/0001-90',
+        key: 'cliente',
+        header: 'Cliente',
+        example: 'Empresa Exemplo Ltda',
       },
     ],
     schema: employeeImportSchema,
+    references: [
+      {
+        csvKey: 'cliente',
+        targetKey: 'clientId',
+        resourceKey: 'clients',
+        label: 'Cliente',
+      },
+    ],
+    mapRow: (row, resolvedIds) => ({
+      name: row.name,
+      cpf: row.cpf,
+      clientId: resolvedIds.clientId,
+    }),
     onCreate,
   };
-}
-
-export function resolveEmployeeClientId(
-  row: EmployeeImportRow,
-  clients: { id: string; cnpj?: string }[],
-): EmployeeFormDto {
-  const { clienteCnpj, ...rest } = row;
-
-  if (!clienteCnpj?.trim()) {
-    return { ...rest, clientId: undefined };
-  }
-
-  const digits = clienteCnpj.replace(/\D/g, '');
-  const client = clients.find(
-    (c) => c.cnpj?.replace(/\D/g, '') === digits,
-  );
-
-  if (!client) {
-    throw new Error(`Cliente com CNPJ ${clienteCnpj} não encontrado`);
-  }
-
-  return { ...rest, clientId: client.id };
 }

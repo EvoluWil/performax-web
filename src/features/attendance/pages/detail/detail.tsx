@@ -7,7 +7,8 @@ import {
   ImpedimentModal,
   TaskDetailCard,
 } from '@/features/task/components';
-import { Box, Chip, Divider } from '@mui/material';
+import { useCompanyPermissions } from '@/hooks/common/permission';
+import { Box, Chip, Divider, Typography } from '@mui/material';
 import { AttachFilesModal } from '../../components/AttachFilesModal';
 import { RescheduleModal } from '../../components/RescheduleModal';
 import { useAttendanceDetail } from './detail.hook';
@@ -45,7 +46,29 @@ export const AttendanceDetail = ({
     handleFinalize,
   } = useAttendanceDetail(companyId, taskId);
 
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission('task', 'write');
+
   if (taskLoading || !task) return <Loading />;
+
+  if (!permissionsReady) return <Loading />;
+
+  if (!canWrite) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        py={8}
+        color="text.secondary"
+        gap={1}
+      >
+        <Typography variant="body1">
+          Você não tem permissão para acessar o atendimento.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -78,6 +101,7 @@ export const AttendanceDetail = ({
                       label: 'Iniciar',
                       onClick: handleStart,
                       visible:
+                        canWrite &&
                         task.approved !== false &&
                         [
                           'PENDING',
@@ -92,19 +116,22 @@ export const AttendanceDetail = ({
                       key: 'reschedule',
                       label: 'Reagendar',
                       onClick: () => setRescheduleOpen(true),
-                      visible: !['CLOSED', 'REJECTED'].includes(task.status),
+                      visible:
+                        canWrite && !['CLOSED', 'REJECTED'].includes(task.status),
                     },
                     {
                       key: 'attach',
                       label: 'Adicionar Anexos',
                       onClick: () => setAttachFilesOpen(true),
-                      visible: !['CLOSED', 'REJECTED'].includes(task.status),
+                      visible:
+                        canWrite && !['CLOSED', 'REJECTED'].includes(task.status),
                     },
                     {
                       key: 'impediment',
                       label: 'Impedimento',
                       onClick: () => setImpedimentOpen(true),
                       visible:
+                        canWrite &&
                         task.approved !== false &&
                         task.status === 'IN_PROGRESS',
                     },
@@ -113,6 +140,7 @@ export const AttendanceDetail = ({
                       label: 'Resolver Impedimento',
                       onClick: handleResolved,
                       visible:
+                        canWrite &&
                         task.approved !== false && task.status === 'IMPEDED',
                     },
                     {
@@ -120,6 +148,7 @@ export const AttendanceDetail = ({
                       label: 'Finalizar',
                       onClick: () => setConclusionOpen(true),
                       visible:
+                        canWrite &&
                         task.approved !== false &&
                         task.status === 'IN_PROGRESS',
                     },

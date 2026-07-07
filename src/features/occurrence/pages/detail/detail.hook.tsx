@@ -2,8 +2,8 @@
 
 import { ConclusionSchemaType } from '@/features/task/components/conclusion-modal/conclusion.schema';
 import { generateOccurrencePdfObject } from '@/features/occurrence/util/occurrence-pdf';
-import { sendFiles } from '@/hooks/common/upload';
 import { usePdfGenerator } from '@/hooks/common/pdf';
+import { useUpload } from '@/hooks/common/upload';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -42,6 +42,7 @@ export const useOccurrenceDetail = () => {
 
   const occurrenceMutation = useOccurrenceMutation(String(occurrenceId));
   const approvalMutation = useOccurrenceApprovalMutation();
+  const { sendFiles } = useUpload();
 
   const toggleApprovalDrawer = () => setApprovalDrawerOpen((prev) => !prev);
 
@@ -82,7 +83,7 @@ export const useOccurrenceDetail = () => {
     await occurrenceMutation.mutateAsync({
       type: 'update',
       id: occurrence.id,
-      data: { status } as any,
+      data: { status },
     });
     await refetch();
   };

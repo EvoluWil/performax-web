@@ -75,8 +75,7 @@ export const useFinanceDrawer = ({
   const showResponsibleSelect = isAdmin || subordinateIds.length > 0;
   const canCreateFinancialField = hasPermission('financial', 'write');
   const canCreateClient = hasPermission('client', 'write');
-  const canCreateEmployee =
-    hasPermission('employee', 'write') || hasPermission('client', 'write');
+  const canCreateEmployee = hasPermission('employee', 'write');
   const canCreateUser = hasPermission('user', 'write');
 
   const defaultCompanyId = companyService.getDefaultCompany()?.id;

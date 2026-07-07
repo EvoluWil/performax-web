@@ -58,7 +58,7 @@ export const useBudgetDrawer = ({
   );
 
   const canCreateClient = hasPermission('client', 'write');
-  const canCreateBudgetType = hasPermission('budget', 'write');
+  const canCreateBudgetType = hasPermission('register', 'write');
   const canCreateUser = hasPermission('user', 'write');
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
   const [clientInitialName, setClientInitialName] = useState('');

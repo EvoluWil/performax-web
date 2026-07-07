@@ -3,6 +3,7 @@
 import { PageTitle } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { ButtonGroup } from '@/components/inputs';
+import { useCompanyPermissions } from '@/hooks/common/permission';
 import {
   ChevronLeft,
   ChevronRight,
@@ -53,6 +54,9 @@ export const AttendanceList = () => {
     availableCompanies,
   } = useAttendanceList();
 
+  const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
+  const canWrite = permissionsReady && hasPermission('task', 'write');
+
   const { push } = useRouter();
 
   const handleCardClick = (companyId: string, taskId: string) => {
@@ -68,6 +72,24 @@ export const AttendanceList = () => {
         subtitle="Acompanhe e gerencie as ordens de serviço de todas as suas empresas"
       />
 
+      {!permissionsReady ? (
+        <Loading />
+      ) : !canWrite ? (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          py={8}
+          color="text.secondary"
+          gap={1}
+        >
+          <SupportAgent sx={{ fontSize: 56, opacity: 0.25 }} />
+          <Typography variant="body1">
+            Você não tem permissão para acessar o atendimento.
+          </Typography>
+        </Box>
+      ) : (
+        <>
       {/* Status group quick filter */}
       <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
         <ButtonGroup
@@ -197,6 +219,8 @@ export const AttendanceList = () => {
               </Grid>
             ))}
           </Grid>
+        </>
+      )}
         </>
       )}
     </Box>

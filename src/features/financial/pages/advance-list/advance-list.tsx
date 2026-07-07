@@ -1,6 +1,7 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import {
   AutocompleteInput,
@@ -24,7 +25,11 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  createAdvanceCsvImportConfig,
+  type AdvanceCreatePayload,
+} from '@/features/shared/config/entity-csv-import.configs';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
@@ -160,6 +165,17 @@ export const FinanceAdvanceList = () => {
     if (data) toast.success('Dados atualizados com sucesso');
   };
 
+  const handleImportCreate = useCallback(
+    (row: AdvanceCreatePayload) =>
+      mutation.mutateAsync({ type: 'create', data: row }),
+    [mutation],
+  );
+
+  const { importOpen, setImportOpen, config: csvImportConfig } =
+    useListCsvImport(createAdvanceCsvImportConfig, handleImportCreate, [
+      handleImportCreate,
+    ]);
+
   const handleOpenCreate = () => {
     reset(createDefaults);
     setOpenCreate(true);
@@ -236,6 +252,7 @@ export const FinanceAdvanceList = () => {
         onReload={handleReload}
         onSearch={(s) => setTerm(s)}
         onAdd={canWrite ? handleOpenCreate : undefined}
+        onImport={canWrite ? () => setImportOpen(true) : undefined}
         searchTitle="Pesquise por título"
         addTitle="Novo Adiantamento"
       />
@@ -363,6 +380,13 @@ export const FinanceAdvanceList = () => {
       </Dialog>
 
       {mutation.isPending && <LinearProgress />}
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={csvImportConfig}
+        onComplete={handleReload}
+      />
     </>
   );
 };

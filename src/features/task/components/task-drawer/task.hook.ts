@@ -52,7 +52,7 @@ export const useTaskDrawer = ({
   );
 
   const canCreateClient = hasPermission('client', 'write');
-  const canCreateTaskType = hasPermission('task', 'write');
+  const canCreateTaskType = hasPermission('register', 'write');
 
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
   const [clientInitialName, setClientInitialName] = useState('');

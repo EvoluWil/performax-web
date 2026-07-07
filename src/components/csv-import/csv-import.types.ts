@@ -1,3 +1,4 @@
+import type { ResourceKey } from '@/services/form-resources.service';
 import * as yup from 'yup';
 
 export type CsvColumnConfig<T extends Record<string, unknown>> = {
@@ -7,11 +8,27 @@ export type CsvColumnConfig<T extends Record<string, unknown>> = {
   example?: string;
 };
 
-export type CsvImportConfig<T extends Record<string, unknown>> = {
+export type CsvReferenceConfig = {
+  csvKey: string;
+  targetKey: string;
+  resourceKey: ResourceKey;
+  label: string;
+  required?: boolean;
+};
+
+export type CsvImportConfig<
+  TImport extends Record<string, unknown>,
+  TPayload = TImport,
+> = {
   entityLabel: string;
-  columns: CsvColumnConfig<T>[];
-  schema: yup.ObjectSchema<T>;
-  onCreate: (row: T) => Promise<unknown>;
+  columns: CsvColumnConfig<TImport>[];
+  schema: yup.ObjectSchema<TImport>;
+  references?: CsvReferenceConfig[];
+  mapRow?: (
+    row: TImport,
+    resolvedIds: Record<string, string | undefined>,
+  ) => TPayload;
+  onCreate: (row: TPayload) => Promise<unknown>;
 };
 
 export type ImportRowStatus =
@@ -27,13 +44,18 @@ export type ImportRow<T extends Record<string, unknown>> = {
   data: T;
   status: ImportRowStatus;
   error?: string;
+  resolvedIds?: Record<string, string | undefined>;
+  unresolvedRefs?: string[];
 };
 
 export type CsvImportStep = 'upload' | 'preview' | 'processing' | 'results';
 
-export type CsvImportModalProps<T extends Record<string, unknown>> = {
+export type CsvImportModalProps<
+  TImport extends Record<string, unknown>,
+  TPayload = TImport,
+> = {
   open: boolean;
   onClose: () => void;
-  config: CsvImportConfig<T>;
+  config: CsvImportConfig<TImport, TPayload>;
   onComplete?: () => void;
 };

@@ -150,7 +150,7 @@ export const ClientContractsModal: React.FC<Props> = ({
   const contracts = data?.contracts ?? client.contracts ?? [];
 
   const { hasPermission, isReady } = useCompanyPermissions();
-  const canEdit = isReady && hasPermission('client', 'write');
+  const canEdit = isReady && hasPermission('contract', 'write');
 
   const handleOpenAdd = () => {
     setSelectedContract(null);

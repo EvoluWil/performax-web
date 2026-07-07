@@ -2,6 +2,7 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import {
   AutocompleteInput,
@@ -30,7 +31,9 @@ import {
   Typography,
 } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createRecurringCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
+import type { FinanceRecurringFormDto } from '../../schemas/finance-recurring-drawer.schema';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { rrulestr } from 'rrule';
@@ -317,6 +320,17 @@ export const FinanceRecurringList = () => {
     if (data) toast.success('Dados atualizados com sucesso');
   };
 
+  const handleImportCreate = useCallback(
+    (row: FinanceRecurringFormDto & { value: number }) =>
+      mutation.mutateAsync({ type: 'create', data: row as any }),
+    [mutation],
+  );
+
+  const { importOpen, setImportOpen, config: csvImportConfig } =
+    useListCsvImport(createRecurringCsvImportConfig, handleImportCreate, [
+      handleImportCreate,
+    ]);
+
   const handleDelete = (id: string) => {
     swal.fire({
       title: 'Excluir recorrência?',
@@ -385,6 +399,7 @@ export const FinanceRecurringList = () => {
       <ListHeader
         onReload={handleReload}
         onSearch={(s) => setTerm(s)}
+        onImport={canAdmin ? () => setImportOpen(true) : undefined}
         searchTitle="Pesquise por título"
         addTitle=""
       />
@@ -507,6 +522,13 @@ export const FinanceRecurringList = () => {
           setValue('recurrence', rrule);
           setOpenRRuleModal(false);
         }}
+      />
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={csvImportConfig}
+        onComplete={handleReload}
       />
     </>
   );

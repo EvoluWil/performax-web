@@ -3,6 +3,7 @@
 import { Empty, ListHeader, Table } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { CurrencyInput } from '@/components/inputs';
 import { PdfPreviewModal } from '@/components/modal';
@@ -33,7 +34,7 @@ import {
   Typography,
 } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { CompanyTransferModal } from '../../components/company-transfer-modal/company-transfer-modal';
@@ -41,10 +42,12 @@ import { FinanceCard } from '../../components/finance-card/finance-card';
 import { FinanceDrawer } from '../../components/finance-drawer/finance-drawer';
 import { FinanceFilter } from '../../components/finance-filter/finance-filter';
 import { MarkAsPaidModal } from '../../components/mark-as-paid-modal/mark-as-paid-modal';
+import { createFinanceCsvImportConfig } from '../../config/finance-csv-import.config';
 import {
   useFinanceApprovalMutation,
   useFinanceMutation,
 } from '../../hooks/queries/finances.query';
+import type { FinanceFormDto } from '../../schemas/finance-drawer.schema';
 import {
   Finance,
   FinanceFlowEnum,
@@ -341,6 +344,20 @@ export const FinanceList = () => {
   const approvalMutation = useFinanceApprovalMutation();
   const financeMutation = useFinanceMutation();
 
+  const handleFinanceImport = useCallback(
+    (row: FinanceFormDto & { value: number }) =>
+      financeMutation.mutateAsync({ type: 'create', data: row }),
+    [financeMutation],
+  );
+
+  const {
+    importOpen,
+    setImportOpen,
+    config: csvImportConfig,
+  } = useListCsvImport(createFinanceCsvImportConfig, handleFinanceImport, [
+    handleFinanceImport,
+  ]);
+
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
   const canWrite = permissionsReady && hasPermission('financial', 'write');
   const canAdmin = permissionsReady && hasPermission('financial', 'admin');
@@ -529,7 +546,7 @@ export const FinanceList = () => {
           >
             <AccountBalanceWalletOutlined color="primary" />
             <Typography variant="body2" fontWeight="bold">
-              Carteira: {walletAmount}
+              Saldo: {walletAmount}
             </Typography>
             <Tooltip title="Recalcular carteira">
               <span>
@@ -588,6 +605,7 @@ export const FinanceList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         onShowFilters={toggleShowFilter}
@@ -740,6 +758,13 @@ export const FinanceList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={csvImportConfig}
+        onComplete={handleReload}
+      />
     </>
   );
 };

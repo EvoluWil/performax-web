@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { CsvImportConfig } from './csv-import.types';
 
-export function useListCsvImport<T extends Record<string, unknown>>(
-  createConfig: (onCreate: (row: T) => Promise<unknown>) => CsvImportConfig<T>,
-  onCreate: (row: T) => Promise<unknown>,
+export function useListCsvImport<
+  TImport extends Record<string, unknown>,
+  TPayload = TImport,
+>(
+  createConfig: (
+    onCreate: (row: TPayload) => Promise<unknown>,
+  ) => CsvImportConfig<TImport, TPayload>,
+  onCreate: (row: TPayload) => Promise<unknown>,
   deps: unknown[] = [],
 ) {
   const [importOpen, setImportOpen] = useState(false);

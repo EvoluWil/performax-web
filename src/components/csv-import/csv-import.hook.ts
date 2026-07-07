@@ -3,18 +3,26 @@ import {
   generateCsvTemplate,
   parseCsvContent,
 } from '@/utils/csv';
+import { fetchFormResources } from '@/services/form-resources.service';
+import type { ResourceKey } from '@/services/form-resources.service';
 import { useCallback, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+import {
+  getReferenceOptions,
+  resolveRowReferences,
+} from './csv-import.references';
 import type {
+  CsvColumnConfig,
   CsvImportConfig,
   CsvImportModalProps,
   CsvImportStep,
+  CsvReferenceConfig,
   ImportRow,
   ImportRowStatus,
 } from './csv-import.types';
 
 function createEmptyRow<T extends Record<string, unknown>>(
-  columns: CsvImportConfig<T>['columns'],
+  columns: CsvColumnConfig<T>[],
 ): T {
   return columns.reduce(
     (acc, col) => ({ ...acc, [col.key]: '' }),
@@ -24,14 +32,14 @@ function createEmptyRow<T extends Record<string, unknown>>(
 
 function mapCsvToRows<T extends Record<string, unknown>>(
   parsed: string[][],
-  config: CsvImportConfig<T>,
+  columns: CsvColumnConfig<T>[],
 ): ImportRow<T>[] {
   if (parsed.length === 0) return [];
 
   const [headerRow, ...dataRows] = parsed;
   const headerMap = new Map<string, keyof T & string>();
 
-  config.columns.forEach((col) => {
+  columns.forEach((col) => {
     const headerIndex = headerRow.findIndex(
       (h) => h.trim().toLowerCase() === col.header.trim().toLowerCase(),
     );
@@ -40,7 +48,7 @@ function mapCsvToRows<T extends Record<string, unknown>>(
     }
   });
 
-  const missingRequired = config.columns
+  const missingRequired = columns
     .filter((c) => c.required)
     .filter(
       (c) =>
@@ -58,7 +66,7 @@ function mapCsvToRows<T extends Record<string, unknown>>(
   return dataRows
     .filter((row) => row.some((cell) => cell.trim() !== ''))
     .map((row, index) => {
-      const data = createEmptyRow(config.columns);
+      const data = createEmptyRow(columns);
 
       headerMap.forEach((key, colIndex) => {
         (data as Record<string, string>)[key] = row[Number(colIndex)] ?? '';
@@ -69,26 +77,71 @@ function mapCsvToRows<T extends Record<string, unknown>>(
         lineNumber: index + 2,
         data,
         status: 'pending' as ImportRowStatus,
+        resolvedIds: {},
+        unresolvedRefs: [],
       };
     });
 }
 
 async function validateRow<T extends Record<string, unknown>>(
   row: ImportRow<T>,
-  schema: CsvImportConfig<T>['schema'],
+  schema: CsvImportConfig<T, unknown>['schema'],
+  references?: CsvReferenceConfig[],
 ): Promise<ImportRow<T>> {
+  const missingRequiredRefs =
+    references?.filter(
+      (ref) =>
+        ref.required &&
+        !row.resolvedIds?.[ref.targetKey] &&
+        String(row.data[ref.csvKey as keyof T] ?? '').trim(),
+    ) ?? [];
+
+  if (missingRequiredRefs.length > 0) {
+    return {
+      ...row,
+      status: 'validation_error',
+      error: `Selecione manualmente: ${missingRequiredRefs.map((r) => r.label).join(', ')}`,
+      unresolvedRefs: [
+        ...new Set([
+          ...(row.unresolvedRefs ?? []),
+          ...missingRequiredRefs.map((r) => r.csvKey),
+        ]),
+      ],
+    };
+  }
+
   try {
     const validated = (await schema.validate(row.data, {
       abortEarly: false,
     })) as T;
-    return { ...row, data: validated, status: 'pending' as ImportRowStatus, error: undefined };
+    return {
+      ...row,
+      data: validated,
+      status: 'pending' as ImportRowStatus,
+      error: undefined,
+    };
   } catch (err) {
     const message =
-      err instanceof Error
-        ? err.message
-        : 'Dados inválidos';
-    return { ...row, status: 'validation_error' as ImportRowStatus, error: message };
+      err instanceof Error ? err.message : 'Dados inválidos';
+    return {
+      ...row,
+      status: 'validation_error' as ImportRowStatus,
+      error: message,
+    };
   }
+}
+
+function buildPayload<TImport extends Record<string, unknown>, TPayload>(
+  row: ImportRow<TImport>,
+  config: CsvImportConfig<TImport, TPayload>,
+): TPayload {
+  const resolvedIds = row.resolvedIds ?? {};
+
+  if (config.mapRow) {
+    return config.mapRow(row.data, resolvedIds);
+  }
+
+  return { ...row.data, ...resolvedIds } as TPayload;
 }
 
 function extractErrorMessage(err: unknown): string {
@@ -104,17 +157,24 @@ function extractErrorMessage(err: unknown): string {
   return 'Erro ao cadastrar registro.';
 }
 
-export function useCsvImport<T extends Record<string, unknown>>(
-  props: CsvImportModalProps<T>,
-) {
+export function useCsvImport<
+  TImport extends Record<string, unknown>,
+  TPayload = TImport,
+>(props: CsvImportModalProps<TImport, TPayload>) {
   const { config, onClose, onComplete } = props;
   const [step, setStep] = useState<CsvImportStep>('upload');
-  const [rows, setRows] = useState<ImportRow<T>[]>([]);
+  const [rows, setRows] = useState<ImportRow<TImport>[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
+  const [resourceOptions, setResourceOptions] = useState<
+    Partial<Record<ResourceKey, { value: string; label: string }[]>>
+  >({});
   const abortRef = useRef(false);
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
+
+  const references = config.references ?? [];
 
   const reset = useCallback(() => {
     abortRef.current = true;
@@ -122,6 +182,8 @@ export function useCsvImport<T extends Record<string, unknown>>(
     setRows([]);
     setParseError(null);
     setProcessing(false);
+    setResourcesLoading(false);
+    setResourceOptions({});
   }, []);
 
   const handleClose = useCallback(() => {
@@ -133,25 +195,63 @@ export function useCsvImport<T extends Record<string, unknown>>(
     const headers = config.columns.map((c) => c.header);
     const exampleRow = config.columns.map((c) => c.example ?? '');
     const hasExample = exampleRow.some((v) => v !== '');
-    const content = generateCsvTemplate(headers, hasExample ? exampleRow : undefined);
-    downloadCsv(content, `modelo_${config.entityLabel.replace(/\s+/g, '_')}.csv`);
+    const content = generateCsvTemplate(
+      headers,
+      hasExample ? exampleRow : undefined,
+    );
+    downloadCsv(
+      content,
+      `modelo_${config.entityLabel.replace(/\s+/g, '_')}.csv`,
+    );
   }, [config]);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
       setParseError(null);
+      setResourcesLoading(true);
+
       try {
         const text = await file.text();
         const parsed = parseCsvContent(text);
-        const mapped = mapCsvToRows(parsed, config);
+        const mapped = mapCsvToRows(parsed, config.columns);
 
         if (mapped.length === 0) {
           setParseError('O arquivo CSV não contém linhas de dados.');
           return;
         }
 
+        let resolvedRows = mapped;
+
+        if (references.length > 0) {
+          const resourceKeys = [
+            ...new Set(references.map((ref) => ref.resourceKey)),
+          ] as ResourceKey[];
+          const resources = await fetchFormResources({
+            resources: resourceKeys,
+          });
+
+          const options: Partial<
+            Record<ResourceKey, { value: string; label: string }[]>
+          > = {};
+          for (const key of resourceKeys) {
+            options[key] = getReferenceOptions(resources, key);
+          }
+          setResourceOptions(options);
+
+          resolvedRows = mapped.map((row) => {
+            const { resolvedIds, unresolvedRefs } = resolveRowReferences(
+              row.data,
+              references,
+              resources,
+            );
+            return { ...row, resolvedIds, unresolvedRefs };
+          });
+        }
+
         const validated = await Promise.all(
-          mapped.map((row) => validateRow(row, config.schema)),
+          resolvedRows.map((row) =>
+            validateRow(row, config.schema, references),
+          ),
         );
 
         setRows(validated);
@@ -160,13 +260,15 @@ export function useCsvImport<T extends Record<string, unknown>>(
         setParseError(
           err instanceof Error ? err.message : 'Erro ao ler o arquivo CSV.',
         );
+      } finally {
+        setResourcesLoading(false);
       }
     },
-    [config],
+    [config, references],
   );
 
   const updateRowData = useCallback(
-    (rowId: string, key: keyof T & string, value: string) => {
+    (rowId: string, key: keyof TImport & string, value: string) => {
       setRows((prev) =>
         prev.map((row) =>
           row.id === rowId
@@ -186,6 +288,33 @@ export function useCsvImport<T extends Record<string, unknown>>(
     [],
   );
 
+  const updateReferenceSelection = useCallback(
+    (rowId: string, ref: CsvReferenceConfig, selectedId: string) => {
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.id !== rowId) return row;
+
+          const resolvedIds = {
+            ...(row.resolvedIds ?? {}),
+            [ref.targetKey]: selectedId || undefined,
+          };
+          const unresolvedRefs = selectedId
+            ? (row.unresolvedRefs ?? []).filter((key) => key !== ref.csvKey)
+            : [...new Set([...(row.unresolvedRefs ?? []), ref.csvKey])];
+
+          return {
+            ...row,
+            resolvedIds,
+            unresolvedRefs,
+            status: 'pending' as ImportRowStatus,
+            error: undefined,
+          };
+        }),
+      );
+    },
+    [],
+  );
+
   const processQueue = useCallback(
     async (rowIds: string[]) => {
       abortRef.current = false;
@@ -199,14 +328,20 @@ export function useCsvImport<T extends Record<string, unknown>>(
 
         setRows((prev) =>
           prev.map((r) =>
-            r.id === rowId ? { ...r, status: 'processing', error: undefined } : r,
+            r.id === rowId
+              ? { ...r, status: 'processing', error: undefined }
+              : r,
           ),
         );
 
         const currentRow = rowsRef.current.find((r) => r.id === rowId);
         if (!currentRow) continue;
 
-        const validated = await validateRow(currentRow, config.schema);
+        const validated = await validateRow(
+          currentRow,
+          config.schema,
+          references,
+        );
         if (validated.status === 'validation_error') {
           setRows((prev) => {
             const next = prev.map((r) => (r.id === rowId ? validated : r));
@@ -217,7 +352,8 @@ export function useCsvImport<T extends Record<string, unknown>>(
         }
 
         try {
-          await config.onCreate(validated.data);
+          const payload = buildPayload(validated, config);
+          await config.onCreate(payload);
           hasSuccess = true;
           setRows((prev) => {
             const next = prev.map((r) =>
@@ -249,7 +385,7 @@ export function useCsvImport<T extends Record<string, unknown>>(
         onComplete?.();
       }
     },
-    [config, onComplete],
+    [config, onComplete, references],
   );
 
   const handleStartImport = useCallback(() => {
@@ -273,6 +409,16 @@ export function useCsvImport<T extends Record<string, unknown>>(
     processQueue(errorIds);
   }, [processQueue, rows]);
 
+  const unresolvedRequiredCount = rows.filter((row) =>
+    references.some(
+      (ref) =>
+        ref.required &&
+        (row.unresolvedRefs?.includes(ref.csvKey) ||
+          (String(row.data[ref.csvKey as keyof TImport] ?? '').trim() &&
+            !row.resolvedIds?.[ref.targetKey])),
+    ),
+  ).length;
+
   const stats = {
     total: rows.length,
     pending: rows.filter((r) => r.status === 'pending').length,
@@ -281,23 +427,29 @@ export function useCsvImport<T extends Record<string, unknown>>(
       (r) => r.status === 'error' || r.status === 'validation_error',
     ).length,
     validationError: rows.filter((r) => r.status === 'validation_error').length,
+    unresolvedRequired: unresolvedRequiredCount,
   };
 
   const canStartImport =
     rows.length > 0 &&
-    rows.some((r) => r.status === 'pending' || r.status === 'validation_error');
+    rows.some((r) => r.status === 'pending' || r.status === 'validation_error') &&
+    unresolvedRequiredCount === 0;
 
   return {
     step,
     rows,
     parseError,
     processing,
+    resourcesLoading,
+    resourceOptions,
+    references,
     stats,
     canStartImport,
     handleClose,
     handleDownloadTemplate,
     handleFileSelect,
     updateRowData,
+    updateReferenceSelection,
     handleStartImport,
     handleRetryRow,
     handleRetryAllErrors,

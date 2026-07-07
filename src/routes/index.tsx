@@ -1,3 +1,4 @@
+import { ModuleCode } from '@/constants/modules';
 import {
   AppRegistration,
   BadgeOutlined,
@@ -11,14 +12,7 @@ import {
 } from '@mui/icons-material';
 import { JSX } from 'react';
 
-type Module =
-  | 'task'
-  | 'budget'
-  | 'occurrence'
-  | 'client'
-  | 'user'
-  | 'role'
-  | 'financial';
+type Module = ModuleCode;
 
 export type Route = {
   id: string;
@@ -224,29 +218,29 @@ export const routes: Route[] = [
     id: 'Cadastros',
     icon: <AppRegistration sx={{ color: 'white' }} />,
     path: '/panel/register',
-    permissions: ['task', 'budget', 'occurrence'],
-    modules: ['task', 'budget', 'occurrence'],
+    permissions: ['register'],
+    modules: ['register'],
     scope: 'write',
     subRoutes: [
       {
         id: 'Tipos de OS',
         path: '/panel/tasks/types',
-        permissions: ['task'],
+        permissions: ['register'],
         scope: 'write',
-        modules: ['task'],
+        modules: ['register'],
       },
       {
         id: 'Tipos de orçamento',
         path: '/panel/budgets/types',
-        permissions: ['budget'],
-        modules: ['budget'],
+        permissions: ['register'],
+        modules: ['register'],
         scope: 'write',
       },
       {
         id: 'Tipos de ocorrência',
         path: '/panel/occurrences/types',
-        permissions: ['occurrence'],
-        modules: ['occurrence'],
+        permissions: ['register'],
+        modules: ['register'],
         scope: 'write',
       },
     ],
@@ -269,15 +263,15 @@ export const routes: Route[] = [
       {
         id: 'Contratos',
         path: '/panel/clients/contracts',
-        permissions: ['client'],
-        modules: ['client'],
+        permissions: ['contract'],
+        modules: ['contract'],
         scope: 'read',
       },
       {
         id: 'Tipos de contrato',
         path: '/panel/clients/contracts/types',
-        permissions: ['client'],
-        modules: ['client'],
+        permissions: ['contract'],
+        modules: ['contract'],
         scope: 'write',
       },
     ],
@@ -286,8 +280,8 @@ export const routes: Route[] = [
     id: 'Funcionários',
     icon: <BadgeOutlined sx={{ color: 'white' }} />,
     path: '/panel/employees',
-    permissions: ['client'],
-    modules: ['client'],
+    permissions: ['employee'],
+    modules: ['employee'],
     scope: 'read',
   },
   {

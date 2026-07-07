@@ -4,21 +4,17 @@ import { Table } from '@/components/common';
 import { ListHeader } from '@/components/common/list-header/list-header';
 import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
-import { useClientsQuery } from '@/features/client/hooks';
 import { EmployeeDrawer } from '@/features/employee/components';
-import {
-  createEmployeeCsvImportConfig,
-  EmployeeImportRow,
-  resolveEmployeeClientId,
-} from '@/features/employee/config/employee-csv-import.config';
+import { createEmployeeCsvImportConfig } from '@/features/employee/config/employee-csv-import.config';
 import { useEmployeeMutation } from '@/features/employee/hooks';
+import { EmployeeFormDto } from '@/features/employee/schemas';
 import { Employee } from '@/features/employee/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { formatCpf } from '@/utils/cpf';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useEmployeeList } from './list.hook';
 
 const columns: MRT_ColumnDef<Employee>[] = [
@@ -57,18 +53,11 @@ export const EmployeeList = () => {
     count,
   } = useEmployeeList();
   const employeeMutation = useEmployeeMutation();
-  const { data: clientsData } = useClientsQuery({ scopeModule: 'client' });
-  const clients = useMemo(
-    () => clientsData?.clients ?? [],
-    [clientsData?.clients],
-  );
 
   const handleCreate = useCallback(
-    async (row: EmployeeImportRow) => {
-      const payload = resolveEmployeeClientId(row, clients);
-      return employeeMutation.mutateAsync({ type: 'create', data: payload });
-    },
-    [clients, employeeMutation],
+    (row: EmployeeFormDto) =>
+      employeeMutation.mutateAsync({ type: 'create', data: row }),
+    [employeeMutation],
   );
 
   const { importOpen, setImportOpen, config } = useListCsvImport(
@@ -78,8 +67,8 @@ export const EmployeeList = () => {
   );
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission('client', 'write');
-  const canAdmin = permissionsReady && hasPermission('client', 'admin');
+  const canWrite = permissionsReady && hasPermission('employee', 'write');
+  const canAdmin = permissionsReady && hasPermission('employee', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<Employee>[] = [];

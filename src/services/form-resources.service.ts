@@ -12,6 +12,9 @@ export const RESOURCE_KEYS = [
   'financePaymentMethods',
   'taskTypes',
   'employees',
+  'budgetTypes',
+  'occurrenceTypes',
+  'contractTypes',
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

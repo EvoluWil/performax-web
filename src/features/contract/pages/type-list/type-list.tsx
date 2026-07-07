@@ -68,8 +68,8 @@ export const ContractTypeList = () => {
   );
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission('client', 'write');
-  const canAdmin = permissionsReady && hasPermission('client', 'admin');
+  const canWrite = permissionsReady && hasPermission('contract', 'write');
+  const canAdmin = permissionsReady && hasPermission('contract', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<ContractType>[] = [];

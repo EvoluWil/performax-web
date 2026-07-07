@@ -54,8 +54,8 @@ export const OccurrenceTypeList = () => {
   );
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const canWrite = permissionsReady && hasPermission('occurrence', 'write');
-  const canAdmin = permissionsReady && hasPermission('occurrence', 'admin');
+  const canWrite = permissionsReady && hasPermission('register', 'write');
+  const canAdmin = permissionsReady && hasPermission('register', 'admin');
   const canEdit = canWrite || canAdmin;
 
   const actions: Actions<OccurrenceType>[] = [];

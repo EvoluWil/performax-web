@@ -58,7 +58,7 @@ export const useOccurrenceDrawer = ({
   );
 
   const canCreateClient = hasPermission('client', 'write');
-  const canCreateOccurrenceType = hasPermission('occurrence', 'write');
+  const canCreateOccurrenceType = hasPermission('register', 'write');
 
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
   const [clientInitialName, setClientInitialName] = useState('');

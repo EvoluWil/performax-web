@@ -9,6 +9,7 @@ export type {
   CsvColumnConfig,
   CsvImportConfig,
   CsvImportModalProps,
+  CsvReferenceConfig,
   ImportRow,
   ImportRowStatus,
 } from './csv-import.types';

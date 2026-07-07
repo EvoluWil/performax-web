@@ -27,7 +27,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       session: data.session,
       error: undefined,
     };
-  } catch {
+  } catch (error) {
+    console.log(error);
     return { ...token, error: 'RefreshAccessTokenError' as const };
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { Empty, ListHeader, Table } from '@/components/common';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
 import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
@@ -11,6 +12,9 @@ import {
   OccurrenceDrawer,
   OccurrenceFilter,
 } from '@/features/occurrence/components';
+import { createOccurrenceCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
+import { useOccurrenceMutation } from '@/features/occurrence/hooks';
+import { OccurrenceFormDto } from '@/features/occurrence/schemas';
 import {
   Occurrence,
   OccurrenceStatusEnum,
@@ -27,7 +31,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useOccurrenceList } from './list.hook';
 
 const columns: MRT_ColumnDef<Occurrence>[] = [
@@ -141,6 +145,19 @@ export const OccurrenceList = () => {
     getOccurrenceReportData,
     handleApprove,
   } = useOccurrenceList();
+
+  const occurrenceMutation = useOccurrenceMutation();
+
+  const handleImportCreate = useCallback(
+    (row: OccurrenceFormDto) =>
+      occurrenceMutation.mutateAsync({ type: 'create', data: row }),
+    [occurrenceMutation],
+  );
+
+  const { importOpen, setImportOpen, config: csvImportConfig } =
+    useListCsvImport(createOccurrenceCsvImportConfig, handleImportCreate, [
+      handleImportCreate,
+    ]);
 
   const [approvalOccurrence, setApprovalOccurrence] =
     useState<Occurrence | null>(null);
@@ -264,6 +281,7 @@ export const OccurrenceList = () => {
 
       <ListHeader
         onAdd={canEdit ? handleOpenAdd : undefined}
+        onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por título, descrição ou protocolo"
@@ -376,6 +394,13 @@ export const OccurrenceList = () => {
           setApprovalLoading(false);
           setApprovalOccurrence(null);
         }}
+      />
+
+      <CsvImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        config={csvImportConfig}
+        onComplete={handleReload}
       />
     </>
   );

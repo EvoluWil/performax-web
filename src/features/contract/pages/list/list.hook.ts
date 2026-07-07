@@ -54,7 +54,7 @@ export const useContractList = () => {
   );
 
   const { hasPermission, isReady: permissionsReady } = useCompanyPermissions();
-  const hasAccess = permissionsReady && hasPermission('client', 'read');
+  const hasAccess = permissionsReady && hasPermission('contract', 'read');
 
   const {
     data,
