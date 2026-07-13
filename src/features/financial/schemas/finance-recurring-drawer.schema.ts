@@ -13,6 +13,7 @@ export type FinanceRecurringFormDto = {
   bankId?: string;
   methodId?: string;
   categoryId?: string;
+  segmentId?: string;
   payeeId?: string;
   clientId?: string;
 };
@@ -29,6 +30,7 @@ export const financeRecurringFormInitialValues: FinanceRecurringFormDto = {
   bankId: '',
   methodId: '',
   categoryId: '',
+  segmentId: '',
   payeeId: '',
   clientId: '',
 };
@@ -55,6 +57,7 @@ export const financeRecurringFormSchema = yup.object().shape({
   bankId: yup.string().nullable(),
   methodId: yup.string().nullable(),
   categoryId: yup.string().nullable(),
+  segmentId: yup.string().nullable(),
   payeeId: yup.string().nullable(),
   clientId: yup.string().nullable(),
 });

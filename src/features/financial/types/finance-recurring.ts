@@ -17,6 +17,7 @@ export type FinanceRecurring = {
   methodId: string;
   bankId: string;
   categoryId: string;
+  segmentId?: string;
   payeeId?: string;
   employeeId?: string;
   createdAt: Date;
@@ -35,6 +36,7 @@ export type CreateFinanceRecurringDto = {
   bankId?: string;
   methodId?: string;
   categoryId?: string;
+  segmentId?: string;
   payeeId?: string;
   clientId?: string;
 };

@@ -251,11 +251,6 @@ export const FinanceRecurringList = () => {
 
   useEffect(() => {
     if (editTarget) {
-      const existingSegmentId = editTarget.categoryId
-        ? (((options.financeCategories ?? []).find(
-            (c) => c.value === editTarget.categoryId,
-          )?.data?.segmentId as string | undefined) ?? '')
-        : '';
       reset({
         title: editTarget.title,
         description: editTarget.description ?? '',
@@ -267,7 +262,7 @@ export const FinanceRecurringList = () => {
         bankId: editTarget.bankId ?? '',
         methodId: editTarget.methodId ?? '',
         categoryId: editTarget.categoryId ?? '',
-        segmentId: existingSegmentId,
+        segmentId: editTarget.segmentId ?? '',
         recurrence: editTarget.recurrence ?? '',
       });
     }
@@ -303,6 +298,7 @@ export const FinanceRecurringList = () => {
           bankId: saveValues.bankId || undefined,
           methodId: saveValues.methodId || undefined,
           categoryId: saveValues.categoryId || undefined,
+          segmentId: saveValues.segmentId || undefined,
           description: saveValues.description || undefined,
           observation: saveValues.observation || undefined,
           recurrence: saveValues.recurrence || undefined,
