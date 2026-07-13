@@ -10,6 +10,7 @@ import {
   useContractsQuery,
 } from '@/features/contract/hooks/queries/contracts.query';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { buildTextSearchOrFilter } from '@/utils/query';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -86,12 +87,10 @@ export const useContractList = () => {
 
     if (searchTerm) {
       queryFilter.filter?.push({
-        path: 'scope',
-        operator: 'contains',
-        value: searchTerm,
-        insensitive: true,
-        filterGroup: 'and',
-      });
+        or: buildTextSearchOrFilter(searchTerm, ['scope'], {
+          withClientName: true,
+        }),
+      } as any);
     }
 
     if (data.clientId) {

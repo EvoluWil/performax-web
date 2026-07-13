@@ -6,15 +6,24 @@ import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useBudgetTypesQuery } from '../../hooks/queries/budget-types.query';
 import {
+  BUDGET_STATUS_FILTER_MAP,
   BudgetFilterDto,
   budgetFilterInitialValues,
 } from '../../schemas/budget-filter.schema';
+import { budgetStatusLabels } from '../../types/budget';
 
 type Options = {
   types: Option[];
   clients: Option[];
   users: Option[];
 };
+
+const statusOptions = BUDGET_STATUS_FILTER_MAP.map(({ status }) => ({
+  value: status,
+  label:
+    budgetStatusLabels[status as keyof typeof budgetStatusLabels]?.label ??
+    status,
+}));
 
 export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
   const { data: budgetTypesData } = useBudgetTypesQuery();
@@ -28,19 +37,17 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
     defaultValues: budgetFilterInitialValues,
   });
 
-  const [pending, financial, closed] = watch([
-    'pending',
-    'financial',
-    'closed',
-  ]);
+  const watchedStatuses = watch(
+    BUDGET_STATUS_FILTER_MAP.map(
+      ({ field }) => field,
+    ) as (keyof BudgetFilterDto)[],
+  );
 
   const statusFilters = useMemo(() => {
-    const groups: string[] = [];
-    if (pending) groups.push('PENDING');
-    if (financial) groups.push('FINANCIAL');
-    if (closed) groups.push('COMPLETED');
-    return groups;
-  }, [pending, financial, closed]);
+    return BUDGET_STATUS_FILTER_MAP.filter(({ field }, index) =>
+      Boolean(watchedStatuses[index]),
+    ).map(({ status }) => status);
+  }, [watchedStatuses]);
 
   const options: Options = useMemo(() => {
     const types = formatterSelectOptions(budgetTypesData || [], 'id', 'name');
@@ -52,9 +59,9 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
   const hasUserFilter = true;
 
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
-    setValue('pending', selectedStatuses.includes('PENDING'));
-    setValue('financial', selectedStatuses.includes('FINANCIAL'));
-    setValue('closed', selectedStatuses.includes('COMPLETED'));
+    for (const { status, field } of BUDGET_STATUS_FILTER_MAP) {
+      setValue(field, selectedStatuses.includes(status));
+    }
     handleFilter();
   };
 
@@ -67,5 +74,6 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
     handleFilter,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   };
 }

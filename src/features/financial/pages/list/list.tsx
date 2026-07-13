@@ -609,7 +609,7 @@ export const FinanceList = () => {
         onReload={handleReload}
         onSearch={handleSearch}
         onShowFilters={toggleShowFilter}
-        searchTitle="Pesquise por título, protocolo..."
+        searchTitle="Pesquise por título, protocolo ou cliente"
         addTitle="Adicionar lançamento"
         viewMode={viewMode}
         onToggleView={toggleView}

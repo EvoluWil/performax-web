@@ -1,32 +1,49 @@
 export type BudgetFilterDto = {
-  // status toggles
-  pending: boolean; // PENDING, APPROVED
-  financial: boolean; // CHARGED, PAID, FINANCIAL
-  closed: boolean; // COMPLETED, REJECTED
+  pending: boolean;
+  approved: boolean;
+  charged: boolean;
+  paid: boolean;
+  financial: boolean;
+  completed: boolean;
+  rejected: boolean;
 
-  // relations
   clientId?: string;
   typeId?: string;
-  userId?: string; // responsibleId
+  userId?: string;
 
-  // ranges
   startDate?: Date | null;
   endDate?: Date | null;
 
-  // text filters
   protocol?: string;
   title?: string;
 };
 
 export const budgetFilterInitialValues: BudgetFilterDto = {
   pending: true,
+  approved: true,
+  charged: false,
+  paid: false,
   financial: false,
-  closed: false,
+  completed: false,
+  rejected: false,
   clientId: undefined,
   typeId: undefined,
   userId: undefined,
   startDate: null,
   endDate: null,
-  protocol: "",
-  title: "",
+  protocol: '',
+  title: '',
 };
+
+export const BUDGET_STATUS_FILTER_MAP: Array<{
+  status: string;
+  field: keyof BudgetFilterDto;
+}> = [
+  { status: 'PENDING', field: 'pending' },
+  { status: 'APPROVED', field: 'approved' },
+  { status: 'CHARGED', field: 'charged' },
+  { status: 'PAID', field: 'paid' },
+  { status: 'FINANCIAL', field: 'financial' },
+  { status: 'COMPLETED', field: 'completed' },
+  { status: 'REJECTED', field: 'rejected' },
+];

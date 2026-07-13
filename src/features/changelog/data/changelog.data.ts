@@ -2,6 +2,27 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '17',
+    version: '1.17.0',
+    title: 'Filtros rápidos por status, permissões por módulo e melhorias operacionais',
+    description: [
+      'Novo filtro rápido por status nas listagens de OS, orçamentos, ocorrências e atendimento, com seleção múltipla por botões.',
+      'Orçamentos ganham ação "Alterar status" diretamente na listagem e nos cards, sem precisar abrir o detalhe.',
+      'Busca nas listagens de OS, orçamentos, contratos e financeiro agora inclui o nome do cliente.',
+      'Módulo Cadastros separado (register): tipos de OS, orçamento e ocorrência exigem permissão própria, independente do módulo operacional.',
+      'Contratos e Funcionários passam a ter módulos de permissão dedicados (contract e employee), separados de Clientes.',
+      'Atendimento valida permissão de escrita em task antes de exibir conteúdo e ações.',
+      'Encerramento estruturado de ocorrências com descrição da tratativa e anexos opcionais, no mesmo fluxo das OS.',
+      'Importação CSV estendida para todas as telas de listagem, com resolução automática de referências (cliente, tipo, responsável, etc.).',
+      'Correção na persistência de segmento ao editar recorrências financeiras.',
+    ],
+    type: 'FEATURE',
+    date: '2026-07-13',
+    deleted: false,
+    createdAt: '2026-07-13',
+    updatedAt: '2026-07-13',
+  },
+  {
     id: '16',
     version: '1.16.0',
     title: 'Contratos, recorrências financeiras e adiantamentos de pagamento',

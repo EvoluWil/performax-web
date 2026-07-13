@@ -1,6 +1,7 @@
 import { formatDate } from "@/utils/date";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import EditOutlined from "@mui/icons-material/EditOutlined";
+import SwapHorizOutlined from "@mui/icons-material/SwapHorizOutlined";
 import {
   Box,
   Card,
@@ -22,6 +23,7 @@ type BudgetCardProps = {
   onClick?: (budget: Budget) => void;
   onEdit?: (budget: Budget) => void;
   onDelete?: (budget: Budget) => void;
+  onChangeStatus?: (budget: Budget) => void;
 };
 
 export const BudgetCard: React.FC<BudgetCardProps> = ({
@@ -29,6 +31,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
   onClick,
   onEdit,
   onDelete,
+  onChangeStatus,
 }) => {
   const status = budget.status as BudgetStatusEnum;
   const { label, color } = budgetStatusLabels[status] || {
@@ -63,7 +66,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
           position: "relative",
         }}
       >
-        {(onEdit || onDelete) && (
+        {(onEdit || onDelete || onChangeStatus) && (
           <Box
             sx={{
               position: "absolute",
@@ -74,6 +77,19 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
               gap: 0.5,
             }}
           >
+            {onChangeStatus && (
+              <Tooltip title="Alterar status">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChangeStatus(budget);
+                  }}
+                >
+                  <SwapHorizOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
             {onEdit && (
               <Tooltip title="Editar">
                 <IconButton

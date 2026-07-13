@@ -1,4 +1,41 @@
-import { Query } from 'nestjs-prisma-querybuilder-interface';
+import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
+
+type TextSearchOptions = {
+  withClientName?: boolean;
+};
+
+/**
+ * Builds OR filters for quick text search across scalar fields and,
+ * optionally, the related client's name.
+ */
+export const buildTextSearchOrFilter = (
+  term: string,
+  fields: string[],
+  options?: TextSearchOptions,
+): Filter => {
+  const filters: Filter = fields.map((field) => ({
+    path: field,
+    operator: 'contains',
+    value: term,
+    insensitive: true,
+  }));
+
+  if (options?.withClientName) {
+    filters.push({
+      path: 'client',
+      filter: [
+        {
+          path: 'name',
+          operator: 'contains',
+          value: term,
+          insensitive: true,
+        },
+      ],
+    } as Filter[number]);
+  }
+
+  return filters;
+};
 
 type ScopedFilterOptions = {
   field: string;

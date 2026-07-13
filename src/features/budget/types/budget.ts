@@ -22,6 +22,23 @@ export const budgetStatusLabels = {
   [BudgetStatusEnum.FINANCIAL]: { label: 'Financeiro', color: 'blue' },
 };
 
+export const ORDERED_BUDGET_STATUSES = [
+  BudgetStatusEnum.PENDING,
+  BudgetStatusEnum.APPROVED,
+  BudgetStatusEnum.FINANCIAL,
+  BudgetStatusEnum.CHARGED,
+  BudgetStatusEnum.PAID,
+  BudgetStatusEnum.COMPLETED,
+  BudgetStatusEnum.REJECTED,
+] as const;
+
+export const budgetStatusSelectOptions = ORDERED_BUDGET_STATUSES.map(
+  (status) => ({
+    value: status,
+    label: budgetStatusLabels[status].label,
+  }),
+);
+
 export enum ItemTypeEnum {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',

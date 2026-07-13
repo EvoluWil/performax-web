@@ -1,6 +1,6 @@
 import { Pagination } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter } from '@/utils/query';
+import { applyScopedFilter, buildTextSearchOrFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,13 @@ import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 import {
   useBudgetApprovalMutation,
+  useBudgetMutation,
   useBudgetsQuery,
 } from '../../hooks/queries/budgets.query';
-import { BudgetFilterDto } from '../../schemas/budget-filter.schema';
+import {
+  BUDGET_STATUS_FILTER_MAP,
+  BudgetFilterDto,
+} from '../../schemas/budget-filter.schema';
 import { budgetService, getBudgetQuery } from '../../services/budget.service';
 import { Budget } from '../../types/budget';
 
@@ -125,21 +129,19 @@ export const useBudgetList = () => {
     const termFilter: Filter = [];
 
     if (currentTerm) {
-      const termFields: Filter = ['title', 'description', 'protocol'].map(
-        (field) => ({
-          path: field,
-          operator: 'contains',
-          value: currentTerm,
-          insensitive: true,
-        }),
+      termFilter.push(
+        ...buildTextSearchOrFilter(
+          currentTerm,
+          ['title', 'description', 'protocol'],
+          { withClientName: true },
+        ),
       );
-      termFilter.push(...termFields);
     }
 
     const selectedStatuses: string[] = [];
-    if (data.pending) selectedStatuses.push('PENDING', 'APPROVED');
-    if (data.financial) selectedStatuses.push('CHARGED', 'PAID', 'FINANCIAL');
-    if (data.closed) selectedStatuses.push('COMPLETED', 'REJECTED');
+    for (const { status, field } of BUDGET_STATUS_FILTER_MAP) {
+      if (data[field]) selectedStatuses.push(status);
+    }
 
     if (selectedStatuses.length) {
       const statusesOr: Filter = selectedStatuses.map(
@@ -344,6 +346,7 @@ export const useBudgetList = () => {
   const loading = isPending || isRefetching || isLoading || isFetching;
 
   const approvalMutation = useBudgetApprovalMutation();
+  const budgetStatusMutation = useBudgetMutation();
 
   const handleApprove = async (budgetId: string, approved: boolean) => {
     await approvalMutation.mutateAsync({ id: budgetId, approved });
@@ -352,6 +355,21 @@ export const useBudgetList = () => {
         ? 'Orçamento aprovado com sucesso'
         : 'Orçamento reprovado com sucesso',
     );
+    if (filter) {
+      await handleFilter(filter, term, pagination.pageIndex + 1);
+    }
+  };
+
+  const handleChangeStatus = async (budgetId: string, status: string) => {
+    await budgetStatusMutation.mutateAsync({
+      type: 'update',
+      id: budgetId,
+      data: { status } as any,
+    });
+    toast.success('Status atualizado com sucesso');
+    if (filter) {
+      await handleFilter(filter, term, pagination.pageIndex + 1);
+    }
   };
 
   const count = filter ? filteredCount : (data?.count ?? 0);
@@ -427,5 +445,6 @@ export const useBudgetList = () => {
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
     handleApprove,
+    handleChangeStatus,
   };
 };

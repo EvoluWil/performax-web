@@ -1,9 +1,9 @@
 import {
-  ButtonGroup,
   DateInput,
   SelectInput,
   TextInput,
 } from '@/components/inputs';
+import { StatusQuickFilter } from '@/components/common/status-quick-filter/status-quick-filter';
 import { OccurrenceFilterDto } from '@/features/occurrence/schemas';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
 import React from 'react';
@@ -26,19 +26,16 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
     options,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   } = useOccurrenceFilter(onFilter);
 
   return (
     <Box>
-      <Box my={2} display="flex" alignItems="center" gap={2}>
-        <ButtonGroup
-          options={[
-            { label: 'Abertas', value: 'OPEN' },
-            { label: 'Concluídas', value: 'CLOSED' },
-          ]}
-          multiple
+      <Box my={2}>
+        <StatusQuickFilter
+          options={statusOptions}
           value={statusFilters}
-          onChange={(value) => handleUpdateStatuses(value as string[])}
+          onChange={(value) => handleUpdateStatuses(value)}
         />
       </Box>
 

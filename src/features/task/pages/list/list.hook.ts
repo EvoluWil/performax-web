@@ -4,12 +4,15 @@ import {
   useTaskMutation,
   useTasksQuery,
 } from '@/features/task/hooks';
-import { TaskFilterDto } from '@/features/task/schemas';
+import {
+  TASK_STATUS_FILTER_MAP,
+  TaskFilterDto,
+} from '@/features/task/schemas';
 import { taskService } from '@/features/task/services';
 import { getTaskQuery } from '@/features/task/services/task.service';
 import { Task } from '@/features/task/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter } from '@/utils/query';
+import { applyScopedFilter, buildTextSearchOrFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
 import { addDays } from 'date-fns';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
@@ -123,49 +126,23 @@ export const useTaskList = () => {
     const filterTerm: Filter = [];
 
     if (currentTerm) {
-      const termFields: Filter = ['title', 'description', 'protocol'].map(
-        (field) => ({
-          path: field,
-          operator: 'contains',
-          value: currentTerm,
-          insensitive: true,
-        }),
+      filterTerm.push(
+        ...buildTextSearchOrFilter(
+          currentTerm,
+          ['title', 'description', 'protocol'],
+          { withClientName: true },
+        ),
       );
-      filterTerm.push(...termFields);
     }
 
-    if (data.open) {
-      const openedStatuses: Filter = [
-        'PENDING',
-        'OPEN',
-        'APPROVED',
-        'EXPIRED',
-        'EMERGENCY',
-        'SCHEDULED',
-        'IMPEDED',
-      ].map((status) => ({
-        path: 'status',
-        operator: 'equals',
-        value: status,
-      }));
-      filterStatus.push(...openedStatuses);
-    }
-
-    if (data.in_progress) {
-      filterStatus.push({
-        path: 'status',
-        operator: 'equals',
-        value: 'IN_PROGRESS',
-      });
-    }
-
-    if (data.closed) {
-      const closedStatuses: Filter = ['CLOSED', 'REJECTED'].map((status) => ({
-        path: 'status',
-        operator: 'equals',
-        value: status,
-      }));
-      filterStatus.push(...closedStatuses);
+    for (const { status, field } of TASK_STATUS_FILTER_MAP) {
+      if (data[field]) {
+        filterStatus.push({
+          path: 'status',
+          operator: 'equals',
+          value: status,
+        });
+      }
     }
 
     const queryFilter: Query = {

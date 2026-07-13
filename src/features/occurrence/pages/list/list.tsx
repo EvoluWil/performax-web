@@ -284,7 +284,7 @@ export const OccurrenceList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
-        searchTitle="Pesquise por título, descrição ou protocolo"
+        searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar ocorrência"
         onShowFilters={toggleShowFilter}
         onToggleView={toggleView}

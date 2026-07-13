@@ -1,8 +1,8 @@
 'use client';
 
 import { PageTitle } from '@/components/common';
+import { StatusQuickFilter } from '@/components/common/status-quick-filter/status-quick-filter';
 import { Loading } from '@/components/common/loading/loading';
-import { ButtonGroup } from '@/components/inputs';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import {
   ChevronLeft,
@@ -29,13 +29,10 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { TaskAttendanceCard } from '../../components/TaskAttendanceCard';
-import { StatusGroup, useAttendanceList } from './list.hook';
-
-const STATUS_GROUP_OPTIONS = [
-  { label: 'Pendente', value: 'pending' },
-  { label: 'Em andamento', value: 'in_progress' },
-  { label: 'Finalizadas', value: 'closed' },
-];
+import {
+  ATTENDANCE_STATUS_OPTIONS,
+  useAttendanceList,
+} from './list.hook';
 
 export const AttendanceList = () => {
   const {
@@ -43,8 +40,8 @@ export const AttendanceList = () => {
     isLoading,
     search,
     setSearch,
-    statusGroups,
-    toggleStatusGroup,
+    selectedStatuses,
+    toggleStatuses,
     companyIds,
     setCompanyFilter,
     shiftDate,
@@ -90,14 +87,11 @@ export const AttendanceList = () => {
         </Box>
       ) : (
         <>
-      {/* Status group quick filter */}
-      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-        <ButtonGroup
-          multiple
-          options={STATUS_GROUP_OPTIONS}
-          value={statusGroups}
-          onChange={(v) => toggleStatusGroup(v as StatusGroup[])}
-          sx={{ maxWidth: 400 }}
+      <Box my={1}>
+        <StatusQuickFilter
+          options={ATTENDANCE_STATUS_OPTIONS}
+          value={selectedStatuses}
+          onChange={toggleStatuses}
         />
       </Box>
 
@@ -108,7 +102,7 @@ export const AttendanceList = () => {
           size="small"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Protocolo ou título..."
+          placeholder="Protocolo, título ou cliente..."
           sx={{ minWidth: 220 }}
         />
 

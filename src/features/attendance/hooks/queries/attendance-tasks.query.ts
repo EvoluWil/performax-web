@@ -1,4 +1,5 @@
 import { Task } from '@/features/task/types';
+import { buildTextSearchOrFilter } from '@/utils/query';
 import { useMeQuery } from '@/hooks/queries/me.query';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -84,21 +85,11 @@ export function useAttendanceTasksQuery(filters: AttendanceFilters = {}) {
           }
 
           if (filters.search) {
-            const searchFilters = [
-              {
-                path: 'title',
-                operator: 'contains' as any,
-                value: filters.search,
-                filterGroup: 'or' as any,
-              },
-              {
-                path: 'protocol',
-                operator: 'contains' as any,
-                value: filters.search,
-                filterGroup: 'or' as any,
-              },
-            ];
-            query.filter = [...(query.filter ?? []), ...(searchFilters as any)];
+            query.filter.push({
+              or: buildTextSearchOrFilter(filters.search, ['title', 'protocol'], {
+                withClientName: true,
+              }),
+            } as any);
           }
 
           const response = await attendanceService.getTasks(companyId, query);

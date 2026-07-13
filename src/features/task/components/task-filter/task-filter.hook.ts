@@ -2,9 +2,11 @@ import { Option } from '@/components/inputs/select-input/select-input';
 import { useClientsQuery } from '@/features/client/hooks';
 import { useTaskTypesQuery } from '@/features/task/hooks';
 import {
+  TASK_STATUS_FILTER_MAP,
   TaskFilterDto,
   taskFilterInitialValues,
 } from '@/features/task/schemas';
+import { taskStatusLabels } from '@/features/task/types';
 import { useUsersQuery } from '@/features/user/hooks';
 import { formatterSelectOptions } from '@/utils/select';
 import { useMemo } from 'react';
@@ -15,6 +17,11 @@ type Options = {
   clients: Option[];
   users: Option[];
 };
+
+const statusOptions = TASK_STATUS_FILTER_MAP.map(({ status }) => ({
+  value: status,
+  label: taskStatusLabels[status as keyof typeof taskStatusLabels]?.label ?? status,
+}));
 
 export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
   const { data: taskTypesData } = useTaskTypesQuery();
@@ -28,15 +35,15 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
     defaultValues: taskFilterInitialValues,
   });
 
-  const [open, inProgress, closed] = watch(['open', 'in_progress', 'closed']);
+  const watchedStatuses = watch(
+    TASK_STATUS_FILTER_MAP.map(({ field }) => field) as (keyof TaskFilterDto)[],
+  );
 
   const statusFilters = useMemo(() => {
-    const statuses: string[] = [];
-    if (open) statuses.push('OPEN');
-    if (inProgress) statuses.push('IN_PROGRESS');
-    if (closed) statuses.push('COMPLETED');
-    return statuses;
-  }, [open, inProgress, closed]);
+    return TASK_STATUS_FILTER_MAP.filter(({ field }, index) =>
+      Boolean(watchedStatuses[index]),
+    ).map(({ status }) => status);
+  }, [watchedStatuses]);
 
   const options: Options = useMemo(() => {
     const types = formatterSelectOptions(taskTypesData || [], 'id', 'name');
@@ -48,38 +55,9 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
   const hasUserFilter = true;
 
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
-    if (selectedStatuses.length === 0) {
-      setValue('open', false);
-      setValue('in_progress', false);
-      setValue('closed', false);
+    for (const { status, field } of TASK_STATUS_FILTER_MAP) {
+      setValue(field, selectedStatuses.includes(status));
     }
-    if (selectedStatuses.includes('OPEN')) {
-      setValue('open', true);
-      setValue('expired', true);
-      setValue('emergency', true);
-      setValue('scheduled', true);
-      setValue('impeded', true);
-    } else {
-      setValue('open', false);
-      setValue('expired', false);
-      setValue('emergency', false);
-      setValue('scheduled', false);
-      setValue('impeded', false);
-    }
-    if (selectedStatuses.includes('IN_PROGRESS')) {
-      setValue('in_progress', true);
-    } else {
-      setValue('in_progress', false);
-    }
-
-    if (selectedStatuses.includes('COMPLETED')) {
-      setValue('closed', true);
-      setValue('rejected', true);
-    } else {
-      setValue('closed', false);
-      setValue('rejected', false);
-    }
-
     handleFilter();
   };
 
@@ -92,5 +70,6 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
     handleFilter,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   };
 }

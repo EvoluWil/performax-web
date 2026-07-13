@@ -1,28 +1,12 @@
 'use client';
 
 import { useMeQuery } from '@/hooks/queries/me.query';
+import { TaskStatusEnum, taskStatusLabels } from '@/features/task/types';
 import { useMemo, useState } from 'react';
 import {
   AttendanceFilters,
-  CLOSED_STATUSES,
   useAttendanceTasksQuery,
 } from '../../hooks/queries/attendance-tasks.query';
-
-export type StatusGroup = 'pending' | 'in_progress' | 'closed';
-
-export const STATUS_GROUP_MAP: Record<StatusGroup, string[]> = {
-  pending: [
-    'PENDING',
-    'APPROVED',
-    'OPEN',
-    'EMERGENCY',
-    'SCHEDULED',
-    'IMPEDED',
-    'EXPIRED',
-  ],
-  in_progress: ['IN_PROGRESS'],
-  closed: [...CLOSED_STATUSES],
-};
 
 function todayEnd(): Date {
   const d = new Date();
@@ -30,11 +14,27 @@ function todayEnd(): Date {
   return d;
 }
 
-const DEFAULT_STATUS_GROUPS: StatusGroup[] = ['pending', 'in_progress'];
+export const ATTENDANCE_STATUS_OPTIONS = Object.values(TaskStatusEnum).map(
+  (status) => ({
+    value: status,
+    label: taskStatusLabels[status]?.label ?? status,
+  }),
+);
+
+export const DEFAULT_ATTENDANCE_STATUSES = [
+  TaskStatusEnum.PENDING,
+  TaskStatusEnum.APPROVED,
+  TaskStatusEnum.OPEN,
+  TaskStatusEnum.EMERGENCY,
+  TaskStatusEnum.SCHEDULED,
+  TaskStatusEnum.IMPEDED,
+  TaskStatusEnum.EXPIRED,
+  TaskStatusEnum.IN_PROGRESS,
+];
 
 export function useAttendanceList() {
-  const [statusGroups, setStatusGroups] = useState<StatusGroup[]>(
-    DEFAULT_STATUS_GROUPS,
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
+    DEFAULT_ATTENDANCE_STATUSES,
   );
   const [companyIds, setCompanyIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
@@ -50,19 +50,14 @@ export function useAttendanceList() {
     }));
   }, [me]);
 
-  const resolvedStatuses = useMemo(
-    () => statusGroups.flatMap((g) => STATUS_GROUP_MAP[g]),
-    [statusGroups],
-  );
-
   const activeFilters: AttendanceFilters = useMemo(
     () => ({
-      statuses: resolvedStatuses,
+      statuses: selectedStatuses,
       companyIds: companyIds.length ? companyIds : undefined,
       search: search || undefined,
       dateLte,
     }),
-    [resolvedStatuses, companyIds, search, dateLte],
+    [selectedStatuses, companyIds, search, dateLte],
   );
 
   const {
@@ -71,9 +66,10 @@ export function useAttendanceList() {
     refetch,
   } = useAttendanceTasksQuery(activeFilters);
 
-  const toggleStatusGroup = (groups: string | string[]) => {
-    const arr = (Array.isArray(groups) ? groups : [groups]) as StatusGroup[];
-    setStatusGroups(arr.length ? arr : DEFAULT_STATUS_GROUPS);
+  const toggleStatuses = (statuses: string[]) => {
+    setSelectedStatuses(
+      statuses.length ? statuses : DEFAULT_ATTENDANCE_STATUSES,
+    );
   };
 
   const setCompanyFilter = (ids: string[]) => setCompanyIds(ids);
@@ -89,7 +85,7 @@ export function useAttendanceList() {
 
   const clearFilters = () => {
     setSearch('');
-    setStatusGroups(DEFAULT_STATUS_GROUPS);
+    setSelectedStatuses(DEFAULT_ATTENDANCE_STATUSES);
     setCompanyIds([]);
     setDateLte(todayEnd());
   };
@@ -98,8 +94,10 @@ export function useAttendanceList() {
     !!search ||
     !!companyIds.length ||
     dateLte.toDateString() !== todayEnd().toDateString() ||
-    statusGroups.length !== DEFAULT_STATUS_GROUPS.length ||
-    statusGroups.some((g) => !DEFAULT_STATUS_GROUPS.includes(g));
+    selectedStatuses.length !== DEFAULT_ATTENDANCE_STATUSES.length ||
+    selectedStatuses.some(
+      (status) => !DEFAULT_ATTENDANCE_STATUSES.includes(status),
+    );
 
   return {
     tasks,
@@ -107,8 +105,8 @@ export function useAttendanceList() {
     refetch,
     search,
     setSearch,
-    statusGroups,
-    toggleStatusGroup,
+    selectedStatuses,
+    toggleStatuses,
     companyIds,
     setCompanyFilter,
     shiftDate,

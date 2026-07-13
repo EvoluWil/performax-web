@@ -1,9 +1,9 @@
 import {
-  ButtonGroup,
   DateInput,
   SelectInput,
   TextInput,
 } from "@/components/inputs";
+import { StatusQuickFilter } from "@/components/common/status-quick-filter/status-quick-filter";
 import { Box, Button, Divider, Paper, Typography } from "@mui/material";
 import React from "react";
 import { BudgetFilterDto } from "../../schemas/budget-filter.schema";
@@ -27,20 +27,16 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
     options,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   } = useBudgetFilter(onFilter);
 
   return (
     <Box>
-      <Box my={2} display="flex" alignItems="center" gap={2}>
-        <ButtonGroup
-          options={[
-            { label: "Pendentes", value: "PENDING" },
-            { label: "Financeiros", value: "FINANCIAL" },
-            { label: "Concluídos", value: "COMPLETED" },
-          ]}
-          multiple
+      <Box my={2}>
+        <StatusQuickFilter
+          options={statusOptions}
           value={statusFilters}
-          onChange={(value) => handleUpdateStatuses(value as string[])}
+          onChange={(value) => handleUpdateStatuses(value)}
         />
       </Box>
       {open && (

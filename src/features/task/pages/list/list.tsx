@@ -387,7 +387,7 @@ export const TaskList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
-        searchTitle="Pesquise por titulo, descrição ou protocolo"
+        searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar OS"
         onShowFilters={toggleShowFilter}
         viewMode={viewMode}

@@ -16,6 +16,7 @@ import {
   FinanceFilterDto,
   makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
+import { buildTextSearchOrFilter } from '@/utils/query';
 import {
   financeService,
   getFinanceQuery,
@@ -49,12 +50,9 @@ const buildQuery = (
 
   if (searchTerm) {
     queryFilter.filter.push({
-      or: ['title', 'description', 'protocol'].map((field) => ({
-        path: field,
-        operator: 'contains',
-        value: searchTerm,
-        insensitive: true,
-      })),
+      or: buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
+        withClientName: true,
+      }),
     } as any);
   }
 

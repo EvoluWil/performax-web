@@ -14,6 +14,7 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
+  SwapHorizOutlined,
   ThumbsUpDownOutlined,
 } from '@mui/icons-material';
 import { Box, Button, Chip, Typography } from '@mui/material';
@@ -22,11 +23,13 @@ import { useCallback, useState } from 'react';
 import { createBudgetCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
 import { BudgetCard } from '../../components/budget-card/budget-card';
 import { BudgetDrawer } from '../../components/budget-drawer/budget';
+import { BudgetStatusModal } from '../../components/status-modal/status.modal';
 import { BudgetFilter } from '../../components/budget-filter/budget-filter';
 import {
   Budget,
   BudgetStatusEnum,
   budgetStatusLabels,
+  budgetStatusSelectOptions,
 } from '../../types/budget';
 import { formatBudgetCurrency } from '../../util/currency';
 import { useBudgetMutation } from '../../hooks/queries/budgets.query';
@@ -136,6 +139,7 @@ export const BudgetList = () => {
     count,
     getBudgetReportData,
     handleApprove,
+    handleChangeStatus,
   } = useBudgetList();
 
   const budgetMutation = useBudgetMutation();
@@ -153,6 +157,7 @@ export const BudgetList = () => {
 
   const [approvalBudget, setApprovalBudget] = useState<Budget | null>(null);
   const [approvalLoading, setApprovalLoading] = useState(false);
+  const [statusBudget, setStatusBudget] = useState<Budget | null>(null);
   const {
     makeTablePDF,
     pdfModalOpen,
@@ -176,6 +181,13 @@ export const BudgetList = () => {
       icon: () => <EditOutlined />,
       label: () => 'Editar orçamento',
       onClick: handleSelectBudgetToEdit,
+    });
+
+    tableActions.push({
+      icon: () => <SwapHorizOutlined />,
+      label: () => 'Alterar status',
+      onClick: (row) => setStatusBudget(row),
+      condition: (row) => row.approved !== false,
     });
   }
 
@@ -276,7 +288,7 @@ export const BudgetList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
-        searchTitle="Pesquise por título, descrição ou protocolo"
+        searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar orçamento"
         onShowFilters={toggleShowFilter}
         onToggleView={toggleView}
@@ -324,6 +336,11 @@ export const BudgetList = () => {
                   }
                   onDelete={
                     canAdmin ? () => handleDeleteBudget(budget.id) : undefined
+                  }
+                  onChangeStatus={
+                    canEdit && budget.approved !== false
+                      ? () => setStatusBudget(budget)
+                      : undefined
                   }
                 />
               </Box>
@@ -381,6 +398,19 @@ export const BudgetList = () => {
           setApprovalBudget(null);
         }}
       />
+
+      {statusBudget && (
+        <BudgetStatusModal
+          open={!!statusBudget}
+          onClose={() => setStatusBudget(null)}
+          defaultStatus={statusBudget.status}
+          options={budgetStatusSelectOptions}
+          onSubmit={async (status) => {
+            await handleChangeStatus(statusBudget.id, status);
+            setStatusBudget(null);
+          }}
+        />
+      )}
 
       <CsvImportModal
         open={importOpen}

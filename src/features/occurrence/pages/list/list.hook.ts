@@ -4,14 +4,17 @@ import {
   useOccurrenceMutation,
   useOccurrencesQuery,
 } from '@/features/occurrence/hooks';
-import { OccurrenceFilterDto } from '@/features/occurrence/schemas';
+import {
+  OCCURRENCE_STATUS_FILTER_MAP,
+  OccurrenceFilterDto,
+} from '@/features/occurrence/schemas';
 import {
   getOccurrenceQuery,
   occurrenceService,
 } from '@/features/occurrence/services';
 import { Occurrence } from '@/features/occurrence/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter } from '@/utils/query';
+import { applyScopedFilter, buildTextSearchOrFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -138,34 +141,22 @@ export const useOccurrenceList = () => {
     const termFilter: Filter = [];
 
     if (currentTerm) {
-      const termFields: Filter = ['title', 'description', 'protocol'].map(
-        (field) => ({
-          path: field,
-          operator: 'contains',
-          value: currentTerm,
-          insensitive: true,
-        }),
-      );
-      termFilter.push(...termFields);
-    }
-    // PENDING;
-    // APPROVED;
-    // REJECTED;
-    // IN_PROGRESS;
-    // COMPLETED;
-    if (data.open) {
-      statusFilter.push(
-        { path: 'status', operator: 'equals', value: 'PENDING' },
-        { path: 'status', operator: 'equals', value: 'APPROVED' },
-        { path: 'status', operator: 'equals', value: 'IN_PROGRESS' },
+      termFilter.push(
+        ...buildTextSearchOrFilter(
+          currentTerm,
+          ['title', 'description', 'protocol'],
+          { withClientName: true },
+        ),
       );
     }
-
-    if (data.closed) {
-      statusFilter.push(
-        { path: 'status', operator: 'equals', value: 'COMPLETED' },
-        { path: 'status', operator: 'equals', value: 'REJECTED' },
-      );
+    for (const { status, field } of OCCURRENCE_STATUS_FILTER_MAP) {
+      if (data[field]) {
+        statusFilter.push({
+          path: 'status',
+          operator: 'equals',
+          value: status,
+        });
+      }
     }
 
     const queryFilter: Query = {

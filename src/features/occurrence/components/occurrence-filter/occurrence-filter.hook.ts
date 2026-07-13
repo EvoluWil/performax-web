@@ -1,9 +1,11 @@
 import { Option } from '@/components/inputs/select-input/select-input';
 import { useClientsQuery } from '@/features/client/hooks';
 import {
+  OCCURRENCE_STATUS_FILTER_MAP,
   OccurrenceFilterDto,
   occurrenceFilterInitialValues,
 } from '@/features/occurrence/schemas';
+import { occurrenceStatusLabels } from '@/features/occurrence/types/occurrence';
 import { useUsersQuery } from '@/features/user/hooks';
 import { formatterSelectOptions } from '@/utils/select';
 import { useMemo } from 'react';
@@ -13,6 +15,13 @@ type Options = {
   clients: Option[];
   users: Option[];
 };
+
+const statusOptions = OCCURRENCE_STATUS_FILTER_MAP.map(({ status }) => ({
+  value: status,
+  label:
+    occurrenceStatusLabels[status as keyof typeof occurrenceStatusLabels]
+      ?.label ?? status,
+}));
 
 export function useOccurrenceFilter(
   onFilter: (data: OccurrenceFilterDto) => void,
@@ -28,14 +37,17 @@ export function useOccurrenceFilter(
       defaultValues: occurrenceFilterInitialValues,
     });
 
-  const [open, closed] = watch(['open', 'closed']);
+  const watchedStatuses = watch(
+    OCCURRENCE_STATUS_FILTER_MAP.map(
+      ({ field }) => field,
+    ) as (keyof OccurrenceFilterDto)[],
+  );
 
   const statusFilters = useMemo(() => {
-    const statuses: string[] = [];
-    if (open) statuses.push('OPEN');
-    if (closed) statuses.push('CLOSED');
-    return statuses;
-  }, [open, closed]);
+    return OCCURRENCE_STATUS_FILTER_MAP.filter(({ field }, index) =>
+      Boolean(watchedStatuses[index]),
+    ).map(({ status }) => status);
+  }, [watchedStatuses]);
 
   const options: Options = useMemo(() => {
     const clientsList = clientsQueryData?.clients ?? [];
@@ -45,14 +57,9 @@ export function useOccurrenceFilter(
   }, [clientsQueryData, usersData]);
 
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
-    if (selectedStatuses.length === 0) {
-      setValue('open', false);
-      setValue('closed', false);
+    for (const { status, field } of OCCURRENCE_STATUS_FILTER_MAP) {
+      setValue(field, selectedStatuses.includes(status));
     }
-
-    setValue('open', selectedStatuses.includes('OPEN'));
-    setValue('closed', selectedStatuses.includes('CLOSED'));
-
     handleFilter();
   };
 
@@ -64,5 +71,6 @@ export function useOccurrenceFilter(
     handleFilter,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   };
 }

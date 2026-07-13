@@ -1,6 +1,9 @@
 export type OccurrenceFilterDto = {
-  open: boolean;
-  closed: boolean;
+  pending: boolean;
+  approved: boolean;
+  in_progress: boolean;
+  rejected: boolean;
+  completed: boolean;
   title: string;
   protocol: string;
   startDate: string;
@@ -10,8 +13,11 @@ export type OccurrenceFilterDto = {
 };
 
 export const occurrenceFilterInitialValues: OccurrenceFilterDto = {
-  open: true,
-  closed: false,
+  pending: true,
+  approved: true,
+  in_progress: true,
+  rejected: false,
+  completed: false,
   title: '',
   protocol: '',
   startDate: '',
@@ -19,3 +25,14 @@ export const occurrenceFilterInitialValues: OccurrenceFilterDto = {
   clientId: '',
   userId: '',
 };
+
+export const OCCURRENCE_STATUS_FILTER_MAP: Array<{
+  status: string;
+  field: keyof OccurrenceFilterDto;
+}> = [
+  { status: 'PENDING', field: 'pending' },
+  { status: 'APPROVED', field: 'approved' },
+  { status: 'IN_PROGRESS', field: 'in_progress' },
+  { status: 'REJECTED', field: 'rejected' },
+  { status: 'COMPLETED', field: 'completed' },
+];

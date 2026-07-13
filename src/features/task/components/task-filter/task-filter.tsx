@@ -1,10 +1,10 @@
 import {
-  ButtonGroup,
   DateInput,
   SelectInput,
   Switch,
   TextInput,
 } from '@/components/inputs';
+import { StatusQuickFilter } from '@/components/common/status-quick-filter/status-quick-filter';
 import { TaskFilterDto } from '@/features/task/schemas';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
 import React from 'react';
@@ -28,20 +28,16 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
     options,
     handleUpdateStatuses,
     statusFilters,
+    statusOptions,
   } = useTaskFilter(onFilter);
 
   return (
     <Box>
-      <Box my={2} display="flex" alignItems="center" gap={2}>
-        <ButtonGroup
-          options={[
-            { label: 'Abertas', value: 'OPEN' },
-            { label: 'Em progresso', value: 'IN_PROGRESS' },
-            { label: 'Concluídas', value: 'COMPLETED' },
-          ]}
-          multiple
+      <Box my={2}>
+        <StatusQuickFilter
+          options={statusOptions}
           value={statusFilters}
-          onChange={(value) => handleUpdateStatuses(value as string[])}
+          onChange={(value) => handleUpdateStatuses(value)}
         />
       </Box>
       {open && (
