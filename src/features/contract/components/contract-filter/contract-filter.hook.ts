@@ -1,5 +1,7 @@
+import { CONTRACT_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useClientsQuery } from '@/features/client/hooks';
 import { useContractTypesQuery } from '@/features/contract/hooks/queries/contract-types.query';
+import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,7 +12,11 @@ import {
 } from '../../schemas/contract.schema';
 
 export const useContractFilter = (onFilter: (data: ContractFilterDto) => void) => {
-  const { data: clientsData } = useClientsQuery({ scopeModule: 'client' });
+  const fieldAccess = useFilterFieldAccess(CONTRACT_FILTER_FIELDS);
+  const { data: clientsData } = useClientsQuery({
+    scopeModule: 'client',
+    enabled: fieldAccess.clientId,
+  });
   const { data: contractTypes } = useContractTypesQuery();
 
   const { control, handleSubmit } = useForm<ContractFilterDto>({
@@ -34,5 +40,5 @@ export const useContractFilter = (onFilter: (data: ContractFilterDto) => void) =
 
   const handleFilter = handleSubmit((data) => onFilter(data));
 
-  return { control, handleFilter, options };
+  return { control, handleFilter, options, fieldAccess };
 };

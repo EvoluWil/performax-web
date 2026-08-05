@@ -5,7 +5,7 @@ import {
   useOccurrencesQuery,
 } from '@/features/occurrence/hooks';
 import {
-  OCCURRENCE_STATUS_FILTER_MAP,
+  buildOccurrenceStatusOrFilter,
   OccurrenceFilterDto,
 } from '@/features/occurrence/schemas';
 import {
@@ -137,7 +137,6 @@ export const useOccurrenceList = () => {
     data: OccurrenceFilterDto,
     currentTerm = term,
   ): Query => {
-    const statusFilter: Filter = [];
     const termFilter: Filter = [];
 
     if (currentTerm) {
@@ -149,15 +148,6 @@ export const useOccurrenceList = () => {
         ),
       );
     }
-    for (const { status, field } of OCCURRENCE_STATUS_FILTER_MAP) {
-      if (data[field]) {
-        statusFilter.push({
-          path: 'status',
-          operator: 'equals',
-          value: status,
-        });
-      }
-    }
 
     const queryFilter: Query = {
       ...getOccurrenceQuery,
@@ -165,9 +155,11 @@ export const useOccurrenceList = () => {
     } as any;
 
     if (queryFilter.filter) {
+      const statusFilter = buildOccurrenceStatusOrFilter(data);
       if (statusFilter.length) {
-        queryFilter.filter.push({ or: statusFilter });
+        queryFilter.filter.push(...statusFilter);
       }
+
       if (termFilter.length) {
         queryFilter.filter.push({ or: termFilter });
       }

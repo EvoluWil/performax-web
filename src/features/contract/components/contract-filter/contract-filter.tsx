@@ -14,7 +14,7 @@ export const ContractFilter: React.FC<ContractFilterProps> = ({
   onFilter,
   loading = false,
 }) => {
-  const { control, handleFilter, options } = useContractFilter(onFilter);
+  const { control, handleFilter, options, fieldAccess } = useContractFilter(onFilter);
 
   if (!open) return null;
 
@@ -26,22 +26,26 @@ export const ContractFilter: React.FC<ContractFilterProps> = ({
       <Divider sx={{ mb: 2 }} />
 
       <Box display="flex" flexWrap="wrap" gap={2}>
-        <Box sx={{ minWidth: 280, flex: 1 }}>
-          <SelectInput
-            name="clientId"
-            control={control}
-            label="Cliente"
-            options={options.clients}
-          />
-        </Box>
-        <Box sx={{ minWidth: 280, flex: 1 }}>
-          <SelectInput
-            name="typeId"
-            control={control}
-            label="Tipo de contrato"
-            options={options.types}
-          />
-        </Box>
+        {fieldAccess.clientId && (
+          <Box sx={{ minWidth: 280, flex: 1 }}>
+            <SelectInput
+              name="clientId"
+              control={control}
+              label="Cliente"
+              options={options.clients}
+            />
+          </Box>
+        )}
+        {fieldAccess.typeId && (
+          <Box sx={{ minWidth: 280, flex: 1 }}>
+            <SelectInput
+              name="typeId"
+              control={control}
+              label="Tipo de contrato"
+              options={options.types}
+            />
+          </Box>
+        )}
       </Box>
 
       <Box display="flex" justifyContent="flex-end" mt={2}>

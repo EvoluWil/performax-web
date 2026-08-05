@@ -1,3 +1,6 @@
+import { buildStatusOrFilterFromMap } from '@/utils/query';
+import { Filter } from 'nestjs-prisma-querybuilder-interface';
+
 export type BudgetFilterDto = {
   pending: boolean;
   approved: boolean;
@@ -47,3 +50,6 @@ export const BUDGET_STATUS_FILTER_MAP: Array<{
   { status: 'COMPLETED', field: 'completed' },
   { status: 'REJECTED', field: 'rejected' },
 ];
+
+export const buildBudgetStatusOrFilter = (data: BudgetFilterDto): Filter =>
+  buildStatusOrFilterFromMap(data, BUDGET_STATUS_FILTER_MAP);

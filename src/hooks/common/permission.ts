@@ -7,18 +7,20 @@ import { Company } from '@/types/company';
 import { UserRoleEnum } from '@/types/user';
 import { useCallback, useMemo } from 'react';
 
-type PermissionScope = 'read' | 'write' | 'admin';
+type PermissionScope = 'filter' | 'read' | 'write' | 'admin';
 
 const scopeRank: Record<PermissionScope, number> = {
-  read: 0,
-  write: 1,
-  admin: 2,
+  filter: 1,
+  read: 2,
+  write: 3,
+  admin: 4,
 };
 
 const permissionRank: Record<Permission['permission'], number> = {
-  READ: 0,
-  WRITE: 1,
-  ADMIN: 2,
+  FILTER: 1,
+  READ: 2,
+  WRITE: 3,
+  ADMIN: 4,
 };
 
 const moduleScopeRank: Record<Permission['scope'], number> = {
@@ -117,7 +119,12 @@ export const useCompanyPermissions = () => {
       const normalizedKey = moduleKey.trim().toLowerCase();
 
       const matchedScopes = permissions
-        .filter((item) => getModuleIdentifiers(item).includes(normalizedKey))
+        .filter((item) => {
+          if (!getModuleIdentifiers(item).includes(normalizedKey)) {
+            return false;
+          }
+          return (permissionRank[item.permission] ?? 0) >= permissionRank.FILTER;
+        })
         .map((item) => item.scope);
 
       if (!matchedScopes.length) {
@@ -163,6 +170,16 @@ export const useCompanyPermissions = () => {
     [getModuleIdentifiers, isAdmin, permissions],
   );
 
+  const hasFilterAccess = useCallback(
+    (permissionKey: string) => hasPermission(permissionKey, 'filter'),
+    [hasPermission],
+  );
+
+  const hasPageAccess = useCallback(
+    (permissionKey: string) => hasPermission(permissionKey, 'read'),
+    [hasPermission],
+  );
+
   const getScopedUserIds = useCallback(
     (moduleKey: string) => {
       const scope = getModuleScope(moduleKey);
@@ -199,6 +216,8 @@ export const useCompanyPermissions = () => {
   return {
     permissions,
     hasPermission,
+    hasFilterAccess,
+    hasPageAccess,
     isAdmin,
     isOwner,
     role: companyRole,

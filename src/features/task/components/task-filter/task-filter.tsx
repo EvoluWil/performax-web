@@ -23,7 +23,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
 }) => {
   const {
     control,
-    hasUserFilter,
+    fieldAccess,
     handleFilter,
     options,
     handleUpdateStatuses,
@@ -65,12 +65,14 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
                 label="Protocolo da OS"
                 placeholder="Digite parte do protocolo da OS"
               />
-              <SelectInput
-                name="typeId"
-                control={control}
-                label="Tipo de OS"
-                options={options.types}
-              />
+              {fieldAccess.typeId && (
+                <SelectInput
+                  name="typeId"
+                  control={control}
+                  label="Tipo de OS"
+                  options={options.types}
+                />
+              )}
             </Box>
 
             <Box
@@ -97,13 +99,15 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              <SelectInput
-                name="clientId"
-                control={control}
-                label="Cliente"
-                options={options.clients}
-              />
-              {hasUserFilter && (
+              {fieldAccess.clientId && (
+                <SelectInput
+                  name="clientId"
+                  control={control}
+                  label="Cliente"
+                  options={options.clients}
+                />
+              )}
+              {fieldAccess.userId && (
                 <SelectInput
                   name="userId"
                   control={control}

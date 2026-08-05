@@ -37,6 +37,35 @@ export const buildTextSearchOrFilter = (
   return filters;
 };
 
+type StatusFilterMapEntry<T> = {
+  status: string;
+  field: keyof T;
+};
+
+/**
+ * Builds a status OR filter from boolean fields mapped to status values.
+ */
+export const buildStatusOrFilterFromMap = <T extends Record<string, unknown>>(
+  data: T,
+  map: StatusFilterMapEntry<T>[],
+): Filter => {
+  const statuses = map
+    .filter(({ field }) => Boolean(data[field]))
+    .map(({ status }) => status);
+
+  if (!statuses.length) return [];
+
+  return [
+    {
+      or: statuses.map((status) => ({
+        path: 'status',
+        operator: 'equals',
+        value: status,
+      })),
+    } as Filter[number],
+  ];
+};
+
 type ScopedFilterOptions = {
   field: string;
   operator?: 'in' | 'hasSome';

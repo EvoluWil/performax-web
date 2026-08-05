@@ -5,7 +5,7 @@ import {
   useTasksQuery,
 } from '@/features/task/hooks';
 import {
-  TASK_STATUS_FILTER_MAP,
+  buildTaskStatusOrFilter,
   TaskFilterDto,
 } from '@/features/task/schemas';
 import { taskService } from '@/features/task/services';
@@ -122,7 +122,6 @@ export const useTaskList = () => {
     data: TaskFilterDto,
     currentTerm = term,
   ): Query => {
-    const filterStatus: Filter = [];
     const filterTerm: Filter = [];
 
     if (currentTerm) {
@@ -135,24 +134,15 @@ export const useTaskList = () => {
       );
     }
 
-    for (const { status, field } of TASK_STATUS_FILTER_MAP) {
-      if (data[field]) {
-        filterStatus.push({
-          path: 'status',
-          operator: 'equals',
-          value: status,
-        });
-      }
-    }
-
     const queryFilter: Query = {
       ...getTaskQuery,
       filter: [],
     } as any;
 
     if (queryFilter.filter) {
+      const filterStatus = buildTaskStatusOrFilter(data);
       if (filterStatus.length) {
-        queryFilter.filter.push({ or: filterStatus });
+        queryFilter.filter.push(...filterStatus);
       }
 
       if (filterTerm.length) {

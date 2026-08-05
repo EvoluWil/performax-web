@@ -21,12 +21,17 @@ type ClientMutationInput = {
 type ClientsQueryOptions = {
   scopeModule?: string;
   pageSize?: number;
+  enabled?: boolean;
 };
 
 export function useClientsQuery(options: ClientsQueryOptions = {}) {
-  const { scopeModule = 'client', pageSize = getClientQuery.limit ?? 30 } =
-    options;
-  const { getScopedUserIds, userId } = useCompanyPermissions();
+  const {
+    scopeModule = 'client',
+    pageSize = getClientQuery.limit ?? 30,
+    enabled: enabledOption = true,
+  } = options;
+  const { getScopedUserIds, userId, hasFilterAccess, isReady } =
+    useCompanyPermissions();
 
   const scopedUserIds = useMemo(
     () => getScopedUserIds(scopeModule),
@@ -46,7 +51,8 @@ export function useClientsQuery(options: ClientsQueryOptions = {}) {
     });
   }, [scopedUserIds, userId, pageSize]);
 
-  const enabled = baseScopedQuery !== null;
+  const enabled =
+    enabledOption && isReady && hasFilterAccess(scopeModule) && baseScopedQuery !== null;
 
   const query = useInfiniteQuery({
     queryKey: ['clients', scopeModule, baseScopedQuery ?? 'no-access'],

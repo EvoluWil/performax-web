@@ -113,6 +113,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = (props) => {
                           </Typography>
                           <ButtonGroup
                             options={[
+                              { label: "Filtro", value: "FILTER" },
                               { label: "Leitura", value: "READ" },
                               { label: "Escrita", value: "WRITE" },
                               { label: "Admin", value: "ADMIN" },

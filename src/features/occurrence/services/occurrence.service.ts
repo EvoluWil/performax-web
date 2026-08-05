@@ -2,6 +2,10 @@ import { api } from '@/config/api';
 import { BaseCompanyService } from '@/services/base-url.service';
 import { BaseResponseCount } from '@/types/base-response-count';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
+import {
+  buildOccurrenceStatusOrFilter,
+  occurrenceFilterInitialValues,
+} from '../schemas/occurrence-filter.schema';
 import { CreateOccurrenceDto, Occurrence } from '../types';
 
 export const getOccurrenceQuery: Query = {
@@ -12,10 +16,7 @@ export const getOccurrenceQuery: Query = {
     { path: 'responsible', select: 'id name' },
     { path: 'type', select: 'id name' },
   ],
-  filter: [
-    { path: 'status', operator: 'not', value: 'COMPLETED', filterGroup: 'and' },
-    { path: 'status', operator: 'not', value: 'REJECTED', filterGroup: 'and' },
-  ],
+  filter: buildOccurrenceStatusOrFilter(occurrenceFilterInitialValues),
   sort: { field: 'createdAt', criteria: 'desc' },
   limit: 30,
 };

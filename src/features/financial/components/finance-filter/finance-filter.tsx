@@ -1,6 +1,8 @@
 'use client';
 
 import { AutocompleteInput, ButtonGroup, DateInput } from '@/components/inputs';
+import { FINANCE_FILTER_FIELDS } from '@/constants/filter-permissions';
+import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
@@ -50,6 +52,7 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   open,
   onFilter,
 }) => {
+  const fieldAccess = useFilterFieldAccess(FINANCE_FILTER_FIELDS);
   const { data: types } = useFinanceTypesQuery();
   const { data: banks } = useFinanceBanksQuery();
   const { data: categories } = useFinanceCategoriesQuery();
@@ -116,28 +119,32 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                 options={statusOptions}
               />
 
-              <AutocompleteInput
-                label="Centro de Custo"
-                name="typeId"
-                control={control}
-                options={[
-                  { value: '', label: 'Todos' },
-                  ...(types ?? []).map((t) => ({ value: t.id, label: t.name })),
-                ]}
-              />
+              {fieldAccess.typeId && (
+                <AutocompleteInput
+                  label="Centro de Custo"
+                  name="typeId"
+                  control={control}
+                  options={[
+                    { value: '', label: 'Todos' },
+                    ...(types ?? []).map((t) => ({ value: t.id, label: t.name })),
+                  ]}
+                />
+              )}
 
-              <AutocompleteInput
-                label="Categoria"
-                name="categoryId"
-                control={control}
-                options={[
-                  { value: '', label: 'Todas' },
-                  ...(categories ?? []).map((c) => ({
-                    value: c.id,
-                    label: c.name,
-                  })),
-                ]}
-              />
+              {fieldAccess.categoryId && (
+                <AutocompleteInput
+                  label="Categoria"
+                  name="categoryId"
+                  control={control}
+                  options={[
+                    { value: '', label: 'Todas' },
+                    ...(categories ?? []).map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                    })),
+                  ]}
+                />
+              )}
             </Box>
             <Box
               display="flex"
@@ -145,41 +152,47 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 280, flex: 1 }}
             >
-              <AutocompleteInput
-                label="Banco"
-                name="bankId"
-                control={control}
-                options={[
-                  { value: '', label: 'Todos' },
-                  ...(banks ?? []).map((b) => ({ value: b.id, label: b.name })),
-                ]}
-              />
+              {fieldAccess.bankId && (
+                <AutocompleteInput
+                  label="Banco"
+                  name="bankId"
+                  control={control}
+                  options={[
+                    { value: '', label: 'Todos' },
+                    ...(banks ?? []).map((b) => ({ value: b.id, label: b.name })),
+                  ]}
+                />
+              )}
 
-              <AutocompleteInput
-                label="Segmento"
-                name="segmentId"
-                control={control}
-                options={[
-                  { value: '', label: 'Todos' },
-                  ...(segments ?? []).map((s) => ({
-                    value: s.id,
-                    label: s.name,
-                  })),
-                ]}
-              />
+              {fieldAccess.segmentId && (
+                <AutocompleteInput
+                  label="Segmento"
+                  name="segmentId"
+                  control={control}
+                  options={[
+                    { value: '', label: 'Todos' },
+                    ...(segments ?? []).map((s) => ({
+                      value: s.id,
+                      label: s.name,
+                    })),
+                  ]}
+                />
+              )}
 
-              <AutocompleteInput
-                label="Favorecido"
-                name="payeeId"
-                control={control}
-                options={[
-                  { value: '', label: 'Todos' },
-                  ...(payees ?? []).map((p) => ({
-                    value: p.id,
-                    label: p.name,
-                  })),
-                ]}
-              />
+              {fieldAccess.payeeId && (
+                <AutocompleteInput
+                  label="Favorecido"
+                  name="payeeId"
+                  control={control}
+                  options={[
+                    { value: '', label: 'Todos' },
+                    ...(payees ?? []).map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                    })),
+                  ]}
+                />
+              )}
             </Box>
             <Box
               display="flex"

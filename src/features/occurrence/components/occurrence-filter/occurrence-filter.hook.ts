@@ -1,4 +1,5 @@
 import { Option } from '@/components/inputs/select-input/select-input';
+import { OCCURRENCE_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useClientsQuery } from '@/features/client/hooks';
 import {
   OCCURRENCE_STATUS_FILTER_MAP,
@@ -7,6 +8,7 @@ import {
 } from '@/features/occurrence/schemas';
 import { occurrenceStatusLabels } from '@/features/occurrence/types/occurrence';
 import { useUsersQuery } from '@/features/user/hooks';
+import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { formatterSelectOptions } from '@/utils/select';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,11 +28,16 @@ const statusOptions = OCCURRENCE_STATUS_FILTER_MAP.map(({ status }) => ({
 export function useOccurrenceFilter(
   onFilter: (data: OccurrenceFilterDto) => void,
 ) {
+  const fieldAccess = useFilterFieldAccess(OCCURRENCE_FILTER_FIELDS);
   const { data: clientsQueryData } = useClientsQuery({
     scopeModule: 'client',
     pageSize: 1000,
+    enabled: fieldAccess.clientId,
   });
-  const { data: usersData } = useUsersQuery({ scopeModule: 'occurrence' });
+  const { data: usersData } = useUsersQuery({
+    scopeModule: 'user',
+    enabled: fieldAccess.userId,
+  });
 
   const { control, handleSubmit, setValue, watch } =
     useForm<OccurrenceFilterDto>({
@@ -68,6 +75,7 @@ export function useOccurrenceFilter(
   return {
     control,
     options,
+    fieldAccess,
     handleFilter,
     handleUpdateStatuses,
     statusFilters,

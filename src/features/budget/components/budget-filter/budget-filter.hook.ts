@@ -1,6 +1,8 @@
 import { Option } from '@/components/inputs/select-input/select-input';
+import { BUDGET_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useClientsQuery } from '@/features/client/hooks';
 import { useUsersQuery } from '@/features/user/hooks';
+import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { formatterSelectOptions } from '@/utils/select';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,13 +28,18 @@ const statusOptions = BUDGET_STATUS_FILTER_MAP.map(({ status }) => ({
 }));
 
 export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
+  const fieldAccess = useFilterFieldAccess(BUDGET_FILTER_FIELDS);
   const { data: budgetTypesData } = useBudgetTypesQuery();
   const { data: clientsQueryData } = useClientsQuery({
     scopeModule: 'client',
     pageSize: 1000,
+    enabled: fieldAccess.clientId,
   });
   const clientsList = clientsQueryData?.clients ?? [];
-  const { data: usersData } = useUsersQuery({ scopeModule: 'budget' });
+  const { data: usersData } = useUsersQuery({
+    scopeModule: 'user',
+    enabled: fieldAccess.userId,
+  });
   const { control, handleSubmit, setValue, watch } = useForm<BudgetFilterDto>({
     defaultValues: budgetFilterInitialValues,
   });
@@ -56,8 +63,6 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
     return { types, clients, users };
   }, [budgetTypesData, clientsList, usersData]);
 
-  const hasUserFilter = true;
-
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
     for (const { status, field } of BUDGET_STATUS_FILTER_MAP) {
       setValue(field, selectedStatuses.includes(status));
@@ -70,7 +75,7 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
   return {
     control,
     options,
-    hasUserFilter,
+    fieldAccess,
     handleFilter,
     handleUpdateStatuses,
     statusFilters,

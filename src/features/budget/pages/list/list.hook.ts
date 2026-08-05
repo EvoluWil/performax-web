@@ -13,8 +13,8 @@ import {
   useBudgetsQuery,
 } from '../../hooks/queries/budgets.query';
 import {
-  BUDGET_STATUS_FILTER_MAP,
   BudgetFilterDto,
+  buildBudgetStatusOrFilter,
 } from '../../schemas/budget-filter.schema';
 import { budgetService, getBudgetQuery } from '../../services/budget.service';
 import { Budget } from '../../types/budget';
@@ -125,7 +125,6 @@ export const useBudgetList = () => {
     data: BudgetFilterDto,
     currentTerm = term,
   ): Query => {
-    const statusFilter: Filter = [];
     const termFilter: Filter = [];
 
     if (currentTerm) {
@@ -138,31 +137,15 @@ export const useBudgetList = () => {
       );
     }
 
-    const selectedStatuses: string[] = [];
-    for (const { status, field } of BUDGET_STATUS_FILTER_MAP) {
-      if (data[field]) selectedStatuses.push(status);
-    }
-
-    if (selectedStatuses.length) {
-      const statusesOr: Filter = selectedStatuses.map(
-        (s) =>
-          ({
-            path: 'status',
-            operator: 'equals',
-            value: s,
-          }) as any,
-      );
-      statusFilter.push(...statusesOr);
-    }
-
     const queryFilter: Query = {
       ...getBudgetQuery,
       filter: [],
     } as any;
 
     if (queryFilter.filter) {
+      const statusFilter = buildBudgetStatusOrFilter(data);
       if (statusFilter.length) {
-        queryFilter.filter.push({ or: statusFilter });
+        queryFilter.filter.push(...statusFilter);
       }
 
       if (termFilter.length) {

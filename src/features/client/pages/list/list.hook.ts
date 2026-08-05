@@ -3,21 +3,15 @@ import { useClientMutation, useClientsQuery } from '@/features/client/hooks';
 import { Client } from '@/features/client/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 
 export const useClientList = () => {
   const { push } = useRouter();
-  const { getScopedUserIds } = useCompanyPermissions();
+  const { hasPageAccess } = useCompanyPermissions();
 
-  const scopedClientIds = useMemo(
-    () => getScopedUserIds('client'),
-    [getScopedUserIds],
-  );
-
-  const hasClientAccess =
-    scopedClientIds === null || scopedClientIds.length > 0;
+  const hasClientAccess = hasPageAccess('client');
 
   const [openModal, setOpenModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);

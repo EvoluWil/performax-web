@@ -1,4 +1,5 @@
 import { Option } from '@/components/inputs/select-input/select-input';
+import { TASK_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useClientsQuery } from '@/features/client/hooks';
 import { useTaskTypesQuery } from '@/features/task/hooks';
 import {
@@ -8,6 +9,7 @@ import {
 } from '@/features/task/schemas';
 import { taskStatusLabels } from '@/features/task/types';
 import { useUsersQuery } from '@/features/user/hooks';
+import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { formatterSelectOptions } from '@/utils/select';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,13 +26,18 @@ const statusOptions = TASK_STATUS_FILTER_MAP.map(({ status }) => ({
 }));
 
 export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
+  const fieldAccess = useFilterFieldAccess(TASK_FILTER_FIELDS);
   const { data: taskTypesData } = useTaskTypesQuery();
   const { data: clientsQueryData } = useClientsQuery({
     scopeModule: 'client',
     pageSize: 1000,
+    enabled: fieldAccess.clientId,
   });
   const clientsList = clientsQueryData?.clients ?? [];
-  const { data: usersData } = useUsersQuery({ scopeModule: 'task' });
+  const { data: usersData } = useUsersQuery({
+    scopeModule: 'user',
+    enabled: fieldAccess.userId,
+  });
   const { control, handleSubmit, setValue, watch } = useForm<TaskFilterDto>({
     defaultValues: taskFilterInitialValues,
   });
@@ -52,8 +59,6 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
     return { types, clients, users };
   }, [taskTypesData, clientsList, usersData]);
 
-  const hasUserFilter = true;
-
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
     for (const { status, field } of TASK_STATUS_FILTER_MAP) {
       setValue(field, selectedStatuses.includes(status));
@@ -66,7 +71,7 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
   return {
     control,
     options,
-    hasUserFilter,
+    fieldAccess,
     handleFilter,
     handleUpdateStatuses,
     statusFilters,

@@ -22,6 +22,7 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
 }) => {
   const {
     control,
+    fieldAccess,
     handleFilter,
     options,
     handleUpdateStatuses,
@@ -93,19 +94,23 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              <SelectInput
-                name="clientId"
-                control={control}
-                label="Cliente"
-                options={options.clients}
-              />
+              {fieldAccess.clientId && (
+                <SelectInput
+                  name="clientId"
+                  control={control}
+                  label="Cliente"
+                  options={options.clients}
+                />
+              )}
 
-              <SelectInput
-                name="userId"
-                control={control}
-                label="Usuário"
-                options={options.users}
-              />
+              {fieldAccess.userId && (
+                <SelectInput
+                  name="userId"
+                  control={control}
+                  label="Usuário"
+                  options={options.users}
+                />
+              )}
             </Box>
           </Box>
 

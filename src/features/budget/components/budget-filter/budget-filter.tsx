@@ -22,7 +22,7 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
 }) => {
   const {
     control,
-    hasUserFilter,
+    fieldAccess,
     handleFilter,
     options,
     handleUpdateStatuses,
@@ -64,12 +64,14 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
                 label="Protocolo do orçamento"
                 placeholder="Digite parte do protocolo do orçamento"
               />
-              <SelectInput
-                name="typeId"
-                control={control}
-                label="Tipo de orçamento"
-                options={options.types}
-              />
+              {fieldAccess.typeId && (
+                <SelectInput
+                  name="typeId"
+                  control={control}
+                  label="Tipo de orçamento"
+                  options={options.types}
+                />
+              )}
             </Box>
 
             <Box
@@ -92,13 +94,15 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              <SelectInput
-                name="clientId"
-                control={control}
-                label="Cliente"
-                options={options.clients}
-              />
-              {hasUserFilter && (
+              {fieldAccess.clientId && (
+                <SelectInput
+                  name="clientId"
+                  control={control}
+                  label="Cliente"
+                  options={options.clients}
+                />
+              )}
+              {fieldAccess.userId && (
                 <SelectInput
                   name="userId"
                   control={control}

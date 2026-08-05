@@ -1,3 +1,6 @@
+import { buildStatusOrFilterFromMap } from '@/utils/query';
+import { Filter } from 'nestjs-prisma-querybuilder-interface';
+
 export type TaskFilterDto = {
   pending: boolean;
   approved: boolean;
@@ -55,3 +58,6 @@ export const TASK_STATUS_FILTER_MAP: Array<{
   { status: 'CLOSED', field: 'closed' },
   { status: 'REJECTED', field: 'rejected' },
 ];
+
+export const buildTaskStatusOrFilter = (data: TaskFilterDto): Filter =>
+  buildStatusOrFilterFromMap(data, TASK_STATUS_FILTER_MAP);

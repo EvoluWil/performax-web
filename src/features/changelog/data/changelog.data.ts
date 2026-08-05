@@ -2,6 +2,26 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '18',
+    version: '1.18.0',
+    title: 'Nível de permissão Filtro para campos cross-module',
+    description: [
+      'Novo nível de permissão Filtro nos cargos, abaixo de Leitura: permite usar um módulo apenas como opção de filtro em outras telas, sem acesso à página do módulo.',
+      'Hierarquia por módulo: Filtro < Leitura < Escrita < Admin. Quem já tem Leitura ou superior continua podendo filtrar normalmente.',
+      'Exemplo prático: um cargo com Clientes em Filtro + Equipe e OS em Leitura + Individual vê o campo Cliente na listagem de OS, filtra pelos clientes da equipe, mas não acessa o menu Clientes.',
+      'Campos de filtro cross-module (cliente, responsável, tipos de cadastro, bancos, categorias etc.) só aparecem quando o usuário tem Filtro ou superior no módulo relacionado.',
+      'O escopo (Individual, Equipe ou Todos) continua independente e define quais opções aparecem no dropdown e quais valores de filtro são aceitos.',
+      'Leitura continua sendo necessária para abrir a página do módulo no menu; Filtro serve apenas para consultar opções em filtros de outras listagens.',
+      'Backend passa a validar permissões e escopo nas listagens de clientes/usuários, form-resources e filtros enviados em OS, orçamentos, ocorrências, contratos e financeiro.',
+      'Correção no alinhamento do filtro de status inicial nas listagens de OS e orçamentos com os botões de status rápido.',
+    ],
+    type: 'FEATURE',
+    date: '2026-08-05',
+    deleted: false,
+    createdAt: '2026-08-05',
+    updatedAt: '2026-08-05',
+  },
+  {
     id: '17',
     version: '1.17.0',
     title: 'Filtros rápidos por status, permissões por módulo e melhorias operacionais',

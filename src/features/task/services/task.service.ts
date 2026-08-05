@@ -4,6 +4,10 @@ import { Task } from '@/features/task/types';
 import { BaseCompanyService } from '@/services/base-url.service';
 import { BaseResponseCount } from '@/types/base-response-count';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
+import {
+  buildTaskStatusOrFilter,
+  taskFilterInitialValues,
+} from '../schemas/task-filter.schema';
 
 export const getTaskQuery: Query = {
   select:
@@ -26,10 +30,7 @@ export const getTaskQuery: Query = {
       select: 'id modules',
     },
   ],
-  filter: [
-    { path: 'status', operator: 'not', value: 'CLOSED', filterGroup: 'and' },
-    { path: 'status', operator: 'not', value: 'REJECTED', filterGroup: 'and' },
-  ],
+  filter: buildTaskStatusOrFilter(taskFilterInitialValues),
   sort: {
     field: 'date',
     criteria: 'asc',

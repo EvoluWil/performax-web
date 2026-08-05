@@ -2,6 +2,10 @@ import { api } from '@/config/api';
 import { BaseCompanyService } from '@/services/base-url.service';
 import { BaseResponseCount } from '@/types/base-response-count';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
+import {
+  budgetFilterInitialValues,
+  buildBudgetStatusOrFilter,
+} from '../schemas/budget-filter.schema';
 import { Budget, CreateBudgetDto } from '../types/budget';
 
 export const getBudgetQuery: Query = {
@@ -12,10 +16,7 @@ export const getBudgetQuery: Query = {
     { path: 'createdBy', select: 'id name' },
     { path: 'type', select: 'id name' },
   ],
-  filter: [
-    { path: 'status', operator: 'not', value: 'COMPLETED', filterGroup: 'and' },
-    { path: 'status', operator: 'not', value: 'REJECTED', filterGroup: 'and' },
-  ],
+  filter: buildBudgetStatusOrFilter(budgetFilterInitialValues),
   sort: { field: 'createdAt', criteria: 'desc' },
   limit: 30,
 };
