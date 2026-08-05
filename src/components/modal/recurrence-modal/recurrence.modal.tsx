@@ -1,4 +1,4 @@
-import { DateInput, SelectInput, TextInput } from '@/components/inputs';
+import { AutocompleteInput, DateInput, SelectInput, TextInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
@@ -85,7 +85,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         <Typography variant="h6">Adicionar recorrência</Typography>
 
         <TwoColumnsContainer>
-          <SelectInput
+          <AutocompleteInput
             label="Frequência"
             name="freq"
             control={control}

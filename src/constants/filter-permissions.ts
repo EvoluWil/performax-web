@@ -6,31 +6,31 @@ export type FilterFieldConfig = {
 };
 
 export const TASK_FILTER_FIELDS: FilterFieldConfig[] = [
-  { field: 'clientId', module: 'client' },
-  { field: 'userId', module: 'user' },
-  { field: 'typeId', module: 'register' },
+  { field: 'clientIds', module: 'client' },
+  { field: 'userIds', module: 'user' },
+  { field: 'typeIds', module: 'register' },
 ];
 
 export const BUDGET_FILTER_FIELDS: FilterFieldConfig[] = [
-  { field: 'clientId', module: 'client' },
-  { field: 'userId', module: 'user' },
-  { field: 'typeId', module: 'register' },
+  { field: 'clientIds', module: 'client' },
+  { field: 'userIds', module: 'user' },
+  { field: 'typeIds', module: 'register' },
 ];
 
 export const OCCURRENCE_FILTER_FIELDS: FilterFieldConfig[] = [
-  { field: 'clientId', module: 'client' },
-  { field: 'userId', module: 'user' },
+  { field: 'clientIds', module: 'client' },
+  { field: 'userIds', module: 'user' },
 ];
 
 export const CONTRACT_FILTER_FIELDS: FilterFieldConfig[] = [
-  { field: 'clientId', module: 'client' },
-  { field: 'typeId', module: 'register' },
+  { field: 'clientIds', module: 'client' },
+  { field: 'typeIds', module: 'register' },
 ];
 
 export const FINANCE_FILTER_FIELDS: FilterFieldConfig[] = [
-  { field: 'typeId', module: 'financial' },
-  { field: 'bankId', module: 'financial' },
-  { field: 'categoryId', module: 'financial' },
-  { field: 'segmentId', module: 'financial' },
-  { field: 'payeeId', module: 'financial' },
+  { field: 'typeIds', module: 'financial' },
+  { field: 'bankIds', module: 'financial' },
+  { field: 'categoryIds', module: 'financial' },
+  { field: 'segmentIds', module: 'financial' },
+  { field: 'payeeIds', module: 'financial' },
 ];

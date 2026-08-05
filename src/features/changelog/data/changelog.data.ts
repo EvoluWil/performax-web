@@ -2,6 +2,23 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '19',
+    version: '1.19.0',
+    title: 'Autocomplete padronizado e multiselect nos filtros',
+    description: [
+      'Todos os campos de seleção em formulários e modais passam a usar Autocomplete com busca, substituindo Select simples.',
+      'Filtros de listagem (OS, orçamentos, ocorrências, contratos e financeiro) suportam seleção múltipla de clientes, usuários, tipos e cadastros financeiros.',
+      'Opções de filtro carregadas via form-resources com busca server-side; seleções permanecem visíveis após refetch.',
+      'Backend valida permissão e escopo para cada ID em filtros multiselect (operator in).',
+      'Exceções mantidas com Select multiselect: atribuição de clientes/subordinados a usuários e dias da semana na recorrência.',
+    ],
+    type: 'FEATURE',
+    date: '2026-08-05',
+    deleted: false,
+    createdAt: '2026-08-05',
+    updatedAt: '2026-08-05',
+  },
+  {
     id: '18',
     version: '1.18.0',
     title: 'Nível de permissão Filtro para campos cross-module',

@@ -1,4 +1,4 @@
-import { SelectInput } from '@/components/inputs';
+import { AutocompleteInput } from '@/components/inputs';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
 import { ContractFilterDto } from '../../schemas/contract.schema';
 import { useContractFilter } from './contract-filter.hook';
@@ -14,7 +14,8 @@ export const ContractFilter: React.FC<ContractFilterProps> = ({
   onFilter,
   loading = false,
 }) => {
-  const { control, handleFilter, options, fieldAccess } = useContractFilter(onFilter);
+  const { control, handleFilter, options, setSearch, isLoading, fieldAccess } =
+    useContractFilter(onFilter);
 
   if (!open) return null;
 
@@ -26,23 +27,29 @@ export const ContractFilter: React.FC<ContractFilterProps> = ({
       <Divider sx={{ mb: 2 }} />
 
       <Box display="flex" flexWrap="wrap" gap={2}>
-        {fieldAccess.clientId && (
+        {fieldAccess.clientIds && (
           <Box sx={{ minWidth: 280, flex: 1 }}>
-            <SelectInput
-              name="clientId"
+            <AutocompleteInput
+              name="clientIds"
               control={control}
               label="Cliente"
-              options={options.clients}
+              multiple
+              options={options.clients ?? []}
+              loading={isLoading}
+              onInputChange={(v) => setSearch('clients', v)}
             />
           </Box>
         )}
-        {fieldAccess.typeId && (
+        {fieldAccess.typeIds && (
           <Box sx={{ minWidth: 280, flex: 1 }}>
-            <SelectInput
-              name="typeId"
+            <AutocompleteInput
+              name="typeIds"
               control={control}
               label="Tipo de contrato"
-              options={options.types}
+              multiple
+              options={options.contractTypes ?? []}
+              loading={isLoading}
+              onInputChange={(v) => setSearch('contractTypes', v)}
             />
           </Box>
         )}

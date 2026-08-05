@@ -1,6 +1,6 @@
 import {
+  AutocompleteInput,
   DateInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { StatusQuickFilter } from '@/components/common/status-quick-filter/status-quick-filter';
@@ -25,6 +25,8 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
     fieldAccess,
     handleFilter,
     options,
+    setSearch,
+    isLoading,
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
@@ -94,21 +96,27 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              {fieldAccess.clientId && (
-                <SelectInput
-                  name="clientId"
+              {fieldAccess.clientIds && (
+                <AutocompleteInput
+                  name="clientIds"
                   control={control}
                   label="Cliente"
-                  options={options.clients}
+                  multiple
+                  options={options.clients ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('clients', v)}
                 />
               )}
 
-              {fieldAccess.userId && (
-                <SelectInput
-                  name="userId"
+              {fieldAccess.userIds && (
+                <AutocompleteInput
+                  name="userIds"
                   control={control}
                   label="Usuário"
-                  options={options.users}
+                  multiple
+                  options={options.users ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('users', v)}
                 />
               )}
             </Box>

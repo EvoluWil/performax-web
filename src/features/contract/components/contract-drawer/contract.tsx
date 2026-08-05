@@ -3,7 +3,6 @@ import {
   AutocompleteInput,
   CurrencyInput,
   DateInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { Box, Button, Typography } from '@mui/material';
@@ -61,7 +60,7 @@ export const ContractDrawer: React.FC<ContractDrawerProps> = (props) => {
             disabled={!!props.defaultClientId && !editing}
           />
 
-          <SelectInput
+          <AutocompleteInput
             label="Tipo de contrato"
             name="typeId"
             control={control}

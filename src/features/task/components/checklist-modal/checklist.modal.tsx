@@ -1,4 +1,4 @@
-import { SelectInput, TextInput } from "@/components/inputs";
+import { AutocompleteInput, TextInput } from "@/components/inputs";
 import {
   CloseButtonStyled,
   ModalContainer,
@@ -46,19 +46,17 @@ const ModuleItems: React.FC<{ control: Control<any>; moduleIndex: number }> = ({
             defaultValue={(fieldItem as any).question || ""}
             fullWidth
           />
-          <SelectInput
+          <AutocompleteInput
             label="Tipo esperado"
             name={
               `modules.${moduleIndex}.items.${itemIndex}.expectedType` as any
             }
             control={control}
-            defaultValue={(fieldItem as any).expectedType || "BOOLEAN"}
             options={[
               { label: "escolha", value: "BOOLEAN" },
               { label: "texto", value: "TEXT" },
               { label: "numero", value: "NUMBER" },
             ]}
-            fullWidth
           />
           <Box
             sx={{

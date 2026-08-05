@@ -1,5 +1,5 @@
 import { BaseDrawer } from '@/components/drawer';
-import { SelectInput } from '@/components/inputs';
+import { AutocompleteInput } from '@/components/inputs';
 import { Box, Button } from '@mui/material';
 import {
   UserRoleDrawerProps,
@@ -37,7 +37,7 @@ export const UserRoleDrawer: React.FC<UserRoleDrawerProps> = (props) => {
           flexDirection="column"
           flex={1}
         >
-          <SelectInput
+          <AutocompleteInput
             name="roleId"
             label="Cargo"
             control={control}

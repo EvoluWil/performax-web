@@ -1,6 +1,6 @@
 import { Pagination } from '@/components/common/table/table';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter, buildTextSearchOrFilter } from '@/utils/query';
+import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,7 @@ import { Budget } from '../../types/budget';
 const defaultColumns = [
   'protocol',
   'title',
+  'type',
   'client',
   'responsible',
   'value',
@@ -152,21 +153,8 @@ export const useBudgetList = () => {
         queryFilter.filter.push({ or: termFilter });
       }
 
-      if (data?.clientId) {
-        queryFilter.filter.push({
-          path: 'clientId',
-          value: data.clientId,
-          filterGroup: 'and',
-        });
-      }
-
-      if (data?.typeId) {
-        queryFilter.filter.push({
-          path: 'typeId',
-          value: data.typeId,
-          filterGroup: 'and',
-        });
-      }
+      pushInFilter(queryFilter.filter, 'clientId', data?.clientIds);
+      pushInFilter(queryFilter.filter, 'typeId', data?.typeIds);
 
       if (data?.startDate) {
         queryFilter.filter.push({
@@ -206,13 +194,7 @@ export const useBudgetList = () => {
         });
       }
 
-      if (data?.userId) {
-        queryFilter.filter.push({
-          path: 'responsibleId',
-          value: data.userId,
-          filterGroup: 'and',
-        });
-      }
+      pushInFilter(queryFilter.filter, 'responsibleId', data?.userIds);
     }
 
     return queryFilter;

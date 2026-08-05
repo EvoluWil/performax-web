@@ -1,6 +1,6 @@
 import {
+  AutocompleteInput,
   DateInput,
-  SelectInput,
   Switch,
   TextInput,
 } from '@/components/inputs';
@@ -26,6 +26,8 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
     fieldAccess,
     handleFilter,
     options,
+    setSearch,
+    isLoading,
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
@@ -65,12 +67,15 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
                 label="Protocolo da OS"
                 placeholder="Digite parte do protocolo da OS"
               />
-              {fieldAccess.typeId && (
-                <SelectInput
-                  name="typeId"
+              {fieldAccess.typeIds && (
+                <AutocompleteInput
+                  name="typeIds"
                   control={control}
                   label="Tipo de OS"
-                  options={options.types}
+                  multiple
+                  options={options.taskTypes ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('taskTypes', v)}
                 />
               )}
             </Box>
@@ -99,20 +104,26 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              {fieldAccess.clientId && (
-                <SelectInput
-                  name="clientId"
+              {fieldAccess.clientIds && (
+                <AutocompleteInput
+                  name="clientIds"
                   control={control}
                   label="Cliente"
-                  options={options.clients}
+                  multiple
+                  options={options.clients ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('clients', v)}
                 />
               )}
-              {fieldAccess.userId && (
-                <SelectInput
-                  name="userId"
+              {fieldAccess.userIds && (
+                <AutocompleteInput
+                  name="userIds"
                   control={control}
                   label="Usuário"
-                  options={options.users}
+                  multiple
+                  options={options.users ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('users', v)}
                 />
               )}
               <Switch

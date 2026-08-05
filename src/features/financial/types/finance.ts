@@ -94,6 +94,7 @@ export type Finance = {
   bank?: FinanceBank;
   category?: FinanceCategory;
   payee?: FinancePayee;
+  segment?: { id: string; name: string };
   responsible?: User;
   employee?: { id: string; name: string };
 };

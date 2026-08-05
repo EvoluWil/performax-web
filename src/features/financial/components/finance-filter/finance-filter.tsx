@@ -3,15 +3,12 @@
 import { AutocompleteInput, ButtonGroup, DateInput } from '@/components/inputs';
 import { FINANCE_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
+import { useFormResources } from '@/hooks/use-form-resources';
+import { ResourceKey } from '@/services/form-resources.service';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Box, Button, Divider, Paper, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useFinanceBanksQuery } from '../../hooks/queries/finance-banks.query';
-import { useFinanceCategoriesQuery } from '../../hooks/queries/finance-categories.query';
-import { useFinancePayeesQuery } from '../../hooks/queries/finance-payees.query';
-import { useFinanceSegmentsQuery } from '../../hooks/queries/finance-segments.query';
-import { useFinanceTypesQuery } from '../../hooks/queries/finance-types.query';
 import {
   FinanceFilterDto,
   financeFilterSchema,
@@ -53,11 +50,18 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   onFilter,
 }) => {
   const fieldAccess = useFilterFieldAccess(FINANCE_FILTER_FIELDS);
-  const { data: types } = useFinanceTypesQuery();
-  const { data: banks } = useFinanceBanksQuery();
-  const { data: categories } = useFinanceCategoriesQuery();
-  const { data: segments } = useFinanceSegmentsQuery();
-  const { data: payees } = useFinancePayeesQuery();
+
+  const resources = useMemo(() => {
+    const keys: ResourceKey[] = [];
+    if (fieldAccess.typeIds) keys.push('financeTypes');
+    if (fieldAccess.bankIds) keys.push('financeBanks');
+    if (fieldAccess.categoryIds) keys.push('financeCategories');
+    if (fieldAccess.segmentIds) keys.push('financeSegments');
+    if (fieldAccess.payeeIds) keys.push('financePayees');
+    return keys;
+  }, [fieldAccess]);
+
+  const { options, setSearch, isLoading } = useFormResources(resources);
 
   const [quickFlow, setQuickFlow] = useState<string[]>(ALL_FLOWS);
 
@@ -83,7 +87,6 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   const handleQuickFlow = (selected: string[]) => {
     setQuickFlow(selected);
     const flows = selected as FinanceFlowEnum[];
-    // All selected = no flow restriction
     const flowsFilter = flows.length === ALL_FLOWS.length ? undefined : flows;
     handleSubmit((values) => onFilter({ ...values, flows: flowsFilter }))();
   };
@@ -119,30 +122,27 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                 options={statusOptions}
               />
 
-              {fieldAccess.typeId && (
+              {fieldAccess.typeIds && (
                 <AutocompleteInput
                   label="Centro de Custo"
-                  name="typeId"
+                  name="typeIds"
                   control={control}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    ...(types ?? []).map((t) => ({ value: t.id, label: t.name })),
-                  ]}
+                  multiple
+                  options={options.financeTypes ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('financeTypes', v)}
                 />
               )}
 
-              {fieldAccess.categoryId && (
+              {fieldAccess.categoryIds && (
                 <AutocompleteInput
                   label="Categoria"
-                  name="categoryId"
+                  name="categoryIds"
                   control={control}
-                  options={[
-                    { value: '', label: 'Todas' },
-                    ...(categories ?? []).map((c) => ({
-                      value: c.id,
-                      label: c.name,
-                    })),
-                  ]}
+                  multiple
+                  options={options.financeCategories ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('financeCategories', v)}
                 />
               )}
             </Box>
@@ -152,45 +152,39 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
               gap={2}
               sx={{ minWidth: 280, flex: 1 }}
             >
-              {fieldAccess.bankId && (
+              {fieldAccess.bankIds && (
                 <AutocompleteInput
                   label="Banco"
-                  name="bankId"
+                  name="bankIds"
                   control={control}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    ...(banks ?? []).map((b) => ({ value: b.id, label: b.name })),
-                  ]}
+                  multiple
+                  options={options.financeBanks ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('financeBanks', v)}
                 />
               )}
 
-              {fieldAccess.segmentId && (
+              {fieldAccess.segmentIds && (
                 <AutocompleteInput
                   label="Segmento"
-                  name="segmentId"
+                  name="segmentIds"
                   control={control}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    ...(segments ?? []).map((s) => ({
-                      value: s.id,
-                      label: s.name,
-                    })),
-                  ]}
+                  multiple
+                  options={options.financeSegments ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('financeSegments', v)}
                 />
               )}
 
-              {fieldAccess.payeeId && (
+              {fieldAccess.payeeIds && (
                 <AutocompleteInput
                   label="Favorecido"
-                  name="payeeId"
+                  name="payeeIds"
                   control={control}
-                  options={[
-                    { value: '', label: 'Todos' },
-                    ...(payees ?? []).map((p) => ({
-                      value: p.id,
-                      label: p.name,
-                    })),
-                  ]}
+                  multiple
+                  options={options.financePayees ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('financePayees', v)}
                 />
               )}
             </Box>

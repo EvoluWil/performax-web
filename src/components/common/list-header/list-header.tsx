@@ -141,7 +141,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
                   </IconButton>
                 </Tooltip>
               )}
-              {viewMode === "table" && (
+              {onCustomizeColumns && viewMode !== "list" && (
                 <Tooltip title="Personalizar colunas">
                   <IconButton onClick={onCustomizeColumns}>
                     <SplitscreenOutlined />

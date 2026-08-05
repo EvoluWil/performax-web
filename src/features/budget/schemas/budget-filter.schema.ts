@@ -10,9 +10,9 @@ export type BudgetFilterDto = {
   completed: boolean;
   rejected: boolean;
 
-  clientId?: string;
-  typeId?: string;
-  userId?: string;
+  clientIds?: string[];
+  typeIds?: string[];
+  userIds?: string[];
 
   startDate?: Date | null;
   endDate?: Date | null;
@@ -29,9 +29,9 @@ export const budgetFilterInitialValues: BudgetFilterDto = {
   financial: false,
   completed: false,
   rejected: false,
-  clientId: undefined,
-  typeId: undefined,
-  userId: undefined,
+  clientIds: [],
+  typeIds: [],
+  userIds: [],
   startDate: null,
   endDate: null,
   protocol: '',

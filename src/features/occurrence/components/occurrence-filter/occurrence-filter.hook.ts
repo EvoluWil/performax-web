@@ -1,22 +1,15 @@
-import { Option } from '@/components/inputs/select-input/select-input';
 import { OCCURRENCE_FILTER_FIELDS } from '@/constants/filter-permissions';
-import { useClientsQuery } from '@/features/client/hooks';
 import {
   OCCURRENCE_STATUS_FILTER_MAP,
   OccurrenceFilterDto,
   occurrenceFilterInitialValues,
 } from '@/features/occurrence/schemas';
 import { occurrenceStatusLabels } from '@/features/occurrence/types/occurrence';
-import { useUsersQuery } from '@/features/user/hooks';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
-import { formatterSelectOptions } from '@/utils/select';
+import { useFormResources } from '@/hooks/use-form-resources';
+import { ResourceKey } from '@/services/form-resources.service';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-
-type Options = {
-  clients: Option[];
-  users: Option[];
-};
 
 const statusOptions = OCCURRENCE_STATUS_FILTER_MAP.map(({ status }) => ({
   value: status,
@@ -29,15 +22,15 @@ export function useOccurrenceFilter(
   onFilter: (data: OccurrenceFilterDto) => void,
 ) {
   const fieldAccess = useFilterFieldAccess(OCCURRENCE_FILTER_FIELDS);
-  const { data: clientsQueryData } = useClientsQuery({
-    scopeModule: 'client',
-    pageSize: 1000,
-    enabled: fieldAccess.clientId,
-  });
-  const { data: usersData } = useUsersQuery({
-    scopeModule: 'user',
-    enabled: fieldAccess.userId,
-  });
+
+  const resources = useMemo(() => {
+    const keys: ResourceKey[] = [];
+    if (fieldAccess.clientIds) keys.push('clients');
+    if (fieldAccess.userIds) keys.push('users');
+    return keys;
+  }, [fieldAccess]);
+
+  const { options, setSearch, isLoading } = useFormResources(resources);
 
   const { control, handleSubmit, setValue, watch } =
     useForm<OccurrenceFilterDto>({
@@ -56,13 +49,6 @@ export function useOccurrenceFilter(
     ).map(({ status }) => status);
   }, [watchedStatuses]);
 
-  const options: Options = useMemo(() => {
-    const clientsList = clientsQueryData?.clients ?? [];
-    const clients = formatterSelectOptions(clientsList || [], 'id', 'name');
-    const users = formatterSelectOptions(usersData?.users || [], 'id', 'name');
-    return { clients, users };
-  }, [clientsQueryData, usersData]);
-
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
     for (const { status, field } of OCCURRENCE_STATUS_FILTER_MAP) {
       setValue(field, selectedStatuses.includes(status));
@@ -75,6 +61,8 @@ export function useOccurrenceFilter(
   return {
     control,
     options,
+    setSearch,
+    isLoading,
     fieldAccess,
     handleFilter,
     handleUpdateStatuses,

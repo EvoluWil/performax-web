@@ -14,11 +14,11 @@ export type TaskFilterDto = {
   rejected: boolean;
   title: string;
   protocol: string;
-  typeId: string;
+  typeIds: string[];
   startDate: string;
   endDate: string;
-  clientId: string;
-  userId: string;
+  clientIds: string[];
+  userIds: string[];
   withValue: boolean;
 };
 
@@ -35,11 +35,11 @@ export const taskFilterInitialValues: TaskFilterDto = {
   rejected: false,
   title: '',
   protocol: '',
-  typeId: '',
+  typeIds: [],
   startDate: '',
   endDate: '',
-  clientId: '',
-  userId: '',
+  clientIds: [],
+  userIds: [],
   withValue: false,
 };
 

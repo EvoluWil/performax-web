@@ -1,7 +1,7 @@
 import { CONTRACT_FILTER_FIELDS } from '@/constants/filter-permissions';
-import { useClientsQuery } from '@/features/client/hooks';
-import { useContractTypesQuery } from '@/features/contract/hooks/queries/contract-types.query';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
+import { useFormResources } from '@/hooks/use-form-resources';
+import { ResourceKey } from '@/services/form-resources.service';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,32 +13,22 @@ import {
 
 export const useContractFilter = (onFilter: (data: ContractFilterDto) => void) => {
   const fieldAccess = useFilterFieldAccess(CONTRACT_FILTER_FIELDS);
-  const { data: clientsData } = useClientsQuery({
-    scopeModule: 'client',
-    enabled: fieldAccess.clientId,
-  });
-  const { data: contractTypes } = useContractTypesQuery();
+
+  const resources = useMemo(() => {
+    const keys: ResourceKey[] = [];
+    if (fieldAccess.clientIds) keys.push('clients');
+    if (fieldAccess.typeIds) keys.push('contractTypes');
+    return keys;
+  }, [fieldAccess]);
+
+  const { options, setSearch, isLoading } = useFormResources(resources);
 
   const { control, handleSubmit } = useForm<ContractFilterDto>({
     defaultValues: contractFilterInitialValues,
     resolver: yupResolver(contractFilterSchema) as any,
   });
 
-  const options = useMemo(
-    () => ({
-      clients: (clientsData?.clients ?? []).map((c) => ({
-        value: c.id,
-        label: c.name,
-      })),
-      types: (contractTypes ?? []).map((t) => ({
-        value: t.id,
-        label: t.name,
-      })),
-    }),
-    [clientsData, contractTypes],
-  );
-
   const handleFilter = handleSubmit((data) => onFilter(data));
 
-  return { control, handleFilter, options, fieldAccess };
+  return { control, handleFilter, options, setSearch, isLoading, fieldAccess };
 };

@@ -107,3 +107,22 @@ export const applyScopedFilter = (
 
   return query;
 };
+
+/**
+ * Pushes an `in` filter for multiselect entity filters.
+ */
+export const pushInFilter = (
+  filters: NonNullable<Query['filter']> | undefined,
+  path: string,
+  values: string[] | undefined,
+  filterGroup: 'and' | 'or' = 'and',
+) => {
+  if (!values?.length || !filters) return;
+
+  (filters as Filter).push({
+    path,
+    operator: 'in',
+    value: values.join(';'),
+    filterGroup,
+  } as Filter[number]);
+};

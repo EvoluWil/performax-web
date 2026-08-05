@@ -1,5 +1,5 @@
 import { Loading } from '@/components/common/loading/loading';
-import { SelectInput } from '@/components/inputs';
+import { AutocompleteInput } from '@/components/inputs';
 import { CloseOutlined } from '@mui/icons-material';
 import { Button, Typography } from '@mui/material';
 import {
@@ -48,7 +48,7 @@ export const SelectCompanyModal: React.FC<SelectCompanyModalProps> = (
       ) : (
         <>
           {companies?.length ? (
-            <SelectInput
+            <AutocompleteInput
               control={control}
               name="companyId"
               label="Selecione a empresa"

@@ -10,8 +10,7 @@ import {
 } from '../schemas/task-filter.schema';
 
 export const getTaskQuery: Query = {
-  select:
-    'title description status approved value date files internalNote createdAt protocol completedAt recurrenceMasterId recurrence',
+  select: 'all',
   populate: [
     {
       path: 'client',
@@ -23,6 +22,14 @@ export const getTaskQuery: Query = {
     },
     {
       path: 'responsible',
+      select: 'id name',
+    },
+    {
+      path: 'createdBy',
+      select: 'id name',
+    },
+    {
+      path: 'updatedBy',
       select: 'id name',
     },
     {

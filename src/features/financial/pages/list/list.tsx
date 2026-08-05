@@ -224,6 +224,52 @@ const columns: MRT_ColumnDef<Finance>[] = [
     },
   },
   {
+    accessorKey: 'segment',
+    header: 'Segmento',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'responsible',
+    header: 'Responsável',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'description',
+    header: 'Descrição',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
+    accessorKey: 'observation',
+    header: 'Observação',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
+    accessorKey: 'createdAt',
+    header: 'Criado em',
+    Cell({ cell }: any) {
+      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+    },
+  },
+  {
+    accessorKey: 'updatedAt',
+    header: 'Atualizado em',
+    Cell({ cell }: any) {
+      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+    },
+  },
+  {
     accessorKey: 'createdBy',
     header: 'Criado por',
     Cell({ cell }: any) {

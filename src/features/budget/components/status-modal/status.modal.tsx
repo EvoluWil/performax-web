@@ -1,4 +1,4 @@
-import { SelectInput } from '@/components/inputs';
+import { AutocompleteInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
@@ -55,7 +55,7 @@ export const BudgetStatusModal: React.FC<BudgetStatusModalProps> = ({
 
         <Typography variant="h6">{title}</Typography>
 
-        <SelectInput
+        <AutocompleteInput
           label="Novo status"
           name="status"
           control={control}

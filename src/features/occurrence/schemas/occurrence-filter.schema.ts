@@ -11,8 +11,8 @@ export type OccurrenceFilterDto = {
   protocol: string;
   startDate: string;
   endDate: string;
-  clientId: string;
-  userId: string;
+  clientIds: string[];
+  userIds: string[];
 };
 
 export const occurrenceFilterInitialValues: OccurrenceFilterDto = {
@@ -25,8 +25,8 @@ export const occurrenceFilterInitialValues: OccurrenceFilterDto = {
   protocol: '',
   startDate: '',
   endDate: '',
-  clientId: '',
-  userId: '',
+  clientIds: [],
+  userIds: [],
 };
 
 export const OCCURRENCE_STATUS_FILTER_MAP: Array<{

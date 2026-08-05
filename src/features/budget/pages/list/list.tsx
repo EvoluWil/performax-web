@@ -40,6 +40,13 @@ const columns: MRT_ColumnDef<Budget>[] = [
   { accessorKey: 'protocol', header: 'Protocolo' },
   { accessorKey: 'title', header: 'Título' },
   {
+    accessorKey: 'type',
+    header: 'Tipo',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
     accessorKey: 'client',
     header: 'Cliente',
     Cell({ cell }: any) {
@@ -54,6 +61,24 @@ const columns: MRT_ColumnDef<Budget>[] = [
     },
   },
   {
+    accessorKey: 'description',
+    header: 'Descrição',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
+    accessorKey: 'observation',
+    header: 'Observação',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
     accessorKey: 'value',
     header: 'Valor',
 
@@ -62,8 +87,22 @@ const columns: MRT_ColumnDef<Budget>[] = [
     },
   },
   {
+    accessorKey: 'createdBy',
+    header: 'Criado por',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
     accessorKey: 'createdAt',
     header: 'Criado em',
+    Cell({ cell }: any) {
+      return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: 'updatedAt',
+    header: 'Atualizado em',
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
     },
@@ -103,10 +142,15 @@ const columns: MRT_ColumnDef<Budget>[] = [
 type BudgetReportRow = {
   protocol: string;
   title: string;
+  type: string;
   client: string;
   responsible: string;
+  description: string;
+  observation: string;
   value: string;
+  createdBy: string;
   createdAt: string;
+  updatedAt: string;
   status: string;
 };
 
@@ -232,10 +276,15 @@ export const BudgetList = () => {
       const data: BudgetReportRow[] = report.budgets.map((budget) => ({
         protocol: budget.protocol || '-',
         title: budget.title || '-',
+        type: budget.type?.name || '-',
         client: budget.client?.name || '-',
         responsible: budget.responsible?.name || '-',
+        description: budget.description || '-',
+        observation: budget.observation || '-',
         value: formatBudgetCurrency(Number(budget.value || 0)),
+        createdBy: budget.createdBy?.name || '-',
         createdAt: formatDate(budget.createdAt) || '-',
+        updatedAt: formatDate(budget.updatedAt) || '-',
         status: budget.status
           ? budgetStatusLabels[budget.status]?.label || '-'
           : '-',

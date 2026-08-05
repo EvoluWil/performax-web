@@ -4,7 +4,6 @@ import {
   CurrencyInput,
   DateTimeInput,
   FileInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { RecurrenceModal } from '@/components/modal';
@@ -132,7 +131,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = (props) => {
             />
             <DateTimeInput label="Data e Hora" name="date" control={control} />
             <CurrencyInput label="Valor" name="value" control={control} />
-            <SelectInput
+            <AutocompleteInput
               label="Status"
               name="status"
               control={control}

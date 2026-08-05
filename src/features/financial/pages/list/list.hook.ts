@@ -16,7 +16,7 @@ import {
   FinanceFilterDto,
   makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
-import { buildTextSearchOrFilter } from '@/utils/query';
+import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
 import {
   financeService,
   getFinanceQuery,
@@ -80,45 +80,11 @@ const buildQuery = (
     } as any);
   }
 
-  if (filterData?.typeId) {
-    queryFilter.filter.push({
-      path: 'typeId',
-      value: filterData.typeId,
-      filterGroup: 'and',
-    } as any);
-  }
-
-  if (filterData?.bankId) {
-    queryFilter.filter.push({
-      path: 'bankId',
-      value: filterData.bankId,
-      filterGroup: 'and',
-    } as any);
-  }
-
-  if (filterData?.categoryId) {
-    queryFilter.filter.push({
-      path: 'categoryId',
-      value: filterData.categoryId,
-      filterGroup: 'and',
-    } as any);
-  }
-
-  if (filterData?.segmentId) {
-    queryFilter.filter.push({
-      path: 'segmentId',
-      value: filterData.segmentId,
-      filterGroup: 'and',
-    } as any);
-  }
-
-  if (filterData?.payeeId) {
-    queryFilter.filter.push({
-      path: 'payeeId',
-      value: filterData.payeeId,
-      filterGroup: 'and',
-    } as any);
-  }
+  pushInFilter(queryFilter.filter, 'typeId', filterData?.typeIds);
+  pushInFilter(queryFilter.filter, 'bankId', filterData?.bankIds);
+  pushInFilter(queryFilter.filter, 'categoryId', filterData?.categoryIds);
+  pushInFilter(queryFilter.filter, 'segmentId', filterData?.segmentIds);
+  pushInFilter(queryFilter.filter, 'payeeId', filterData?.payeeIds);
 
   if (filterData?.dateFrom) {
     queryFilter.filter.push({

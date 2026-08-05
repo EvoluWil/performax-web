@@ -146,6 +146,23 @@ const columns: MRT_ColumnDef<Contract>[] = [
       );
     },
   },
+  {
+    accessorKey: 'createdBy',
+    header: 'Criado por',
+    Cell: ({ cell }) => cell.getValue<any>()?.name || '-',
+  },
+  {
+    accessorKey: 'createdAt',
+    header: 'Criado em',
+    Cell: ({ cell }) =>
+      cell.getValue() ? formatDate(cell.getValue() as string) : '-',
+  },
+  {
+    accessorKey: 'updatedAt',
+    header: 'Atualizado em',
+    Cell: ({ cell }) =>
+      cell.getValue() ? formatDate(cell.getValue() as string) : '-',
+  },
 ];
 
 type ContractReportRow = Record<string, string>;

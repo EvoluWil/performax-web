@@ -48,18 +48,18 @@ export const contractFormToPayload = (data: ContractFormDto) => ({
 });
 
 export type ContractFilterDto = {
-  clientId?: string;
-  typeId?: string;
+  clientIds?: string[];
+  typeIds?: string[];
 };
 
 export const contractFilterInitialValues: ContractFilterDto = {
-  clientId: '',
-  typeId: '',
+  clientIds: [],
+  typeIds: [],
 };
 
 export const contractFilterSchema = yup.object().shape({
-  clientId: yup.string().optional(),
-  typeId: yup.string().optional(),
+  clientIds: yup.array().of(yup.string()).optional(),
+  typeIds: yup.array().of(yup.string()).optional(),
 });
 
 export type ContractRecurringFormDto = {

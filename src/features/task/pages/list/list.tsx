@@ -32,6 +32,15 @@ const columns: MRT_ColumnDef<Task>[] = [
     header: 'Título',
   },
   {
+    accessorKey: 'description',
+    header: 'Descrição',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
     accessorKey: 'protocol',
     header: 'Protocolo',
   },
@@ -83,6 +92,37 @@ const columns: MRT_ColumnDef<Task>[] = [
       return typeof v === 'string' && v.length > 60
         ? `${v.slice(0, 60)}...`
         : v;
+    },
+  },
+  {
+    accessorKey: 'impedimentNote',
+    header: 'Obs. Impedimento',
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      if (!v) return '-';
+      return typeof v === 'string' && v.length > 60
+        ? `${v.slice(0, 60)}...`
+        : v;
+    },
+  },
+  {
+    accessorKey: 'conclusionNote',
+    header: 'Obs. Conclusão',
+    Cell({ cell }: any) {
+      const v = cell.getValue();
+      if (!v) return '-';
+      return typeof v === 'string' && v.length > 60
+        ? `${v.slice(0, 60)}...`
+        : v;
+    },
+  },
+  {
+    accessorKey: 'service',
+    header: 'Serviço',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
     },
   },
   {

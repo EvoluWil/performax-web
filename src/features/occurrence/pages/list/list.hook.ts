@@ -14,7 +14,7 @@ import {
 } from '@/features/occurrence/services';
 import { Occurrence } from '@/features/occurrence/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter, buildTextSearchOrFilter } from '@/utils/query';
+import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -164,13 +164,7 @@ export const useOccurrenceList = () => {
         queryFilter.filter.push({ or: termFilter });
       }
 
-      if (data?.clientId) {
-        queryFilter.filter.push({
-          path: 'clientId',
-          value: data.clientId,
-          filterGroup: 'and',
-        });
-      }
+      pushInFilter(queryFilter.filter, 'clientId', data?.clientIds);
 
       if (data?.startDate) {
         queryFilter.filter.push({
@@ -210,13 +204,7 @@ export const useOccurrenceList = () => {
         });
       }
 
-      if (data?.userId) {
-        queryFilter.filter.push({
-          path: 'createdById',
-          value: data.userId,
-          filterGroup: 'and',
-        });
-      }
+      pushInFilter(queryFilter.filter, 'createdById', data?.userIds);
     }
 
     return queryFilter;

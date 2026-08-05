@@ -27,12 +27,25 @@ export type AutocompleteInputProps<T extends FieldValues> = {
   disabled?: boolean;
   /** External loading state (e.g. query fetching) */
   loading?: boolean;
+  /** Multiselect mode — used in filters only; field value is string[] */
+  multiple?: boolean;
   /** Called with the debounced input text — use to drive server search */
   onInputChange?: (value: string) => void;
   createLabel?: string;
   enableCreate?: boolean;
   onCreate?: (label: string) => Promise<string>;
 };
+
+function mergeOptions(
+  options: AutocompleteOption[],
+  selected: AutocompleteOption[],
+): AutocompleteOption[] {
+  const map = new Map<string, AutocompleteOption>();
+  for (const option of [...selected, ...options]) {
+    if (option.value) map.set(option.value, option);
+  }
+  return Array.from(map.values());
+}
 
 export function AutocompleteInput<T extends FieldValues>({
   name,
@@ -42,6 +55,7 @@ export function AutocompleteInput<T extends FieldValues>({
   placeholder,
   disabled,
   loading,
+  multiple = false,
   onInputChange,
   createLabel = 'Adicionar novo',
   enableCreate = false,
@@ -53,7 +67,10 @@ export function AutocompleteInput<T extends FieldValues>({
   const [createdOption, setCreatedOption] = useState<AutocompleteOption | null>(
     null,
   );
+  const [selectedCache, setSelectedCache] = useState<AutocompleteOption[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const canCreate = !multiple && enableCreate && !!onCreate;
 
   const handleInputChange = useCallback(
     (_: unknown, inputValue: string, reason: string) => {
@@ -91,12 +108,35 @@ export function AutocompleteInput<T extends FieldValues>({
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        const selectedOption =
-          options.find((o) => o.value === field.value) ??
-          (createdOption?.value === field.value ? createdOption : null);
+        const fieldValues = multiple
+          ? ((field.value as string[] | undefined) ?? [])
+          : [];
+
+        let selectedOptions: AutocompleteOption | AutocompleteOption[] | null;
+
+        if (multiple) {
+          const fromOptions = options.filter((o) =>
+            fieldValues.includes(o.value),
+          );
+          const fromCache = selectedCache.filter((o) =>
+            fieldValues.includes(o.value),
+          );
+          selectedOptions = mergeOptions(fromOptions, fromCache);
+        } else {
+          selectedOptions =
+            options.find((o) => o.value === field.value) ??
+            (createdOption?.value === field.value ? createdOption : null);
+        }
+
+        const mergedOptions = multiple
+          ? mergeOptions(
+              options,
+              Array.isArray(selectedOptions) ? selectedOptions : [],
+            )
+          : options;
 
         const handleCreate = async () => {
-          if (!enableCreate || !onCreate) return;
+          if (!canCreate || !onCreate) return;
 
           const labelToCreate = draftValue.trim() || '';
 
@@ -118,14 +158,28 @@ export function AutocompleteInput<T extends FieldValues>({
 
         return (
           <Autocomplete
-            options={options}
+            multiple={multiple}
+            options={mergedOptions}
             filterOptions={(opts) => opts}
             loading={busy}
             disabled={disabled}
-            value={selectedOption}
+            disableCloseOnSelect={multiple}
+            value={
+              multiple
+                ? (selectedOptions as AutocompleteOption[])
+                : (selectedOptions as AutocompleteOption | null)
+            }
             onChange={(_, newValue) => {
-              field.onChange(newValue?.value ?? '');
-              setDraftValue(newValue?.label ?? '');
+              if (multiple) {
+                const next = (newValue as AutocompleteOption[]) ?? [];
+                setSelectedCache(next);
+                field.onChange(next.map((o) => o.value));
+                return;
+              }
+
+              const single = newValue as AutocompleteOption | null;
+              field.onChange(single?.value ?? '');
+              setDraftValue(single?.label ?? '');
             }}
             onInputChange={handleInputChange}
             getOptionLabel={(option) => option.label}
@@ -139,7 +193,7 @@ export function AutocompleteInput<T extends FieldValues>({
               paper: (paperProps) => (
                 <Paper {...paperProps}>
                   {paperProps.children}
-                  {enableCreate && onCreate && (
+                  {canCreate && (
                     <Box
                       sx={{
                         borderTop: '1px solid',
@@ -177,7 +231,7 @@ export function AutocompleteInput<T extends FieldValues>({
                       <>
                         {busy && <CircularProgress size={16} />}
                         {params.InputProps.endAdornment}
-                        {enableCreate && onCreate && (
+                        {canCreate && (
                           <InputAdornment position="end">
                             <Tooltip title={createLabel}>
                               <IconButton

@@ -10,7 +10,7 @@ import {
   useContractsQuery,
 } from '@/features/contract/hooks/queries/contracts.query';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { buildTextSearchOrFilter } from '@/utils/query';
+import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -29,6 +29,9 @@ const defaultColumns = [
   'recurringId',
   'generatedPdf',
   'attachment',
+  'createdBy',
+  'createdAt',
+  'updatedAt',
 ];
 
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-contracts';
@@ -93,21 +96,8 @@ export const useContractList = () => {
       } as any);
     }
 
-    if (data.clientId) {
-      queryFilter.filter?.push({
-        path: 'clientId',
-        value: data.clientId,
-        filterGroup: 'and',
-      });
-    }
-
-    if (data.typeId) {
-      queryFilter.filter?.push({
-        path: 'typeId',
-        value: data.typeId,
-        filterGroup: 'and',
-      });
-    }
+    pushInFilter(queryFilter.filter, 'clientId', data.clientIds);
+    pushInFilter(queryFilter.filter, 'typeId', data.typeIds);
 
     return queryFilter;
   };

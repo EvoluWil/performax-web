@@ -1,6 +1,6 @@
 'use client';
 
-import { SelectInput } from '@/components/inputs';
+import { AutocompleteInput } from '@/components/inputs';
 import {
   CloseButtonStyled,
   ModalContainer,
@@ -36,7 +36,7 @@ export const ContractRecurringModal: React.FC<Props> = ({
   onSuccess,
   onLoadingChange,
 }) => {
-  const { options } = useFormResources([
+  const { options, setSearch } = useFormResources([
     'financeTypes',
     'financeBanks',
     'financePaymentMethods',
@@ -141,40 +141,45 @@ export const ContractRecurringModal: React.FC<Props> = ({
         <Divider sx={{ mb: 2 }} />
 
         <Box display="flex" flexDirection="column" gap={2}>
-          <SelectInput
+          <AutocompleteInput
             label="Centro de custo (tipo financeiro)"
             name="typeId"
             control={control}
             options={options.financeTypes ?? []}
             disabled={loading}
+            onInputChange={(v) => setSearch('financeTypes', v)}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Segmento"
             name="segmentId"
             control={control}
             options={options.financeSegments ?? []}
             disabled={loading}
+            onInputChange={(v) => setSearch('financeSegments', v)}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Categoria"
             name="categoryId"
             control={control}
             options={options.financeCategories ?? []}
             disabled={loading}
+            onInputChange={(v) => setSearch('financeCategories', v)}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Banco"
             name="bankId"
             control={control}
             options={options.financeBanks ?? []}
             disabled={loading}
+            onInputChange={(v) => setSearch('financeBanks', v)}
           />
-          <SelectInput
+          <AutocompleteInput
             label="Método de pagamento"
             name="methodId"
             control={control}
             options={options.financePaymentMethods ?? []}
             disabled={loading}
+            onInputChange={(v) => setSearch('financePaymentMethods', v)}
           />
 
           <Box display="flex" gap={2}>

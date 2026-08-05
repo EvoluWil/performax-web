@@ -2,7 +2,6 @@ import { BaseDrawer } from '@/components/drawer';
 import {
   AutocompleteInput,
   CurrencyInput,
-  SelectInput,
   TextInput,
 } from '@/components/inputs';
 import { ClientDrawer } from '@/features/client/components/client-drawer/client';
@@ -164,7 +163,7 @@ export const BudgetDrawer: React.FC<BudgetDrawerProps> = (props) => {
                       control={control}
                       label="Descrição"
                     />
-                    <SelectInput
+                    <AutocompleteInput
                       name={`items.${index}.type` as any}
                       control={control}
                       label="Tipo"

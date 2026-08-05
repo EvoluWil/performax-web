@@ -52,6 +52,31 @@ const columns: MRT_ColumnDef<Occurrence>[] = [
     },
   },
   {
+    accessorKey: 'responsible',
+    header: 'Responsável',
+    Cell({ cell }: any) {
+      return cell.getValue()?.name ?? '-';
+    },
+  },
+  {
+    accessorKey: 'description',
+    header: 'Descrição',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
+    accessorKey: 'observation',
+    header: 'Observação',
+    Cell({ cell }: any) {
+      const value = cell.getValue() as string;
+      if (!value) return '-';
+      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
+    },
+  },
+  {
     accessorKey: 'createdBy',
     header: 'Criado por',
     Cell({ cell }: any) {
@@ -70,6 +95,20 @@ const columns: MRT_ColumnDef<Occurrence>[] = [
     header: 'Criado em',
     Cell({ cell }: any) {
       return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: 'updatedAt',
+    header: 'Atualizado em',
+    Cell({ cell }: any) {
+      return formatDate(cell.getValue());
+    },
+  },
+  {
+    accessorKey: 'completedAt',
+    header: 'Concluída em',
+    Cell({ cell }: any) {
+      return cell.getValue() ? formatDate(cell.getValue()) : '-';
     },
   },
   {

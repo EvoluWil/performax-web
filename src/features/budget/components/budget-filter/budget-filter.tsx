@@ -1,13 +1,13 @@
 import {
+  AutocompleteInput,
   DateInput,
-  SelectInput,
   TextInput,
-} from "@/components/inputs";
-import { StatusQuickFilter } from "@/components/common/status-quick-filter/status-quick-filter";
-import { Box, Button, Divider, Paper, Typography } from "@mui/material";
-import React from "react";
-import { BudgetFilterDto } from "../../schemas/budget-filter.schema";
-import { useBudgetFilter } from "./budget-filter.hook";
+} from '@/components/inputs';
+import { StatusQuickFilter } from '@/components/common/status-quick-filter/status-quick-filter';
+import { Box, Button, Divider, Paper, Typography } from '@mui/material';
+import React from 'react';
+import { BudgetFilterDto } from '../../schemas/budget-filter.schema';
+import { useBudgetFilter } from './budget-filter.hook';
 
 type BudgetFilterProps = {
   open: boolean;
@@ -25,6 +25,8 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
     fieldAccess,
     handleFilter,
     options,
+    setSearch,
+    isLoading,
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
@@ -40,7 +42,7 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
         />
       </Box>
       {open && (
-        <Paper variant="outlined" sx={{ p: 2, overflowX: "auto", my: 2 }}>
+        <Paper variant="outlined" sx={{ p: 2, overflowX: 'auto', my: 2 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom>
             Filtros para orçamentos
           </Typography>
@@ -64,12 +66,15 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
                 label="Protocolo do orçamento"
                 placeholder="Digite parte do protocolo do orçamento"
               />
-              {fieldAccess.typeId && (
-                <SelectInput
-                  name="typeId"
+              {fieldAccess.typeIds && (
+                <AutocompleteInput
+                  name="typeIds"
                   control={control}
                   label="Tipo de orçamento"
-                  options={options.types}
+                  multiple
+                  options={options.budgetTypes ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('budgetTypes', v)}
                 />
               )}
             </Box>
@@ -94,20 +99,26 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
               gap={2}
               sx={{ minWidth: 320, flex: 1 }}
             >
-              {fieldAccess.clientId && (
-                <SelectInput
-                  name="clientId"
+              {fieldAccess.clientIds && (
+                <AutocompleteInput
+                  name="clientIds"
                   control={control}
                   label="Cliente"
-                  options={options.clients}
+                  multiple
+                  options={options.clients ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('clients', v)}
                 />
               )}
-              {fieldAccess.userId && (
-                <SelectInput
-                  name="userId"
+              {fieldAccess.userIds && (
+                <AutocompleteInput
+                  name="userIds"
                   control={control}
                   label="Responsável"
-                  options={options.users}
+                  multiple
+                  options={options.users ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('users', v)}
                 />
               )}
             </Box>
