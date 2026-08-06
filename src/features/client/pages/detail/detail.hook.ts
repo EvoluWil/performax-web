@@ -8,10 +8,13 @@ import {
   useClientDetailQuery,
   useClientMutation,
 } from '../../hooks/queries/client.query';
+import { clientService } from '../../services/client.service';
+import { Client, FiscalStatus } from '../../types';
 
 export const useClientDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [contractsModalOpen, setContractsModalOpen] = useState(false);
+  const [fiscalStatus, setFiscalStatus] = useState<FiscalStatus | undefined>();
 
   const { clientId } = useParams();
   const { replace } = useRouter();
@@ -53,8 +56,20 @@ export const useClientDetail = () => {
     if (error) replace('/panel/clients');
   }, [error, replace]);
 
+  useEffect(() => {
+    if (!client?.id) return;
+    clientService
+      .getFiscalStatus(client.id)
+      .then(setFiscalStatus)
+      .catch(() => setFiscalStatus(undefined));
+  }, [client?.id]);
+
+  const clientWithFiscal: Client | undefined = client
+    ? { ...client, fiscalStatus }
+    : undefined;
+
   return {
-    client,
+    client: clientWithFiscal,
     loading: clientMutation.isPending || isRefetching,
     editModalOpen,
     contractsModalOpen,

@@ -106,7 +106,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
               fontSize: 10,
             },
             {
-              text: `CNPJ: ${formatCnpj(task.client?.cnpj)}`,
+              text: `CNPJ: ${formatCnpj(task.client?.cnpj ?? '')}`,
               fontSize: 10,
             },
           ],

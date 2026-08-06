@@ -6,6 +6,8 @@ import {
   UpdateCompanySettingsDto,
   UpsertWhiteLabelDto,
 } from '../../services/customization.service';
+import { fiscalConfigService } from '../../services/fiscal-config.service';
+import { UpsertFiscalConfigDto } from '../../types/fiscal-config';
 
 export function useWhiteLabelQuery() {
   return useQuery({
@@ -127,6 +129,34 @@ export function useToggleModuleMutation() {
         queryKey: ['customization-company-modules'],
       });
       queryClient.invalidateQueries({ queryKey: ['company-modules'] });
+    },
+  });
+}
+
+export function useFiscalConfigQuery() {
+  return useQuery({
+    queryKey: ['fiscalConfig'],
+    queryFn: () => fiscalConfigService.get(),
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useFiscalConfigStatusQuery() {
+  return useQuery({
+    queryKey: ['fiscalConfigStatus'],
+    queryFn: () => fiscalConfigService.getStatus(),
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useFiscalConfigMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (dto: UpsertFiscalConfigDto) => fiscalConfigService.upsert(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiscalConfig'] });
+      queryClient.invalidateQueries({ queryKey: ['fiscalConfigStatus'] });
     },
   });
 }

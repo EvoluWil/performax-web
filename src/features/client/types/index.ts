@@ -1,3 +1,17 @@
-import { Client, ClientCompliance, ClientComplianceStatus } from './client';
+import {
+  Client,
+  ClientCompliance,
+  ClientComplianceStatus,
+  FiscalAddress,
+  FiscalStatus,
+  PersonType,
+} from './client';
 
-export type { Client, ClientCompliance, ClientComplianceStatus };
+export type {
+  Client,
+  ClientCompliance,
+  ClientComplianceStatus,
+  FiscalAddress,
+  FiscalStatus,
+  PersonType,
+};

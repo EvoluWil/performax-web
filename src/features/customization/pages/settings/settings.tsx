@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { CompaniesCard } from './components/CompaniesCard';
+import { FiscalConfigCard } from './components/FiscalConfigCard';
 import { ModulesCard } from './components/ModulesCard';
 import { WhiteLabelCard } from './components/WhiteLabelCard';
 import { useCustomizationSettings } from './settings.hook';
@@ -46,6 +47,12 @@ export const CustomizationSettings: React.FC = () => {
     handleToggleModule,
     toggleModuleLoading,
     hasWhiteLabelModule,
+    fiscalControl,
+    setFiscalValue,
+    fiscalStatus,
+    fiscalConfig,
+    certificateFile,
+    setCertificateFile,
   } = useCustomizationSettings();
 
   return (
@@ -90,6 +97,17 @@ export const CustomizationSettings: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <FiscalConfigCard
+            control={fiscalControl}
+            setValue={setFiscalValue}
+            fiscalStatus={fiscalStatus}
+            certificateFile={certificateFile}
+            onCertificateChange={setCertificateFile}
+            hasCertificate={fiscalConfig?.hasCertificate}
+          />
         </Grid>
 
         {hasWhiteLabelModule && (

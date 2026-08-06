@@ -1,12 +1,13 @@
 import { api } from '@/config/api';
 import { ClientFormDto } from '@/features/client/schemas';
-import { Client } from '@/features/client/types';
+import { Client, FiscalStatus } from '@/features/client/types';
 import { BaseCompanyService } from '@/services/base-url.service';
 import { BaseResponseCount } from '@/types/base-response-count';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 
 export const getClientQuery: Query = {
-  select: 'name address cnpj',
+  select:
+    'name address cnpj cpf email phone personType fiscalAddress',
   sort: {
     field: 'name',
     criteria: 'asc',
@@ -49,6 +50,13 @@ class ClientService extends BaseCompanyService {
   async delete(clientId: string): Promise<Client> {
     const { data } = await api.delete<Client>(
       `${this.getUrlBase(this.path)}/${clientId}`,
+    );
+    return data;
+  }
+
+  async getFiscalStatus(clientId: string): Promise<FiscalStatus> {
+    const { data } = await api.get<FiscalStatus>(
+      `${this.getUrlBase(this.path)}/${clientId}/fiscal-status`,
     );
     return data;
   }
