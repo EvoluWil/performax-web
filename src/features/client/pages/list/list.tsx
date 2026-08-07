@@ -11,8 +11,9 @@ import { ClientFormDto } from '@/features/client/schemas';
 import { Client } from '@/features/client/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { formatCnpj } from '@/utils/cnpj';
-import { DeleteOutlined } from '@mui/icons-material';
-import { Typography } from '@mui/material';
+import { formatCpf } from '@/utils/cpf';
+import { DeleteOutlined, ReceiptOutlined } from '@mui/icons-material';
+import { Chip, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
 import { useCallback } from 'react';
 import { useClientList } from './list.hook';
@@ -23,20 +24,48 @@ const columns: MRT_ColumnDef<Client>[] = [
     header: 'Nome',
   },
   {
-    accessorKey: 'address',
-    header: 'Endereço',
+    id: 'document',
+    header: 'CPF/CNPJ',
+    muiTableHeadCellProps: { align: 'center' },
+    muiTableBodyCellProps: { align: 'center' },
+    Cell({ row }) {
+      const client = row.original;
+      if (client.personType === 'PF' || client.cpf) {
+        return formatCpf(client.cpf ?? '');
+      }
+      return formatCnpj(client.cnpj ?? '');
+    },
   },
   {
-    accessorKey: 'cnpj',
-    header: 'CNPJ',
-    muiTableHeadCellProps: {
-      align: 'center',
+    id: 'fiscalAddress',
+    header: 'Endereço',
+    Cell({ row }) {
+      const fa = row.original.fiscalAddress;
+      if (fa?.street) {
+        return [fa.street, fa.city, fa.state].filter(Boolean).join(', ');
+      }
+      return row.original.address || '-';
     },
-    muiTableBodyCellProps: {
-      align: 'center',
-    },
-    Cell({ cell }: any) {
-      return formatCnpj(cell.getValue());
+  },
+  {
+    accessorKey: 'email',
+    header: 'E-mail',
+  },
+  {
+    id: 'fiscal',
+    header: 'Fiscal',
+    size: 80,
+    muiTableHeadCellProps: { align: 'center' },
+    muiTableBodyCellProps: { align: 'center' },
+    Cell() {
+      return (
+        <Chip
+          icon={<ReceiptOutlined />}
+          label="Ver detalhe"
+          size="small"
+          variant="outlined"
+        />
+      );
     },
   },
 ];

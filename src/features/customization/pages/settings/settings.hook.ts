@@ -13,6 +13,9 @@ import {
   useCompanyModulesQuery,
   useCompanySettingsMutation,
   useCreateCompanyMutation,
+  useFiscalConfigMutation,
+  useFiscalConfigQuery,
+  useFiscalConfigStatusQuery,
   useLinkCompanyMutation,
   useOwnedCompaniesQuery,
   useToggleModuleMutation,
@@ -25,6 +28,15 @@ import {
   customizationFormInitialValues,
   customizationFormSchema,
 } from '../../schemas/customization.schema';
+import {
+  FiscalConfigFormDto,
+  fiscalConfigFormInitialValues,
+  fiscalConfigFormSchema,
+} from '../../schemas/fiscal-config.schema';
+import {
+  fiscalConfigToFormValues,
+  formValuesToFiscalConfigDtoAsync,
+} from '../../schemas/fiscal-config.mapper';
 
 export const useCustomizationSettings = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -39,6 +51,7 @@ export const useCustomizationSettings = () => {
   const [openCreateCompany, setOpenCreateCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
   const { sendFile } = useUpload();
   const { setWhiteLabel } = useWhiteLabel();
@@ -46,6 +59,8 @@ export const useCustomizationSettings = () => {
 
   const company = companyService.getDefaultCompany();
   const { data: whiteLabel } = useWhiteLabelQuery();
+  const { data: fiscalConfig } = useFiscalConfigQuery();
+  const { data: fiscalStatus } = useFiscalConfigStatusQuery();
   const { data: ownedCompanies = [] } = useOwnedCompaniesQuery();
   const createCompanyMutation = useCreateCompanyMutation();
   const linkMutation = useLinkCompanyMutation();
@@ -56,6 +71,18 @@ export const useCustomizationSettings = () => {
 
   const whiteLabelMutation = useWhiteLabelMutation();
   const companyMutation = useCompanySettingsMutation();
+  const fiscalConfigMutation = useFiscalConfigMutation();
+
+  const {
+    control: fiscalControl,
+    reset: resetFiscal,
+    setValue: setFiscalValue,
+    trigger: fiscalTrigger,
+    getValues: getFiscalValues,
+  } = useForm<FiscalConfigFormDto>({
+    defaultValues: fiscalConfigFormInitialValues,
+    resolver: yupResolver(fiscalConfigFormSchema) as any,
+  });
 
   const {
     control,
@@ -113,6 +140,10 @@ export const useCustomizationSettings = () => {
     }
   }, [whiteLabel, reset]);
 
+  useEffect(() => {
+    resetFiscal(fiscalConfigToFormValues(fiscalConfig));
+  }, [fiscalConfig, resetFiscal]);
+
   // Derive the current company's latest groupId from the owned list (updated after link ops)
   const currentCompanyId = company?.id ?? '';
   const currentCompanyGroupId = ownedCompanies.find(
@@ -120,70 +151,84 @@ export const useCustomizationSettings = () => {
   )?.groupId;
 
   const handleSave = handleSubmit(async (values: CustomizationFormDto) => {
+    const fiscalValid = await fiscalTrigger();
+    if (!fiscalValid) {
+      toast.error('Verifique os dados fiscais');
+      return;
+    }
+
+    const fiscalValues = getFiscalValues();
     setLoading(true);
     try {
-      let logoUrl = values.logo;
-      let bannerUrl = values.banner;
-      let faviconUrl = values.favicon;
+        let logoUrl = values.logo;
+        let bannerUrl = values.banner;
+        let faviconUrl = values.favicon;
 
-      if (logoFile) {
-        const result = await sendFile(
-          logoFile,
-          `white-label/${company?.id}/logo`,
-        );
-        if (result?.url) logoUrl = result.url;
-      }
+        if (logoFile) {
+          const result = await sendFile(
+            logoFile,
+            `white-label/${company?.id}/logo`,
+          );
+          if (result?.url) logoUrl = result.url;
+        }
 
-      if (bannerFile) {
-        const result = await sendFile(
-          bannerFile,
-          `white-label/${company?.id}/banner`,
-        );
-        if (result?.url) bannerUrl = result.url;
-      }
+        if (bannerFile) {
+          const result = await sendFile(
+            bannerFile,
+            `white-label/${company?.id}/banner`,
+          );
+          if (result?.url) bannerUrl = result.url;
+        }
 
-      if (faviconFile) {
-        const result = await sendFile(
-          faviconFile,
-          `white-label/${company?.id}/favicon`,
-        );
-        if (result?.url) faviconUrl = result.url;
-      }
+        if (faviconFile) {
+          const result = await sendFile(
+            faviconFile,
+            `white-label/${company?.id}/favicon`,
+          );
+          if (result?.url) faviconUrl = result.url;
+        }
 
-      await companyMutation.mutateAsync({ name: values.companyName });
+        await companyMutation.mutateAsync({ name: values.companyName });
 
-      const updatedWhiteLabel = await whiteLabelMutation.mutateAsync({
-        name: values.wlName,
-        logo: logoUrl,
-        banner: bannerUrl,
-        favicon: faviconUrl,
-        primaryColor: values.primaryColor,
-        secondaryColor: values.secondaryColor,
-      });
-
-      setWhiteLabel(updatedWhiteLabel);
-
-      if (company) {
-        companyService.setDefaultCompany({
-          ...company,
-          name: values.companyName,
-          whiteLabel: updatedWhiteLabel,
+        const updatedWhiteLabel = await whiteLabelMutation.mutateAsync({
+          name: values.wlName,
+          logo: logoUrl,
+          banner: bannerUrl,
+          favicon: faviconUrl,
+          primaryColor: values.primaryColor,
+          secondaryColor: values.secondaryColor,
         });
-      }
 
-      const faviconChanged = !!faviconFile;
-      setLogoFile(null);
-      setBannerFile(null);
-      setFaviconFile(null);
-      toast.success('Configurações salvas com sucesso');
-      if (faviconChanged) {
-        setTimeout(() => window.location.reload(), 1000);
+        const fiscalDto = await formValuesToFiscalConfigDtoAsync(
+          fiscalValues,
+          certificateFile,
+        );
+        await fiscalConfigMutation.mutateAsync(fiscalDto);
+
+        setWhiteLabel(updatedWhiteLabel);
+
+        if (company) {
+          companyService.setDefaultCompany({
+            ...company,
+            name: values.companyName,
+            whiteLabel: updatedWhiteLabel,
+          });
+        }
+
+        const faviconChanged = !!faviconFile;
+        setLogoFile(null);
+        setBannerFile(null);
+        setFaviconFile(null);
+        setCertificateFile(null);
+        toast.success('Configurações salvas com sucesso');
+        if (faviconChanged) {
+          setTimeout(() => window.location.reload(), 1000);
+        }
+      } catch {
+        toast.error('Erro ao salvar configurações');
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      toast.error('Erro ao salvar configurações');
-    } finally {
-      setLoading(false);
-    }
   });
 
   const handleCreateCompany = async () => {
@@ -274,5 +319,11 @@ export const useCustomizationSettings = () => {
     handleToggleModule,
     toggleModuleLoading: toggleModuleMutation.isPending,
     hasWhiteLabelModule: hasModule('whitelabel'),
+    fiscalControl,
+    setFiscalValue,
+    fiscalStatus,
+    fiscalConfig,
+    certificateFile,
+    setCertificateFile,
   };
 };

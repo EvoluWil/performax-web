@@ -1,5 +1,23 @@
 import { User } from '@/types/user';
 
+export type FiscalAddress = {
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  cityCode?: string;
+};
+
+export type PersonType = 'PF' | 'PJ';
+
+export type FiscalStatus = {
+  ready: boolean;
+  missingFields: string[];
+};
+
 export type ClientComplianceStatus =
   | 'COMPLIANT'
   | 'NON_COMPLIANT'
@@ -13,8 +31,13 @@ export type ClientCompliance = {
 export type Client = {
   id: string;
   name: string;
-  cnpj: string;
-  address: string;
+  cnpj?: string | null;
+  address?: string | null;
+  personType?: PersonType | null;
+  cpf?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  fiscalAddress?: FiscalAddress | null;
   deleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -22,5 +45,6 @@ export type Client = {
   userIds: string[];
   createdBy?: Pick<User, 'id' | 'name'> | null;
   compliance?: ClientCompliance;
+  fiscalStatus?: FiscalStatus;
   contracts?: import('@/features/contract/types').Contract[];
 };

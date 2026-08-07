@@ -5,9 +5,7 @@ import {
 } from '@/features/client/schemas/client-drawer.schema';
 import * as yup from 'yup';
 
-const clientImportSchema = clientFormSchema.shape({
-  address: yup.string().optional(),
-}) as yup.ObjectSchema<ClientFormDto>;
+const clientImportSchema = clientFormSchema as yup.ObjectSchema<ClientFormDto>;
 
 export function createClientCsvImportConfig(
   onCreate: (row: ClientFormDto) => Promise<unknown>,
@@ -22,17 +20,31 @@ export function createClientCsvImportConfig(
         example: 'Empresa Exemplo Ltda',
       },
       {
+        key: 'personType',
+        header: 'Tipo (PF/PJ)',
+        example: 'PJ',
+      },
+      {
         key: 'cnpj',
         header: 'CNPJ',
-        required: true,
         example: '12.345.678/0001-90',
       },
       {
+        key: 'cpf',
+        header: 'CPF',
+        example: '123.456.789-00',
+      },
+      {
+        key: 'email',
+        header: 'E-mail',
+        example: 'contato@empresa.com',
+      },
+      {
         key: 'address',
-        header: 'Endereço',
+        header: 'Endereço (legado)',
         example: 'Rua Exemplo, 123 - Centro',
       },
-    ],
+    ] as CsvImportConfig<ClientFormDto>['columns'],
     schema: clientImportSchema,
     onCreate,
   };

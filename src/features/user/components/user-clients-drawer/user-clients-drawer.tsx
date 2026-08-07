@@ -77,7 +77,7 @@ export const UserClientsDrawer: React.FC<UserClientsDrawerProps> = (props) => {
                   >
                     <ListItemText
                       primary={client.name}
-                      secondary={`CNPJ: ${formatCnpj(client.cnpj)}`}
+                      secondary={`CNPJ: ${formatCnpj(client.cnpj ?? '')}`}
                     />
                   </ListItem>
                 ))}
