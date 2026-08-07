@@ -1,14 +1,14 @@
 'use client';
 
 import { Empty, ListHeader, Table } from '@/components/common';
-import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { ApprovalDrawer } from '@/components/drawer/approval-drawer/approval-drawer';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
-import { TaskCard, TaskDrawer, TaskFilter } from '@/features/task/components';
 import { createTaskCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
+import { TaskCard, TaskDrawer, TaskFilter } from '@/features/task/components';
 import { useTaskMutation } from '@/features/task/hooks';
 import { TaskFormDto } from '@/features/task/schemas';
 import { Task, taskStatusLabels } from '@/features/task/types';
@@ -114,15 +114,6 @@ const columns: MRT_ColumnDef<Task>[] = [
       return typeof v === 'string' && v.length > 60
         ? `${v.slice(0, 60)}...`
         : v;
-    },
-  },
-  {
-    accessorKey: 'service',
-    header: 'Serviço',
-    Cell({ cell }: any) {
-      const value = cell.getValue() as string;
-      if (!value) return '-';
-      return value.length > 60 ? `${value.slice(0, 60)}...` : value;
     },
   },
   {
@@ -280,10 +271,13 @@ export const TaskList = () => {
     [taskMutation],
   );
 
-  const { importOpen, setImportOpen, config: csvImportConfig } =
-    useListCsvImport(createTaskCsvImportConfig, handleImportCreate, [
-      handleImportCreate,
-    ]);
+  const {
+    importOpen,
+    setImportOpen,
+    config: csvImportConfig,
+  } = useListCsvImport(createTaskCsvImportConfig, handleImportCreate, [
+    handleImportCreate,
+  ]);
 
   const [approvalTask, setApprovalTask] = useState<Task | null>(null);
   const [approvalLoading, setApprovalLoading] = useState(false);
