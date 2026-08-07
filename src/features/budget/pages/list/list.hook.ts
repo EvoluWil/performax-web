@@ -1,6 +1,12 @@
 import { Pagination } from '@/components/common/table/table';
+import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  hasActiveFilterParams,
+  parseBudgetFilterFromUrl,
+  serializeBudgetFilterToUrl,
+} from '@/utils/list-url-serializers';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -14,6 +20,7 @@ import {
 } from '../../hooks/queries/budgets.query';
 import {
   BudgetFilterDto,
+  budgetFilterInitialValues,
   buildBudgetStatusOrFilter,
 } from '../../schemas/budget-filter.schema';
 import { budgetService, getBudgetQuery } from '../../services/budget.service';
@@ -32,7 +39,20 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-budgets';
 
 export const useBudgetList = () => {
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    filter: urlFilter,
+    hasUrlParams,
+    syncUrl,
+  } = useListUrlState({
+    defaultFilter: budgetFilterInitialValues,
+    parseFilter: parseBudgetFilterFromUrl,
+    serializeFilter: (filter) =>
+      serializeBudgetFilterToUrl(filter ?? budgetFilterInitialValues),
+  });
+
+  const [pagination, setPagination] = useState(urlPagination);
   const [filteredCount, setFilteredCount] = useState(0);
 
   const {
@@ -49,9 +69,13 @@ export const useBudgetList = () => {
 
   const budgets = data?.budgets ?? [];
 
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(urlQ);
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<BudgetFilterDto | null>(null);
+  const [filter, setFilter] = useState<BudgetFilterDto | null>(() =>
+    hasActiveFilterParams(serializeBudgetFilterToUrl(urlFilter), urlQ)
+      ? urlFilter
+      : null,
+  );
   const [selectedColumnsKeys, setSelectedColumnsKeys] =
     useState<string[]>(defaultColumns);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
@@ -337,6 +361,22 @@ export const useBudgetList = () => {
     }
   };
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
+    state: {
+      q: term,
+      pagination,
+      filter: filter ?? budgetFilterInitialValues,
+    },
+    syncUrl,
+    onApplyFromUrl: async (nextFilter, nextTerm, page) => {
+      if (hasActiveFilterParams(serializeBudgetFilterToUrl(nextFilter), nextTerm)) {
+        await handleFilter(nextFilter, nextTerm, page);
+      }
+    },
+  });
+
   const count = filter ? filteredCount : (data?.count ?? 0);
 
   const currentBudgetsAll = (
@@ -384,6 +424,8 @@ export const useBudgetList = () => {
 
   return {
     budgets: paginatedBudgets,
+    term,
+    filter,
     count,
     getBudgetReportData,
     pagination,

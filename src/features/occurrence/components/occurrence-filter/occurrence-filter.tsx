@@ -13,12 +13,14 @@ type OccurrenceFilterProps = {
   open: boolean;
   onFilter: (data: OccurrenceFilterDto) => void;
   loading?: boolean;
+  values?: OccurrenceFilterDto;
 };
 
 export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
   open,
   onFilter,
   loading = false,
+  values,
 }) => {
   const {
     control,
@@ -30,7 +32,7 @@ export const OccurrenceFilter: React.FC<OccurrenceFilterProps> = ({
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
-  } = useOccurrenceFilter(onFilter);
+  } = useOccurrenceFilter(onFilter, values);
 
   return (
     <Box>

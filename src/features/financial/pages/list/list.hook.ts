@@ -1,4 +1,5 @@
 import { Pagination } from '@/components/common/table/table';
+import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { companyService } from '@/services/company.service';
 import { useMediaQuery } from '@mui/material';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
@@ -17,6 +18,11 @@ import {
   makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
 import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  hasActiveFilterParams,
+  parseFinanceFilterFromUrl,
+  serializeFinanceFilterToUrl,
+} from '@/utils/list-url-serializers';
 import {
   financeService,
   getFinanceQuery,
@@ -108,19 +114,29 @@ const buildQuery = (
 };
 
 export const useFinanceList = () => {
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    filter: urlFilter,
+    hasUrlParams,
+    syncUrl,
+  } = useListUrlState({
+    defaultFilter: makeFinanceFilterInitialValues(),
+    parseFilter: parseFinanceFilterFromUrl,
+    serializeFilter: serializeFinanceFilterToUrl,
+  });
+
+  const [pagination, setPagination] = useState(urlPagination);
   const [isChangingPage, setIsChangingPage] = useState(false);
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(urlQ);
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<FinanceFilterDto>(
-    makeFinanceFilterInitialValues,
-  );
+  const [filter, setFilter] = useState<FinanceFilterDto>(urlFilter);
   const [openModal, setOpenModal] = useState(false);
   const [selectedFinance, setSelectedFinance] = useState<Finance | null>(null);
   const [openTransferModal, setOpenTransferModal] = useState(false);
   const [openWalletEditModal, setOpenWalletEditModal] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<Query>(() =>
-    buildQuery(makeFinanceFilterInitialValues(), ''),
+    buildQuery(urlFilter, urlQ),
   );
   const [viewMode, setViewMode] = useState<'table' | 'list'>('table');
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
@@ -302,8 +318,25 @@ export const useFinanceList = () => {
     }
   }, []);
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
+    state: { q: term, pagination, filter },
+    syncUrl,
+    onApplyFromUrl: async (nextFilter, nextTerm) => {
+      if (
+        hasActiveFilterParams(serializeFinanceFilterToUrl(nextFilter), nextTerm)
+      ) {
+        setFilter(nextFilter);
+        setCurrentQuery(buildQuery(nextFilter, nextTerm));
+      }
+    },
+  });
+
   return {
     finances: paginatedFinances,
+    term,
+    filter,
     count,
     handleReload,
     handleSearch,
@@ -329,7 +362,6 @@ export const useFinanceList = () => {
     setOpenTransferModal,
     pagination,
     handlePaginationChange,
-    filter,
     currentCompanyId,
     groupId,
     viewMode,

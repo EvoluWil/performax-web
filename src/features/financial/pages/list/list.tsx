@@ -336,6 +336,8 @@ export const FinanceList = () => {
     handleDeleteFinance,
     toggleShowFilter,
     handleFilter,
+    term,
+    filter,
     handleRecalculate,
     openModal,
     selectedFinance,
@@ -654,6 +656,7 @@ export const FinanceList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         onShowFilters={toggleShowFilter}
         searchTitle="Pesquise por título, protocolo ou cliente"
         addTitle="Adicionar lançamento"
@@ -662,7 +665,7 @@ export const FinanceList = () => {
         onCustomizeColumns={toggleCustomizeColumnsModal}
       />
 
-      <FinanceFilter open={showFilter} onFilter={handleFilter} />
+      <FinanceFilter open={showFilter} onFilter={handleFilter} values={filter} />
 
       {viewMode === 'table' ? (
         <Table

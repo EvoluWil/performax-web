@@ -5,18 +5,18 @@ import {
   taskFilterInitialValues,
 } from '@/features/task/schemas';
 import { taskStatusLabels } from '@/features/task/types';
+import { useClosedTaskFilterAccess } from '@/hooks/common/use-closed-task-filter-access';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { useFormResources } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
-const statusOptions = TASK_STATUS_FILTER_MAP.map(({ status }) => ({
-  value: status,
-  label: taskStatusLabels[status as keyof typeof taskStatusLabels]?.label ?? status,
-}));
-
-export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
+export function useTaskFilter(
+  onFilter: (data: TaskFilterDto) => void,
+  values?: TaskFilterDto,
+) {
+  const canSeeClosedFilter = useClosedTaskFilterAccess();
   const fieldAccess = useFilterFieldAccess(TASK_FILTER_FIELDS);
 
   const resources = useMemo(() => {
@@ -29,23 +29,55 @@ export function useTaskFilter(onFilter: (data: TaskFilterDto) => void) {
 
   const { options, setSearch, isLoading } = useFormResources(resources);
 
-  const { control, handleSubmit, setValue, watch } = useForm<TaskFilterDto>({
-    defaultValues: taskFilterInitialValues,
+  const visibleStatusFilterMap = useMemo(
+    () =>
+      canSeeClosedFilter
+        ? TASK_STATUS_FILTER_MAP
+        : TASK_STATUS_FILTER_MAP.filter(({ status }) => status !== 'CLOSED'),
+    [canSeeClosedFilter],
+  );
+
+  const statusOptions = useMemo(
+    () =>
+      visibleStatusFilterMap.map(({ status }) => ({
+        value: status,
+        label:
+          taskStatusLabels[status as keyof typeof taskStatusLabels]?.label ??
+          status,
+      })),
+    [visibleStatusFilterMap],
+  );
+
+  const { control, handleSubmit, setValue, watch, reset } = useForm<TaskFilterDto>({
+    defaultValues: values ?? taskFilterInitialValues,
   });
 
+  useEffect(() => {
+    if (values) {
+      reset(values);
+    }
+  }, [values, reset]);
+
   const watchedStatuses = watch(
-    TASK_STATUS_FILTER_MAP.map(({ field }) => field) as (keyof TaskFilterDto)[],
+    visibleStatusFilterMap.map(
+      ({ field }) => field,
+    ) as (keyof TaskFilterDto)[],
   );
 
   const statusFilters = useMemo(() => {
-    return TASK_STATUS_FILTER_MAP.filter(({ field }, index) =>
-      Boolean(watchedStatuses[index]),
-    ).map(({ status }) => status);
-  }, [watchedStatuses]);
+    return visibleStatusFilterMap
+      .filter(({ field }, index) => Boolean(watchedStatuses[index]))
+      .map(({ status }) => status);
+  }, [visibleStatusFilterMap, watchedStatuses]);
 
   const handleUpdateStatuses = (selectedStatuses: string[]) => {
     for (const { status, field } of TASK_STATUS_FILTER_MAP) {
-      setValue(field, selectedStatuses.includes(status));
+      setValue(
+        field,
+        status === 'CLOSED' && !canSeeClosedFilter
+          ? false
+          : selectedStatuses.includes(status),
+      );
     }
     handleFilter();
   };

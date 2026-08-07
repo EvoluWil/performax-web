@@ -7,12 +7,19 @@ import {
 import {
   buildTaskStatusOrFilter,
   TaskFilterDto,
+  taskFilterInitialValues,
 } from '@/features/task/schemas';
 import { taskService } from '@/features/task/services';
 import { getTaskQuery } from '@/features/task/services/task.service';
 import { Task } from '@/features/task/types';
+import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  hasActiveFilterParams,
+  parseTaskFilterFromUrl,
+  serializeTaskFilterToUrl,
+} from '@/utils/list-url-serializers';
 import { useMediaQuery } from '@mui/material';
 import { addDays } from 'date-fns';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
@@ -33,7 +40,19 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-tasks';
 
 export const useTaskList = () => {
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    filter: urlFilter,
+    hasUrlParams,
+    syncUrl,
+  } = useListUrlState({
+    defaultFilter: taskFilterInitialValues,
+    parseFilter: parseTaskFilterFromUrl,
+    serializeFilter: serializeTaskFilterToUrl,
+  });
+
+  const [pagination, setPagination] = useState(urlPagination);
   const [filteredCount, setFilteredCount] = useState(0);
 
   const {
@@ -55,8 +74,8 @@ export const useTaskList = () => {
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
     useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [term, setTerm] = useState('');
-  const [filter, setFilter] = useState<TaskFilterDto>({} as TaskFilterDto);
+  const [term, setTerm] = useState(urlQ);
+  const [filter, setFilter] = useState<TaskFilterDto>(urlFilter);
   const [selectedColumnsKeys, setSelectedColumnsKeys] =
     useState<string[]>(defaultColumns);
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('md'));
@@ -401,8 +420,22 @@ export const useTaskList = () => {
     );
   };
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
+    state: { q: term, pagination, filter },
+    syncUrl,
+    onApplyFromUrl: async (nextFilter, nextTerm, page) => {
+      if (hasActiveFilterParams(serializeTaskFilterToUrl(nextFilter), nextTerm)) {
+        await handleFilter(nextFilter, nextTerm, page);
+      }
+    },
+  });
+
   return {
     tasks: paginatedTasks,
+    term,
+    filter,
     getTaskReportData,
     count,
     pagination,

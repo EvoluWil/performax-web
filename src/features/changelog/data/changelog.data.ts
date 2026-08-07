@@ -2,6 +2,25 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '20',
+    version: '1.20.0',
+    title: 'Filtros iniciais ajustados e persistência de filtros na URL',
+    description: [
+      'Filtro inicial de OS passa a incluir Em Atraso, Emergencial, Agendada e Impedida, além dos status operacionais já ativos.',
+      'Filtro inicial de orçamentos passa a incluir Faturado e Financeiro, junto com Pendente e Aprovado.',
+      'Status Fechada nos filtros rápidos de OS e Atendimento só aparece para quem tem permissão Escrita em OS com escopo Equipe ou Todos.',
+      'Busca, paginação e filtros de todas as listagens principais passam a ser salvos na URL, permitindo voltar do detalhe sem perder o estado aplicado.',
+      'Listagens cobertas: OS, orçamentos, ocorrências, financeiro, contratos, atendimento, clientes, usuários, funcionários e cargos.',
+      'Links de listagem filtrada podem ser compartilhados ou favoritados; parâmetros iguais ao padrão não poluem a URL.',
+      'Campo de busca e botões de status rápido restauram o valor aplicado ao retornar para a listagem.',
+    ],
+    type: 'FEATURE',
+    date: '2026-08-07',
+    deleted: false,
+    createdAt: '2026-08-07',
+    updatedAt: '2026-08-07',
+  },
+  {
     id: '19',
     version: '1.19.0',
     title: 'Autocomplete padronizado e multiselect nos filtros',

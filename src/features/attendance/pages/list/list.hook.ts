@@ -1,10 +1,19 @@
 'use client';
 
-import { useMeQuery } from '@/hooks/queries/me.query';
 import { TaskStatusEnum, taskStatusLabels } from '@/features/task/types';
-import { useMemo, useState } from 'react';
+import { useClosedTaskFilterAccess } from '@/hooks/common/use-closed-task-filter-access';
+import { useMeQuery } from '@/hooks/queries/me.query';
+import {
+  buildListUrlQuery,
+  parseAttendanceFilterFromUrl,
+  serializeAttendanceFilterToUrl,
+} from '@/utils/list-url-serializers';
+import { hasNonDefaultUrlParams } from '@/utils/list-url-state';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttendanceFilters,
+  DEFAULT_ATTENDANCE_STATUSES,
   useAttendanceTasksQuery,
 } from '../../hooks/queries/attendance-tasks.query';
 
@@ -14,31 +23,84 @@ function todayEnd(): Date {
   return d;
 }
 
-export const ATTENDANCE_STATUS_OPTIONS = Object.values(TaskStatusEnum).map(
-  (status) => ({
-    value: status,
-    label: taskStatusLabels[status]?.label ?? status,
-  }),
-);
-
-export const DEFAULT_ATTENDANCE_STATUSES = [
-  TaskStatusEnum.PENDING,
-  TaskStatusEnum.APPROVED,
-  TaskStatusEnum.OPEN,
-  TaskStatusEnum.EMERGENCY,
-  TaskStatusEnum.SCHEDULED,
-  TaskStatusEnum.IMPEDED,
-  TaskStatusEnum.EXPIRED,
-  TaskStatusEnum.IN_PROGRESS,
-];
-
 export function useAttendanceList() {
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
-    DEFAULT_ATTENDANCE_STATUSES,
+  const canSeeClosedFilter = useClosedTaskFilterAccess();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const parsedFromUrl = useMemo(
+    () => parseAttendanceFilterFromUrl(searchParams),
+    [searchParams],
   );
-  const [companyIds, setCompanyIds] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
-  const [dateLte, setDateLte] = useState<Date>(todayEnd());
+  const hasUrlParams = useMemo(
+    () => hasNonDefaultUrlParams(searchParams),
+    [searchParams],
+  );
+
+  const statusOptions = useMemo(
+    () =>
+      Object.values(TaskStatusEnum)
+        .filter(
+          (status) => canSeeClosedFilter || status !== TaskStatusEnum.CLOSED,
+        )
+        .map((status) => ({
+          value: status,
+          label: taskStatusLabels[status]?.label ?? status,
+        })),
+    [canSeeClosedFilter],
+  );
+
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
+    parsedFromUrl.statuses,
+  );
+  const [companyIds, setCompanyIds] = useState<string[]>(
+    parsedFromUrl.companyIds,
+  );
+  const [search, setSearch] = useState(parsedFromUrl.search);
+  const [dateLte, setDateLte] = useState<Date>(
+    () => parsedFromUrl.dateLte ?? todayEnd(),
+  );
+
+  const skipNextSyncRef = useRef(hasUrlParams);
+  const lastSyncedRef = useRef('');
+
+  const syncUrl = useCallback(() => {
+    const query = buildListUrlQuery({
+      q: search,
+      filterParams: serializeAttendanceFilterToUrl({
+        statuses: selectedStatuses,
+        companyIds,
+        search,
+        dateLte,
+      }),
+    });
+    const nextUrl = query ? `${pathname}?${query}` : pathname;
+
+    if (lastSyncedRef.current === nextUrl) {
+      return;
+    }
+
+    lastSyncedRef.current = nextUrl;
+    router.replace(nextUrl, { scroll: false });
+  }, [companyIds, dateLte, pathname, router, search, selectedStatuses]);
+
+  useEffect(() => {
+    setSelectedStatuses(parsedFromUrl.statuses);
+    setCompanyIds(parsedFromUrl.companyIds);
+    setSearch(parsedFromUrl.search);
+    setDateLte(parsedFromUrl.dateLte ?? todayEnd());
+    skipNextSyncRef.current = true;
+  }, [parsedFromUrl]);
+
+  useEffect(() => {
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
+
+    syncUrl();
+  }, [search, selectedStatuses, companyIds, dateLte, syncUrl]);
 
   const { data: me } = useMeQuery();
 
@@ -67,8 +129,12 @@ export function useAttendanceList() {
   } = useAttendanceTasksQuery(activeFilters);
 
   const toggleStatuses = (statuses: string[]) => {
+    const allowedStatuses = canSeeClosedFilter
+      ? statuses
+      : statuses.filter((status) => status !== TaskStatusEnum.CLOSED);
+
     setSelectedStatuses(
-      statuses.length ? statuses : DEFAULT_ATTENDANCE_STATUSES,
+      allowedStatuses.length ? allowedStatuses : DEFAULT_ATTENDANCE_STATUSES,
     );
   };
 
@@ -105,6 +171,7 @@ export function useAttendanceList() {
     refetch,
     search,
     setSearch,
+    statusOptions,
     selectedStatuses,
     toggleStatuses,
     companyIds,

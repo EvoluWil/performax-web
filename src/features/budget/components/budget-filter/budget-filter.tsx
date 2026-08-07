@@ -13,12 +13,14 @@ type BudgetFilterProps = {
   open: boolean;
   onFilter: (data: BudgetFilterDto) => void;
   loading?: boolean;
+  values?: BudgetFilterDto;
 };
 
 export const BudgetFilter: React.FC<BudgetFilterProps> = ({
   open,
   onFilter,
   loading = false,
+  values,
 }) => {
   const {
     control,
@@ -30,7 +32,7 @@ export const BudgetFilter: React.FC<BudgetFilterProps> = ({
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
-  } = useBudgetFilter(onFilter);
+  } = useBudgetFilter(onFilter, values);
 
   return (
     <Box>

@@ -24,9 +24,9 @@ export type BudgetFilterDto = {
 export const budgetFilterInitialValues: BudgetFilterDto = {
   pending: true,
   approved: true,
-  charged: false,
+  charged: true,
   paid: false,
-  financial: false,
+  financial: true,
   completed: false,
   rejected: false,
   clientIds: [],

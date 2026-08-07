@@ -8,7 +8,7 @@ import { occurrenceStatusLabels } from '@/features/occurrence/types/occurrence';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { useFormResources } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 const statusOptions = OCCURRENCE_STATUS_FILTER_MAP.map(({ status }) => ({
@@ -20,6 +20,7 @@ const statusOptions = OCCURRENCE_STATUS_FILTER_MAP.map(({ status }) => ({
 
 export function useOccurrenceFilter(
   onFilter: (data: OccurrenceFilterDto) => void,
+  values?: OccurrenceFilterDto,
 ) {
   const fieldAccess = useFilterFieldAccess(OCCURRENCE_FILTER_FIELDS);
 
@@ -32,10 +33,16 @@ export function useOccurrenceFilter(
 
   const { options, setSearch, isLoading } = useFormResources(resources);
 
-  const { control, handleSubmit, setValue, watch } =
+  const { control, handleSubmit, setValue, watch, reset } =
     useForm<OccurrenceFilterDto>({
-      defaultValues: occurrenceFilterInitialValues,
+      defaultValues: values ?? occurrenceFilterInitialValues,
     });
+
+  useEffect(() => {
+    if (values) {
+      reset(values);
+    }
+  }, [values, reset]);
 
   const watchedStatuses = watch(
     OCCURRENCE_STATUS_FILTER_MAP.map(

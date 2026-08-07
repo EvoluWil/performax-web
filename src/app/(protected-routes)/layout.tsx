@@ -2,7 +2,7 @@ import { Header } from '@/components/display';
 import { getUserSession } from '@/utils/session';
 import { Box } from '@mui/material';
 import { redirect } from 'next/navigation';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, Suspense } from 'react';
 
 export default async function PanelLayout({ children }: PropsWithChildren) {
   const user = await getUserSession();
@@ -20,7 +20,7 @@ export default async function PanelLayout({ children }: PropsWithChildren) {
         pl={{ xs: 2, sm: 11 }}
         mt={{ xs: '72px', sm: '100px' }}
       >
-        {children}
+        <Suspense fallback={null}>{children}</Suspense>
       </Box>
     </>
   );

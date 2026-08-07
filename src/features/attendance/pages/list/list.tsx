@@ -29,10 +29,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { TaskAttendanceCard } from '../../components/TaskAttendanceCard';
-import {
-  ATTENDANCE_STATUS_OPTIONS,
-  useAttendanceList,
-} from './list.hook';
+import { useAttendanceList } from './list.hook';
 
 export const AttendanceList = () => {
   const {
@@ -40,6 +37,7 @@ export const AttendanceList = () => {
     isLoading,
     search,
     setSearch,
+    statusOptions,
     selectedStatuses,
     toggleStatuses,
     companyIds,
@@ -89,7 +87,7 @@ export const AttendanceList = () => {
         <>
       <Box my={1}>
         <StatusQuickFilter
-          options={ATTENDANCE_STATUS_OPTIONS}
+          options={statusOptions}
           value={selectedStatuses}
           onChange={toggleStatuses}
         />

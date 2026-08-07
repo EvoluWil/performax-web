@@ -166,6 +166,8 @@ export const BudgetList = () => {
     showFilter,
     toggleShowFilter,
     handleFilter,
+    term,
+    filter,
     selectedColumnsKeys,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
@@ -337,6 +339,7 @@ export const BudgetList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar orçamento"
         onShowFilters={toggleShowFilter}
@@ -349,6 +352,7 @@ export const BudgetList = () => {
         open={showFilter}
         onFilter={(filter) => handleFilter(filter)}
         loading={false}
+        values={filter ?? undefined}
       />
 
       {viewMode === 'table' ? (

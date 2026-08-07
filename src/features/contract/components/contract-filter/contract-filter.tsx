@@ -7,15 +7,17 @@ type ContractFilterProps = {
   open: boolean;
   onFilter: (data: ContractFilterDto) => void;
   loading?: boolean;
+  values?: ContractFilterDto;
 };
 
 export const ContractFilter: React.FC<ContractFilterProps> = ({
   open,
   onFilter,
   loading = false,
+  values,
 }) => {
   const { control, handleFilter, options, setSearch, isLoading, fieldAccess } =
-    useContractFilter(onFilter);
+    useContractFilter(onFilter, values);
 
   if (!open) return null;
 

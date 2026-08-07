@@ -2,7 +2,7 @@ import { BUDGET_FILTER_FIELDS } from '@/constants/filter-permissions';
 import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { useFormResources } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   BUDGET_STATUS_FILTER_MAP,
@@ -18,7 +18,10 @@ const statusOptions = BUDGET_STATUS_FILTER_MAP.map(({ status }) => ({
     status,
 }));
 
-export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
+export function useBudgetFilter(
+  onFilter: (data: BudgetFilterDto) => void,
+  values?: BudgetFilterDto,
+) {
   const fieldAccess = useFilterFieldAccess(BUDGET_FILTER_FIELDS);
 
   const resources = useMemo(() => {
@@ -31,9 +34,15 @@ export function useBudgetFilter(onFilter: (data: BudgetFilterDto) => void) {
 
   const { options, setSearch, isLoading } = useFormResources(resources);
 
-  const { control, handleSubmit, setValue, watch } = useForm<BudgetFilterDto>({
-    defaultValues: budgetFilterInitialValues,
+  const { control, handleSubmit, setValue, watch, reset } = useForm<BudgetFilterDto>({
+    defaultValues: values ?? budgetFilterInitialValues,
   });
+
+  useEffect(() => {
+    if (values) {
+      reset(values);
+    }
+  }, [values, reset]);
 
   const watchedStatuses = watch(
     BUDGET_STATUS_FILTER_MAP.map(

@@ -175,6 +175,8 @@ export const ContractList = () => {
     showFilter,
     toggleShowFilter,
     handleFilter,
+    term,
+    filter,
     selectedColumnsKeys,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
@@ -425,6 +427,7 @@ export const ContractList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por cliente, tipo ou escopo"
         addTitle="Adicionar contrato"
         onShowFilters={toggleShowFilter}
@@ -434,6 +437,7 @@ export const ContractList = () => {
       <ContractFilter
         open={showFilter}
         onFilter={(filter) => handleFilter(filter)}
+        values={filter ?? undefined}
       />
 
       <Table

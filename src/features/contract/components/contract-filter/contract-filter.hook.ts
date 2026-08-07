@@ -3,7 +3,7 @@ import { useFilterFieldAccess } from '@/hooks/common/use-filter-field-access';
 import { useFormResources } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   ContractFilterDto,
@@ -11,7 +11,10 @@ import {
   contractFilterSchema,
 } from '../../schemas/contract.schema';
 
-export const useContractFilter = (onFilter: (data: ContractFilterDto) => void) => {
+export const useContractFilter = (
+  onFilter: (data: ContractFilterDto) => void,
+  values?: ContractFilterDto,
+) => {
   const fieldAccess = useFilterFieldAccess(CONTRACT_FILTER_FIELDS);
 
   const resources = useMemo(() => {
@@ -23,10 +26,16 @@ export const useContractFilter = (onFilter: (data: ContractFilterDto) => void) =
 
   const { options, setSearch, isLoading } = useFormResources(resources);
 
-  const { control, handleSubmit } = useForm<ContractFilterDto>({
-    defaultValues: contractFilterInitialValues,
+  const { control, handleSubmit, reset } = useForm<ContractFilterDto>({
+    defaultValues: values ?? contractFilterInitialValues,
     resolver: yupResolver(contractFilterSchema) as any,
   });
+
+  useEffect(() => {
+    if (values) {
+      reset(values);
+    }
+  }, [values, reset]);
 
   const handleFilter = handleSubmit((data) => onFilter(data));
 

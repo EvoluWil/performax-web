@@ -45,6 +45,7 @@ export const EmployeeList = () => {
     handleOpenAdd,
     handleReload,
     handleSearch,
+    term,
     handleCloseAdd,
     handleDeleteEmployee,
     handleSelectEmployeeToEdit,
@@ -92,6 +93,7 @@ export const EmployeeList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por nome ou CPF"
         addTitle="Adicionar funcionário"
       />

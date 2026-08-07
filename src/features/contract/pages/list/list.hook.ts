@@ -3,14 +3,20 @@ import {
   contractService,
   getContractQuery,
 } from '@/features/contract/services/contract.service';
-import { ContractFilterDto } from '@/features/contract/schemas/contract.schema';
+import { ContractFilterDto, contractFilterInitialValues } from '@/features/contract/schemas/contract.schema';
 import { Contract } from '@/features/contract/types';
 import {
   useContractMutation,
   useContractsQuery,
 } from '@/features/contract/hooks/queries/contracts.query';
+import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  hasActiveFilterParams,
+  parseContractFilterFromUrl,
+  serializeContractFilterToUrl,
+} from '@/utils/list-url-serializers';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -37,10 +43,27 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-contracts';
 
 export const useContractList = () => {
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
-  const [term, setTerm] = useState('');
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    filter: urlFilter,
+    hasUrlParams,
+    syncUrl,
+  } = useListUrlState({
+    defaultFilter: contractFilterInitialValues,
+    parseFilter: parseContractFilterFromUrl,
+    serializeFilter: (filter) =>
+      serializeContractFilterToUrl(filter ?? contractFilterInitialValues),
+  });
+
+  const [pagination, setPagination] = useState(urlPagination);
+  const [term, setTerm] = useState(urlQ);
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<ContractFilterDto | null>(null);
+  const [filter, setFilter] = useState<ContractFilterDto | null>(() =>
+    hasActiveFilterParams(serializeContractFilterToUrl(urlFilter), urlQ)
+      ? urlFilter
+      : null,
+  );
   const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
   const [filteredCount, setFilteredCount] = useState(0);
   const [openModal, setOpenModal] = useState(false);
@@ -273,8 +296,31 @@ export const useContractList = () => {
 
   const loading = isPending || isRefetching || contractMutation.isPending;
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
+    state: {
+      q: term,
+      pagination,
+      filter: filter ?? contractFilterInitialValues,
+    },
+    syncUrl,
+    onApplyFromUrl: async (nextFilter, nextTerm) => {
+      if (
+        hasActiveFilterParams(serializeContractFilterToUrl(nextFilter), nextTerm)
+      ) {
+        await handleFilter(nextFilter);
+        if (nextTerm) {
+          setTerm(nextTerm);
+        }
+      }
+    },
+  });
+
   return {
     contracts: paginatedContracts,
+    term,
+    filter,
     handleReload,
     handleSearch,
     showFilter,

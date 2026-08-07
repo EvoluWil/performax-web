@@ -7,14 +7,21 @@ import {
 import {
   buildOccurrenceStatusOrFilter,
   OccurrenceFilterDto,
+  occurrenceFilterInitialValues,
 } from '@/features/occurrence/schemas';
 import {
   getOccurrenceQuery,
   occurrenceService,
 } from '@/features/occurrence/services';
 import { Occurrence } from '@/features/occurrence/types';
+import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  hasActiveFilterParams,
+  parseOccurrenceFilterFromUrl,
+  serializeOccurrenceFilterToUrl,
+} from '@/utils/list-url-serializers';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -36,7 +43,20 @@ const defaultColumns = [
 const DEFAULT_TABLE_COLUMNS_KEY = '@performax:default-columns-occurrences';
 
 export const useOccurrenceList = () => {
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    filter: urlFilter,
+    hasUrlParams,
+    syncUrl,
+  } = useListUrlState({
+    defaultFilter: occurrenceFilterInitialValues,
+    parseFilter: parseOccurrenceFilterFromUrl,
+    serializeFilter: (filter) =>
+      serializeOccurrenceFilterToUrl(filter ?? occurrenceFilterInitialValues),
+  });
+
+  const [pagination, setPagination] = useState(urlPagination);
   const [filteredCount, setFilteredCount] = useState(0);
 
   const {
@@ -53,9 +73,13 @@ export const useOccurrenceList = () => {
 
   const occurrences = data?.occurrences ?? [];
 
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(urlQ);
   const [showFilter, setShowFilter] = useState(false);
-  const [filter, setFilter] = useState<OccurrenceFilterDto | null>(null);
+  const [filter, setFilter] = useState<OccurrenceFilterDto | null>(() =>
+    hasActiveFilterParams(serializeOccurrenceFilterToUrl(urlFilter), urlQ)
+      ? urlFilter
+      : null,
+  );
   const [selectedColumnsKeys, setSelectedColumnsKeys] =
     useState<string[]>(defaultColumns);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
@@ -332,6 +356,27 @@ export const useOccurrenceList = () => {
     );
   };
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
+    state: {
+      q: term,
+      pagination,
+      filter: filter ?? occurrenceFilterInitialValues,
+    },
+    syncUrl,
+    onApplyFromUrl: async (nextFilter, nextTerm, page) => {
+      if (
+        hasActiveFilterParams(
+          serializeOccurrenceFilterToUrl(nextFilter),
+          nextTerm,
+        )
+      ) {
+        await handleFilter(nextFilter, nextTerm, page);
+      }
+    },
+  });
+
   const count = filter ? filteredCount : (data?.count ?? 0);
 
   const currentOccurrencesAll = (
@@ -385,6 +430,8 @@ export const useOccurrenceList = () => {
     handleOpenAdd,
     handleCloseAdd,
     handleSelectOccurrenceToEdit,
+    term,
+    filter,
     occurrences: paginatedOccurrences,
     count,
     pagination,

@@ -245,6 +245,8 @@ export const TaskList = () => {
     showFilter,
     toggleShowFilter,
     handleFilter,
+    term,
+    filter,
     viewMode,
     toggleView,
     handleRowClick,
@@ -421,6 +423,7 @@ export const TaskList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar OS"
         onShowFilters={toggleShowFilter}
@@ -433,6 +436,7 @@ export const TaskList = () => {
         open={showFilter}
         onFilter={(filter) => handleFilter(filter)}
         loading={filterLoading}
+        values={filter}
       />
 
       {viewMode === 'table' ? (

@@ -171,6 +171,8 @@ export const OccurrenceList = () => {
     showFilter,
     toggleShowFilter,
     handleFilter,
+    term,
+    filter,
     selectedColumnsKeys,
     toggleCustomizeColumnsModal,
     openCustomizeColumnsModal,
@@ -323,6 +325,7 @@ export const OccurrenceList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por título, descrição, protocolo ou cliente"
         addTitle="Adicionar ocorrência"
         onShowFilters={toggleShowFilter}
@@ -335,6 +338,7 @@ export const OccurrenceList = () => {
         open={showFilter}
         onFilter={(filter) => handleFilter(filter)}
         loading={false}
+        values={filter ?? undefined}
       />
 
       {viewMode === 'table' ? (

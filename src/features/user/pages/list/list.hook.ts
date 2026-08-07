@@ -1,5 +1,6 @@
 import { Pagination } from '@/components/common/table/table';
 import { useUserMutation, useUsersQuery } from '@/features/user/hooks';
+import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { companyService } from '@/services/company.service';
 import { User } from '@/types/user';
@@ -9,6 +10,12 @@ import swal from 'sweetalert2';
 
 export const useUserList = () => {
   const { getScopedUserIds } = useCompanyPermissions();
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    hasUrlParams,
+    syncUrl,
+  } = useSimpleListUrlState();
 
   const scopedUserIds = useMemo(
     () => getScopedUserIds('user'),
@@ -17,7 +24,7 @@ export const useUserList = () => {
 
   const hasUserAccess = scopedUserIds === null || scopedUserIds.length > 0;
 
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [pagination, setPagination] = useState(urlPagination);
 
   const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useUsersQuery({
@@ -39,7 +46,7 @@ export const useUserList = () => {
   const [selectedUserForRole, setSelectedUserForRole] = useState<User | null>(
     null,
   );
-  const [term, setTerm] = useState('');
+  const [term, setTerm] = useState(urlQ);
 
   const company = companyService.getDefaultCompany();
 
@@ -162,8 +169,16 @@ export const useUserList = () => {
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: {} },
+    state: { q: term, pagination, filter: {} },
+    syncUrl,
+  });
+
   return {
     users: paginatedUsers,
+    term,
     count,
     pagination,
     handlePaginationChange,

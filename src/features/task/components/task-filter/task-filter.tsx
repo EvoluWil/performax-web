@@ -14,12 +14,14 @@ type TaskFilterProps = {
   open: boolean;
   onFilter: (data: TaskFilterDto) => void;
   loading?: boolean;
+  values?: TaskFilterDto;
 };
 
 export const TaskFilter: React.FC<TaskFilterProps> = ({
   open,
   onFilter,
   loading = false,
+  values,
 }) => {
   const {
     control,
@@ -31,7 +33,7 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
     handleUpdateStatuses,
     statusFilters,
     statusOptions,
-  } = useTaskFilter(onFilter);
+  } = useTaskFilter(onFilter, values);
 
   return (
     <Box>

@@ -26,6 +26,7 @@ type ListHeaderProps = {
   onImport?: () => void;
   onReload: () => Promise<void>;
   onSearch: (search: string) => Promise<void> | void;
+  searchValue?: string;
   onShowFilters?: () => void;
   onCustomizeColumns?: () => void;
   searchTitle: string;
@@ -40,6 +41,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
   onImport,
   onReload,
   onSearch,
+  searchValue,
   addTitle,
   importTitle = "Importar CSV",
   searchTitle,
@@ -78,6 +80,7 @@ export const ListHeader: React.FC<ListHeaderProps> = ({
             <DebounceInput
               variant="filled"
               placeholder={searchTitle}
+              value={searchValue}
               onDebounce={onSearch}
               fullWidth
             />

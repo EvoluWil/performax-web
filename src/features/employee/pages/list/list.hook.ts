@@ -4,17 +4,25 @@ import {
   useEmployeesQuery,
 } from '@/features/employee/hooks';
 import { Employee } from '@/features/employee/types';
+import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 
 export const useEmployeeList = () => {
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    hasUrlParams,
+    syncUrl,
+  } = useSimpleListUrlState();
+
   const [openModal, setOpenModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null,
   );
-  const [term, setTerm] = useState('');
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [term, setTerm] = useState(urlQ);
+  const [pagination, setPagination] = useState(urlPagination);
 
   const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useEmployeesQuery({
@@ -110,8 +118,16 @@ export const useEmployeeList = () => {
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: {} },
+    state: { q: term, pagination, filter: {} },
+    syncUrl,
+  });
+
   return {
     employees: paginatedEmployees,
+    term,
     openModal,
     selectedEmployee,
     handleOpenAdd,

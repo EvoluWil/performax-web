@@ -48,6 +48,7 @@ export const RoleList = () => {
     handleOpenAdd,
     handleReload,
     handleSearch,
+    term,
     handleCloseAdd,
     handleDeleteRole,
     handleSelectRoleToEdit,
@@ -94,6 +95,7 @@ export const RoleList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por nome ou descrição"
         addTitle="Adicionar cargo"
       />

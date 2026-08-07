@@ -1,4 +1,4 @@
-import { Task } from '@/features/task/types';
+import { Task, TaskStatusEnum } from '@/features/task/types';
 import { buildTextSearchOrFilter } from '@/utils/query';
 import { useMeQuery } from '@/hooks/queries/me.query';
 import { useQuery } from '@tanstack/react-query';
@@ -8,16 +8,18 @@ import {
   attendanceTaskQuery,
 } from '../../services/attendance.service';
 
-export const ACTIVE_STATUSES = [
-  'PENDING',
-  'APPROVED',
-  'OPEN',
-  'EMERGENCY',
-  'SCHEDULED',
-  'IMPEDED',
-  'IN_PROGRESS',
-  'EXPIRED',
+export const DEFAULT_ATTENDANCE_STATUSES = [
+  TaskStatusEnum.PENDING,
+  TaskStatusEnum.APPROVED,
+  TaskStatusEnum.OPEN,
+  TaskStatusEnum.EMERGENCY,
+  TaskStatusEnum.SCHEDULED,
+  TaskStatusEnum.IMPEDED,
+  TaskStatusEnum.EXPIRED,
+  TaskStatusEnum.IN_PROGRESS,
 ];
+
+export const ACTIVE_STATUSES = DEFAULT_ATTENDANCE_STATUSES;
 
 export const CLOSED_STATUSES = ['CLOSED', 'REJECTED'];
 

@@ -1,6 +1,7 @@
 import { Pagination } from '@/components/common/table/table';
 import { useClientMutation, useClientsQuery } from '@/features/client/hooks';
 import { Client } from '@/features/client/types';
+import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -10,13 +11,19 @@ import swal from 'sweetalert2';
 export const useClientList = () => {
   const { push } = useRouter();
   const { hasPageAccess } = useCompanyPermissions();
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    hasUrlParams,
+    syncUrl,
+  } = useSimpleListUrlState();
 
   const hasClientAccess = hasPageAccess('client');
 
   const [openModal, setOpenModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [term, setTerm] = useState('');
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [term, setTerm] = useState(urlQ);
+  const [pagination, setPagination] = useState(urlPagination);
 
   const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useClientsQuery({
@@ -113,8 +120,16 @@ export const useClientList = () => {
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: {} },
+    state: { q: term, pagination, filter: {} },
+    syncUrl,
+  });
+
   return {
     clients: paginatedClients,
+    term,
     openModal,
     selectedClient,
     handleOpenAdd,

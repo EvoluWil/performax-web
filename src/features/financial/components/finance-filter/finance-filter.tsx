@@ -43,11 +43,13 @@ const statusOptions = [
 type FinanceFilterProps = {
   open: boolean;
   onFilter: (data: FinanceFilterDto) => void;
+  values?: FinanceFilterDto;
 };
 
 export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   open,
   onFilter,
+  values,
 }) => {
   const fieldAccess = useFilterFieldAccess(FINANCE_FILTER_FIELDS);
 
@@ -66,9 +68,22 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
   const [quickFlow, setQuickFlow] = useState<string[]>(ALL_FLOWS);
 
   const { control, handleSubmit, reset } = useForm<FinanceFilterDto>({
-    defaultValues: makeFinanceFilterInitialValues(),
+    defaultValues: values ?? makeFinanceFilterInitialValues(),
     resolver: yupResolver(financeFilterSchema) as any,
   });
+
+  useEffect(() => {
+    if (values) {
+      reset(values);
+      if (values.flows?.length) {
+        setQuickFlow(values.flows);
+      } else if (values.flow) {
+        setQuickFlow([values.flow]);
+      } else {
+        setQuickFlow(ALL_FLOWS);
+      }
+    }
+  }, [values, reset]);
 
   const handleFilter = handleSubmit((values) => onFilter(values));
 
@@ -78,11 +93,6 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
     setQuickFlow(ALL_FLOWS);
     onFilter({ ...initial, flows: undefined });
   };
-
-  useEffect(() => {
-    handleSubmit((values) => onFilter(values))();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleQuickFlow = (selected: string[]) => {
     setQuickFlow(selected);

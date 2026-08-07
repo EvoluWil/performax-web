@@ -4,16 +4,24 @@ import {
   useRolesQuery,
 } from '@/features/role/hooks/queries/roles.query';
 import { Role } from '@/features/role/types';
+import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 
 export const useRoleList = () => {
   const { data: roles, refetch } = useRolesQuery();
+  const {
+    q: urlQ,
+    pagination: urlPagination,
+    hasUrlParams,
+    syncUrl,
+  } = useSimpleListUrlState();
+
   const [openModal, setOpenModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [term, setTerm] = useState('');
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 30 });
+  const [term, setTerm] = useState(urlQ);
+  const [pagination, setPagination] = useState(urlPagination);
 
   const roleMutation = useRoleMutation();
 
@@ -82,8 +90,16 @@ export const useRoleList = () => {
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
 
+  useListUrlEffects({
+    hasUrlParams,
+    urlState: { q: urlQ, pagination: urlPagination, filter: {} },
+    state: { q: term, pagination, filter: {} },
+    syncUrl,
+  });
+
   return {
     roles: paginatedRoles,
+    term,
     count,
     pagination,
     handlePaginationChange,

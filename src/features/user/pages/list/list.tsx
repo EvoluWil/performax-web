@@ -98,6 +98,7 @@ export const UserList = () => {
     handleOpenAdd,
     handleReload,
     handleSearch,
+    term,
     handleCloseAdd,
     handleCloseRoleModal,
     handleCloseSubordinatesModal,
@@ -171,6 +172,7 @@ export const UserList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por nome, CPF ou e-mail"
         addTitle="Adicionar usuário"
       />

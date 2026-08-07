@@ -49,6 +49,7 @@ export const ClientList = () => {
     handleOpenAdd,
     handleReload,
     handleSearch,
+    term,
     handleCloseAdd,
     handleDeleteClient,
     handleSelectClientToEdit,
@@ -96,6 +97,7 @@ export const ClientList = () => {
         onImport={canEdit ? () => setImportOpen(true) : undefined}
         onReload={handleReload}
         onSearch={handleSearch}
+        searchValue={term}
         searchTitle="Pesquise por nome, CNPJ ou endereço"
         addTitle="Adicionar cliente"
       />
