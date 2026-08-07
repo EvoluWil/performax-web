@@ -127,15 +127,15 @@ export function arraysEqual(a: string[], b: string[]): boolean {
 }
 
 export function serializeStatusFilter<TField extends string>(
-  data: Record<TField, boolean>,
+  data: Record<string, unknown>,
   statusMap: Array<{ status: string; field: TField }>,
-  defaults: Record<TField, boolean>,
+  defaults: Record<string, unknown>,
 ): string | undefined {
   const active = statusMap
-    .filter(({ field }) => data[field])
+    .filter(({ field }) => Boolean(data[field]))
     .map(({ status }) => status);
   const defaultActive = statusMap
-    .filter(({ field }) => defaults[field])
+    .filter(({ field }) => Boolean(defaults[field]))
     .map(({ status }) => status);
 
   if (arraysEqual(active, defaultActive)) return undefined;
@@ -146,15 +146,19 @@ export function parseStatusFilter<TField extends string>(
   params: URLSearchParams,
   key: string,
   statusMap: Array<{ status: string; field: TField }>,
-  defaults: Record<TField, boolean>,
+  defaults: Record<string, unknown>,
 ): Record<TField, boolean> {
   const raw = params.get(key);
   if (!raw) {
-    return { ...defaults };
+    const result = {} as Record<TField, boolean>;
+    for (const { field } of statusMap) {
+      result[field] = Boolean(defaults[field]);
+    }
+    return result;
   }
 
   const activeSet = new Set(parseCommaList(raw));
-  const result = { ...defaults };
+  const result = {} as Record<TField, boolean>;
 
   for (const { status, field } of statusMap) {
     result[field] = activeSet.has(status);

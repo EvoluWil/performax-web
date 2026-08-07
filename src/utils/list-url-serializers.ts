@@ -178,12 +178,14 @@ export function parseFinanceFilterFromUrl(
   params: URLSearchParams,
 ): FinanceFilterDto {
   const defaults = makeFinanceFilterInitialValues();
-  const flows = parseArrayField(params, 'flows') as FinanceFilterDto['flows'];
+  const flows = parseArrayField(params, 'flows');
 
   return {
     ...defaults,
     flow: (params.get('flow') as FinanceFilterDto['flow']) || undefined,
-    flows: flows.length ? flows : undefined,
+    flows: flows.length
+      ? (flows as NonNullable<FinanceFilterDto['flows']>)
+      : undefined,
     status: (params.get('status') as FinanceFilterDto['status']) || undefined,
     typeIds: parseArrayField(params, 'typeIds'),
     bankIds: parseArrayField(params, 'bankIds'),
