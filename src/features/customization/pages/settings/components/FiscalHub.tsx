@@ -29,6 +29,7 @@ import { fiscalConfigService } from '../../../services/fiscal-config.service';
 import {
   nfseFormSchema,
   certificateFormSchema,
+  NfseFormDto,
 } from '../../../schemas/fiscal-drawers.schema';
 import { CompanyCadastroDrawer } from './company-cadastro-drawer';
 import {
@@ -231,8 +232,8 @@ function NfseDrawer({
 }) {
   const mutation = useFiscalConfigMutation();
   const queryClient = useQueryClient();
-  const { control, handleSubmit } = useForm({
-    resolver: yupResolver(nfseFormSchema),
+  const { control, handleSubmit } = useForm<NfseFormDto>({
+    resolver: yupResolver(nfseFormSchema) as any,
     values: {
       federalServiceCode: config?.federalServiceCode ?? '',
       nationalTaxationCode: config?.nationalTaxationCode ?? '',

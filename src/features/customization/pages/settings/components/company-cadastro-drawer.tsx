@@ -5,15 +5,19 @@ import { CompanyForm } from '@/components/company-form/company-form';
 import { BaseDrawer } from '@/components/drawer';
 import { SelectInput } from '@/components/inputs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Divider, SxProps, Theme, Stack, Typography } from '@mui/material';
+import {
+  Button,
+  Divider,
+  Stack,
+  SxProps,
+  Theme,
+  Typography,
+} from '@mui/material';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useFiscalConfigMutation } from '../../../hooks/queries/customization.query';
 import { companyCadastroSchema } from '../../../schemas/fiscal-drawers.schema';
-import {
-  FiscalConfig,
-  TAX_REGIME_OPTIONS,
-} from '../../../types/fiscal-config';
+import { FiscalConfig, TAX_REGIME_OPTIONS } from '../../../types/fiscal-config';
 
 function CompanyDrawerFields({
   saving,
@@ -77,7 +81,8 @@ export function CompanyCadastroDrawer({
       economicActivities: config?.economicActivities?.length
         ? config.economicActivities.map((item) => ({
             code: item.code,
-            isMain: item.isMain === true || item.isMain === 'true' ? 'true' : 'false',
+            isMain:
+              item.isMain === true || item.isMain === 'true' ? 'true' : 'false',
           }))
         : [{ code: '', isMain: 'true' }],
       address: {
@@ -102,7 +107,7 @@ export function CompanyCadastroDrawer({
       cityTaxNumber: values.cityTaxNumber || undefined,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
-      taxRegime: values.taxRegime as FiscalConfig['taxRegime'],
+      taxRegime: values.taxRegime as any,
       address: {
         ...values.address,
         postalCode: values.address.postalCode.replace(/\D/g, ''),
@@ -126,10 +131,7 @@ export function CompanyCadastroDrawer({
       sx={sx}
       content={
         <FormProvider {...methods}>
-          <CompanyDrawerFields
-            saving={mutation.isPending}
-            onSave={save}
-          />
+          <CompanyDrawerFields saving={mutation.isPending} onSave={save} />
         </FormProvider>
       }
     />

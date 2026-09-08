@@ -87,6 +87,7 @@ export type UpsertFiscalConfigDto = {
   nbsCode?: string;
   cnaeCode?: string;
   taxationType?: string;
+  taxLocation?: string;
   issRate?: number;
   environmentType?: 'DEVELOPMENT' | 'PRODUCTION';
   issWithheld?: boolean;

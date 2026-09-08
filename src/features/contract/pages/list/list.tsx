@@ -1,11 +1,12 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
-import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Loading } from '@/components/common/loading/loading';
 import { Actions } from '@/components/common/table/table';
+import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
+import { createContractCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { formatDate, formatDateTime } from '@/utils/date';
@@ -23,16 +24,14 @@ import { Box, Button, Chip, Link, Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
 import { useCallback, useRef, useState } from 'react';
 import swal from 'sweetalert2';
-import { ContractRecurringModal } from '../../components/contract-recurring-modal/contract-recurring-modal';
-import { createContractCsvImportConfig } from '@/features/shared/config/entity-csv-import.configs';
-import { useContractMutation } from '../../hooks/queries/contracts.query';
 import { ContractDrawer } from '../../components/contract-drawer/contract';
 import { ContractFilter } from '../../components/contract-filter/contract-filter';
+import { ContractRecurringModal } from '../../components/contract-recurring-modal/contract-recurring-modal';
 import { SignedContractModal } from '../../components/signed-contract-modal/signed-contract-modal';
+import { useContractMutation } from '../../hooks/queries/contracts.query';
 import { useContractPdf } from '../../hooks/use-contract-pdf';
+import { Contract, CreateContractDto } from '../../types/contract';
 import { getContractPdfTitle } from '../../util/contract-pdf';
-import { Contract } from '../../types/contract';
-import { CreateContractDto } from '../../types/contract';
 import { useContractList } from './list.hook';
 
 const columns: MRT_ColumnDef<Contract>[] = [
@@ -206,10 +205,13 @@ export const ContractList = () => {
     [contractMutation],
   );
 
-  const { importOpen, setImportOpen, config: csvImportConfig } =
-    useListCsvImport(createContractCsvImportConfig, handleImportCreate, [
-      handleImportCreate,
-    ]);
+  const {
+    importOpen,
+    setImportOpen,
+    config: csvImportConfig,
+  } = useListCsvImport(createContractCsvImportConfig, handleImportCreate, [
+    handleImportCreate,
+  ]);
 
   const {
     makeTablePDF,
@@ -235,9 +237,7 @@ export const ContractList = () => {
   } | null>(null);
   const previewBlobRef = useRef<string | null>(null);
   const [signedTarget, setSignedTarget] = useState<Contract | null>(null);
-  const [recurringTarget, setRecurringTarget] = useState<Contract | null>(
-    null,
-  );
+  const [recurringTarget, setRecurringTarget] = useState<Contract | null>(null);
 
   const { generateAndSaveContractPdf, generating: regeneratingPdf } =
     useContractPdf();
@@ -368,10 +368,10 @@ export const ContractList = () => {
           ? formatDate(contract.dueDate as string)
           : '-',
         createdAt: contract.createdAt
-          ? formatDateTime(contract.createdAt as string)
+          ? formatDateTime(contract.createdAt as unknown as string)
           : '-',
         updatedAt: contract.updatedAt
-          ? formatDateTime(contract.updatedAt as string)
+          ? formatDateTime(contract.updatedAt as unknown as string)
           : '-',
         scope: contract.scope || '-',
         active: contract.active ? 'Ativo' : 'Inativo',

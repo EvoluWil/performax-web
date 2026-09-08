@@ -8,6 +8,19 @@ export const companyCadastroSchema = yup.object({
   address: addressFieldsSchema,
 });
 
+export type NfseFormDto = {
+  federalServiceCode: string;
+  nationalTaxationCode: string;
+  cityServiceCode: string;
+  nbsCode: string;
+  cnaeCode: string;
+  taxationType: string;
+  issRate: number;
+  issWithheld: 'true' | 'false';
+  rpsSeries: string;
+  rpsNumber: number;
+};
+
 export const nfseFormSchema = yup.object({
   federalServiceCode: yup
     .string()
