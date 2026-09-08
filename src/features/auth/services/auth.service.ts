@@ -20,12 +20,20 @@ type Credentials = {
 
 class AuthService {
   async signIn(credentials: Credentials) {
-    const { data } = await api.post<SignInResponse>(
-      '/auth/sign-in',
-      credentials,
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      },
     );
 
-    return data;
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as SignInResponse;
   }
 
   async signUp(signUpFormDto: SignUpFormDto) {

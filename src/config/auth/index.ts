@@ -2,9 +2,10 @@ import { authService } from '@/features/auth/services/auth.service';
 import { NextAuthOptions } from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { api } from '../api';
 
-async function refreshAccessToken(token: JWT): Promise<JWT> {
+const refreshLocks = new Map<string, Promise<JWT>>();
+
+async function performRefresh(token: JWT): Promise<JWT> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
@@ -27,10 +28,31 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       session: data.session,
       error: undefined,
     };
-  } catch (error) {
-    console.log(error);
+  } catch {
     return { ...token, error: 'RefreshAccessTokenError' as const };
   }
+}
+
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  const refreshToken = token.session?.refreshToken;
+  if (!refreshToken) {
+    return { ...token, error: 'RefreshAccessTokenError' as const };
+  }
+
+  const existing = refreshLocks.get(refreshToken);
+  if (existing) return existing;
+
+  const pending = performRefresh(token).then((result) => {
+    if (result.error === 'RefreshAccessTokenError') {
+      refreshLocks.set(refreshToken, Promise.resolve(result));
+    } else {
+      refreshLocks.delete(refreshToken);
+    }
+    return result;
+  });
+
+  refreshLocks.set(refreshToken, pending);
+  return pending;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -60,12 +82,19 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: '/auth/sign-in',
+    error: '/auth/sign-in',
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.user = user?.user || {};
         token.session = user?.session || {};
+        token.error = undefined;
+        return token;
+      }
+
+      if (token.error === 'RefreshAccessTokenError') {
+        return token;
       }
 
       if (!token.session?.refreshToken) {
@@ -85,8 +114,6 @@ export const authOptions: NextAuthOptions = {
       session.user = token.user;
       session.session = token.session;
       session.error = token.error;
-
-      api.defaults.headers.common.Authorization = `Bearer ${token.session?.accessToken}`;
       return session;
     },
   },

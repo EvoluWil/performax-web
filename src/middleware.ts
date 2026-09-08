@@ -6,23 +6,40 @@ const SESSION_COOKIE =
     ? '__Secure-next-auth.session-token'
     : 'next-auth.session-token';
 
+const LEGACY_SIGN_IN_PATHS = new Set([
+  '/sign-in',
+  '/signin',
+  '/api/auth/signin',
+]);
+
+function signInRedirect(req: NextRequest, error?: string) {
+  const signInUrl = new URL('/auth/sign-in', req.url);
+  if (error) {
+    signInUrl.searchParams.set('error', error);
+  }
+  const response = NextResponse.redirect(signInUrl);
+  if (error) {
+    response.cookies.delete(SESSION_COOKIE);
+  }
+  return response;
+}
+
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  if (LEGACY_SIGN_IN_PATHS.has(pathname)) {
+    return signInRedirect(req);
+  }
+
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  const { pathname } = req.nextUrl;
-
-  const isAuthRoute =
-    pathname.startsWith('/auth') || pathname.startsWith('/sign-in');
+  const isAuthRoute = pathname.startsWith('/auth');
 
   if (token?.error === 'RefreshAccessTokenError' && !isAuthRoute) {
-    const signInUrl = new URL('/auth/sign-in', req.url);
-    signInUrl.searchParams.set('error', 'SessionExpired');
-    const response = NextResponse.redirect(signInUrl);
-    response.cookies.delete(SESSION_COOKIE);
-    return response;
+    return signInRedirect(req, 'SessionExpired');
   }
 
   if (!token && !isAuthRoute) {
@@ -35,5 +52,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|public).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    '/api/auth/signin',
+  ],
 };

@@ -8,7 +8,7 @@ export default async function PanelLayout({ children }: PropsWithChildren) {
   const user = await getUserSession();
 
   if (!user) {
-    return redirect('/sign-in');
+    return redirect('/auth/sign-in');
   }
 
   return (

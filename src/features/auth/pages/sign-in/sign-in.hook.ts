@@ -5,6 +5,7 @@ import {
 } from '@/features/auth/schemas';
 import { authService } from '@/features/auth/services';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { getSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -22,7 +23,25 @@ export const useSignIn = () => {
 
   const handleSignIn = handleSubmit(async (signFormData: SignFormDto) => {
     setLoading(true);
-    const result = await authService.credentials(signFormData);
+
+    const existing = await getSession();
+    if (existing?.session?.accessToken && !existing.error) {
+      setSelectCompanyModalOpen(true);
+      setLoading(false);
+      return;
+    }
+
+    const hadStaleSession = Boolean(existing?.error || existing?.session);
+    if (hadStaleSession) {
+      await signOut({ redirect: false });
+    }
+
+    let result = await authService.credentials(signFormData);
+
+    if (result?.error && hadStaleSession) {
+      await signOut({ redirect: false });
+      result = await authService.credentials(signFormData);
+    }
 
     if (result?.error) {
       setLoading(false);

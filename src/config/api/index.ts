@@ -10,7 +10,19 @@ export const api = axios.create({
   paramsSerializer: (params) => QueryString(params),
 });
 
-let refreshPromise: Promise<string> | null = null;
+const PUBLIC_AUTH_PATHS = [
+  '/auth/sign-in',
+  '/auth/sign-up',
+  '/auth/forgot-password',
+  '/auth/refresh-token',
+  '/auth/delete-account',
+  '/auth/validate-code',
+  '/auth/recovery-password',
+];
+
+let sessionRefreshPromise: Promise<
+  Awaited<ReturnType<typeof getSession>>
+> | null = null;
 
 function setAuthHeader(config: InternalAxiosRequestConfig, token: string) {
   if (config.headers instanceof AxiosHeaders) {
@@ -21,46 +33,46 @@ function setAuthHeader(config: InternalAxiosRequestConfig, token: string) {
   }
 }
 
-async function doRefresh(): Promise<string> {
-  const currentSession = await getSession();
-  const refreshToken = currentSession?.session?.refreshToken;
+function getRequestToken(config: InternalAxiosRequestConfig) {
+  const header =
+    config.headers instanceof AxiosHeaders
+      ? config.headers.get('Authorization')
+      : (config.headers as Record<string, string>)?.Authorization;
 
-  if (!refreshToken) {
-    throw new Error('No refresh token available');
-  }
+  return typeof header === 'string' ? header.replace(/^Bearer\s+/i, '') : '';
+}
 
-  const refreshRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    },
+function isPublicAuthRequest(url?: string) {
+  if (!url) return false;
+  return PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+}
+
+function isAuthPage() {
+  if (!global?.window) return false;
+  const { pathname } = window.location;
+  return (
+    pathname.startsWith('/auth') ||
+    pathname === '/sign-in' ||
+    pathname === '/signin'
   );
+}
 
-  if (!refreshRes.ok) {
-    throw new Error('Refresh token request failed');
+function showApiError(error: { response?: { data?: { message?: string | string[] } } }) {
+  const defaultMessage = 'Ops! Algo deu errado. Tente novamente mais tarde.';
+  if (typeof error.response?.data?.message === 'string') {
+    toast.error(error.response.data.message);
+    return;
   }
+  toast.error(error.response?.data?.message?.[0] ?? defaultMessage);
+}
 
-  const refreshData = await refreshRes.json();
-  const newToken: string = refreshData?.session?.accessToken;
-
-  if (!newToken) {
-    throw new Error('Refresh response missing accessToken');
+function loadSession() {
+  if (!sessionRefreshPromise) {
+    sessionRefreshPromise = getSession().finally(() => {
+      sessionRefreshPromise = null;
+    });
   }
-
-  await fetch('/api/auth/refresh-session', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      session: refreshData.session,
-      user: refreshData.user ?? currentSession?.user,
-    }),
-  });
-
-  api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
-
-  return newToken;
+  return sessionRefreshPromise;
 }
 
 api.interceptors.response.use(
@@ -70,6 +82,13 @@ api.interceptors.response.use(
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined;
 
+    if (isPublicAuthRequest(originalRequest?.url)) {
+      if (global?.window && !originalRequest?.url?.includes('/auth/sign-in')) {
+        showApiError(error);
+      }
+      return Promise.reject(error);
+    }
+
     if (
       error.response?.status === 401 &&
       originalRequest &&
@@ -78,18 +97,29 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      if (!refreshPromise) {
-        refreshPromise = doRefresh().finally(() => {
-          refreshPromise = null;
-        });
-      }
-
       try {
-        const newToken = await refreshPromise;
+        const session = await loadSession();
+        const newToken = session?.session?.accessToken;
+        const failedToken = getRequestToken(originalRequest);
+
+        if (
+          session?.error === 'RefreshAccessTokenError' ||
+          !newToken ||
+          newToken === failedToken
+        ) {
+          if (!isAuthPage()) {
+            signOut({ callbackUrl: '/auth/sign-in' });
+          }
+          return Promise.reject(error);
+        }
+
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         setAuthHeader(originalRequest, newToken);
         return api(originalRequest);
       } catch (refreshError) {
-        signOut({ callbackUrl: '/auth/sign-in' });
+        if (!isAuthPage()) {
+          signOut({ callbackUrl: '/auth/sign-in' });
+        }
         return Promise.reject(refreshError);
       }
     }
@@ -98,14 +128,8 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (global?.window) {
-      const defaultMessage =
-        'Ops! Algo deu errado. Tente novamente mais tarde.';
-      if (typeof error.response?.data?.message === 'string') {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error(error.response?.data?.message?.[0] ?? defaultMessage);
-      }
+    if (global?.window && !isAuthPage()) {
+      showApiError(error);
     }
 
     return Promise.reject(error);
@@ -113,6 +137,10 @@ api.interceptors.response.use(
 );
 
 api.interceptors.request.use(async (config) => {
+  if (isPublicAuthRequest(config.url)) {
+    return config;
+  }
+
   const hasAuth =
     config.headers instanceof AxiosHeaders
       ? !!config.headers.get('Authorization')
@@ -133,7 +161,10 @@ api.interceptors.request.use(async (config) => {
         setAuthHeader(config, (defaultAuth as string).replace('Bearer ', ''));
       } else {
         const session = await getSession();
-        if (session?.session?.accessToken) {
+        if (
+          session?.error !== 'RefreshAccessTokenError' &&
+          session?.session?.accessToken
+        ) {
           const token = session.session.accessToken;
           api.defaults.headers.common.Authorization = `Bearer ${token}`;
           setAuthHeader(config, token);
