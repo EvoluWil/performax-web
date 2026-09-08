@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/utils/date';
 import {
   BalanceRow,
   BalanceTotals,
@@ -32,7 +33,7 @@ export function generateBalanceCSV(
 
   // Report title
   csvRows.push(q(`Balanço Financeiro — ${VIEW_MODE_LABELS[viewMode]}`));
-  csvRows.push(q(`Gerado em: ${new Date().toLocaleString('pt-BR')}`));
+  csvRows.push(q(`Gerado em: ${formatDateTime(new Date())}`));
   csvRows.push('');
 
   // Header

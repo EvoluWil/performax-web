@@ -38,6 +38,12 @@ export type FiscalConfig = {
   hasCertificate: boolean;
   hasCertificatePassword: boolean;
   certificateExpiresAt: string | null;
+  certificateUploadedAt: string | null;
+  environmentType: 'DEVELOPMENT' | 'PRODUCTION';
+  spedySyncStatus: 'PENDING' | 'SYNCED' | 'ERROR';
+  spedySyncError: string | null;
+  spedySyncedAt: string | null;
+  cityProviderOptions: Record<string, boolean> | null;
   federalServiceCode: string | null;
   nationalTaxationCode: string | null;
   cityServiceCode: string | null;
@@ -55,6 +61,10 @@ export type FiscalConfig = {
 export type FiscalStatus = {
   ready: boolean;
   missingFields: string[];
+  readyForSync?: boolean;
+  readyForEmission?: boolean;
+  spedySyncStatus?: string | null;
+  cityRequirements?: Record<string, boolean> | null;
 };
 
 export type UpsertFiscalConfigDto = {
@@ -77,8 +87,8 @@ export type UpsertFiscalConfigDto = {
   nbsCode?: string;
   cnaeCode?: string;
   taxationType?: string;
-  taxLocation?: string;
   issRate?: number;
+  environmentType?: 'DEVELOPMENT' | 'PRODUCTION';
   issWithheld?: boolean;
   rpsSeries?: string;
   rpsNumber?: number;
@@ -95,15 +105,25 @@ export const TAX_REGIME_OPTIONS = [
 ] as const;
 
 export const TAXATION_TYPE_OPTIONS = [
-  { label: 'Isento', value: 'immune' },
-  { label: 'Isenção', value: 'exemption' },
   { label: 'Tributação no município', value: 'taxationInMunicipality' },
   {
     label: 'Tributação fora do município',
     value: 'taxationOutsideMunicipality',
   },
+  { label: 'Isento', value: 'immune' },
+  { label: 'Isenção', value: 'exemption' },
   { label: 'Exportação', value: 'exportation' },
   { label: 'Não incidência', value: 'nonIncidence' },
+  { label: 'Suspensa por decisão judicial', value: 'suspendedByCourt' },
+  {
+    label: 'Suspensa por procedimento administrativo',
+    value: 'suspendedByAdministrativeProcedure',
+  },
+] as const;
+
+export const ENVIRONMENT_OPTIONS = [
+  { label: 'Sandbox', value: 'DEVELOPMENT' },
+  { label: 'Produção', value: 'PRODUCTION' },
 ] as const;
 
 export const TAX_LOCATION_OPTIONS = [

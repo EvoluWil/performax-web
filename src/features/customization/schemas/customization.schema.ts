@@ -1,3 +1,4 @@
+import { DEFAULT_WHITE_LABEL } from '@/utils/white-label.utils';
 import * as yup from 'yup';
 
 export type CustomizationFormDto = {
@@ -18,8 +19,8 @@ export const customizationFormInitialValues: CustomizationFormDto = {
   logo: '',
   banner: '',
   favicon: '',
-  primaryColor: '#1976d2',
-  secondaryColor: '#9c27b0',
+  primaryColor: DEFAULT_WHITE_LABEL.primaryColor,
+  secondaryColor: DEFAULT_WHITE_LABEL.secondaryColor,
 };
 
 export const customizationFormSchema = yup.object().shape({

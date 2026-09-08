@@ -14,7 +14,7 @@ import { TaskFormDto } from '@/features/task/schemas';
 import { Task, taskStatusLabels } from '@/features/task/types';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -126,28 +126,28 @@ const columns: MRT_ColumnDef<Task>[] = [
       align: 'center',
     },
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'createdAt',
     header: 'Criada em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'updatedAt',
     header: 'Atualizada em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'completedAt',
     header: 'Concluída em',
     Cell({ cell }: any) {
-      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+      return cell.getValue() ? formatDateTime(cell.getValue()) : '-';
     },
   },
   {
@@ -363,10 +363,10 @@ export const TaskList = () => {
               })
             : '-',
         internalNote: task.internalNote || '-',
-        date: formatDate(task.date) || '-',
-        createdAt: formatDate(task.createdAt) || '-',
-        updatedAt: formatDate(task.updatedAt) || '-',
-        completedAt: task.completedAt ? formatDate(task.completedAt) : '-',
+        date: formatDateTime(task.date) || '-',
+        createdAt: formatDateTime(task.createdAt) || '-',
+        updatedAt: formatDateTime(task.updatedAt) || '-',
+        completedAt: task.completedAt ? formatDateTime(task.completedAt) : '-',
         status: task.status ? taskStatusLabels[task.status]?.label || '-' : '-',
         createdBy: task.createdBy?.name || '-',
         updatedBy: task.updatedBy?.name || '-',

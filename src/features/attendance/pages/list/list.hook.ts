@@ -9,7 +9,7 @@ import {
   serializeAttendanceFilterToUrl,
 } from '@/utils/list-url-serializers';
 import { hasNonDefaultUrlParams } from '@/utils/list-url-state';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttendanceFilters,
@@ -27,7 +27,6 @@ export function useAttendanceList() {
   const canSeeClosedFilter = useClosedTaskFilterAccess();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const router = useRouter();
 
   const parsedFromUrl = useMemo(
     () => parseAttendanceFilterFromUrl(searchParams),
@@ -82,8 +81,10 @@ export function useAttendanceList() {
     }
 
     lastSyncedRef.current = nextUrl;
-    router.replace(nextUrl, { scroll: false });
-  }, [companyIds, dateLte, pathname, router, search, selectedStatuses]);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
+  }, [companyIds, dateLte, pathname, search, selectedStatuses]);
 
   useEffect(() => {
     setSelectedStatuses(parsedFromUrl.statuses);

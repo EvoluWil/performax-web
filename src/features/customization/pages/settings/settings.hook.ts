@@ -4,6 +4,7 @@ import { useCompanyModules } from '@/hooks/common/module';
 import { useUpload } from '@/hooks/common/upload';
 import { useWhiteLabel } from '@/providers/white-label';
 import { companyService } from '@/services/company.service';
+import { DEFAULT_WHITE_LABEL } from '@/utils/white-label.utils';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,9 +14,6 @@ import {
   useCompanyModulesQuery,
   useCompanySettingsMutation,
   useCreateCompanyMutation,
-  useFiscalConfigMutation,
-  useFiscalConfigQuery,
-  useFiscalConfigStatusQuery,
   useLinkCompanyMutation,
   useOwnedCompaniesQuery,
   useToggleModuleMutation,
@@ -28,17 +26,9 @@ import {
   customizationFormInitialValues,
   customizationFormSchema,
 } from '../../schemas/customization.schema';
-import {
-  FiscalConfigFormDto,
-  fiscalConfigFormInitialValues,
-  fiscalConfigFormSchema,
-} from '../../schemas/fiscal-config.schema';
-import {
-  fiscalConfigToFormValues,
-  formValuesToFiscalConfigDtoAsync,
-} from '../../schemas/fiscal-config.mapper';
 
 export const useCustomizationSettings = () => {
+  const [resetLogoContrast, setResetLogoContrast] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
@@ -51,7 +41,6 @@ export const useCustomizationSettings = () => {
   const [openCreateCompany, setOpenCreateCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
   const { sendFile } = useUpload();
   const { setWhiteLabel } = useWhiteLabel();
@@ -59,8 +48,6 @@ export const useCustomizationSettings = () => {
 
   const company = companyService.getDefaultCompany();
   const { data: whiteLabel } = useWhiteLabelQuery();
-  const { data: fiscalConfig } = useFiscalConfigQuery();
-  const { data: fiscalStatus } = useFiscalConfigStatusQuery();
   const { data: ownedCompanies = [] } = useOwnedCompaniesQuery();
   const createCompanyMutation = useCreateCompanyMutation();
   const linkMutation = useLinkCompanyMutation();
@@ -71,18 +58,6 @@ export const useCustomizationSettings = () => {
 
   const whiteLabelMutation = useWhiteLabelMutation();
   const companyMutation = useCompanySettingsMutation();
-  const fiscalConfigMutation = useFiscalConfigMutation();
-
-  const {
-    control: fiscalControl,
-    reset: resetFiscal,
-    setValue: setFiscalValue,
-    trigger: fiscalTrigger,
-    getValues: getFiscalValues,
-  } = useForm<FiscalConfigFormDto>({
-    defaultValues: fiscalConfigFormInitialValues,
-    resolver: yupResolver(fiscalConfigFormSchema) as any,
-  });
 
   const {
     control,
@@ -134,15 +109,13 @@ export const useCustomizationSettings = () => {
         logo: whiteLabel?.logo ?? '',
         banner: whiteLabel?.banner ?? '',
         favicon: whiteLabel?.favicon ?? '',
-        primaryColor: whiteLabel?.primaryColor ?? '#1976d2',
-        secondaryColor: whiteLabel?.secondaryColor ?? '#9c27b0',
+        primaryColor:
+          whiteLabel?.primaryColor || DEFAULT_WHITE_LABEL.primaryColor,
+        secondaryColor:
+          whiteLabel?.secondaryColor || DEFAULT_WHITE_LABEL.secondaryColor,
       });
     }
   }, [whiteLabel, reset]);
-
-  useEffect(() => {
-    resetFiscal(fiscalConfigToFormValues(fiscalConfig));
-  }, [fiscalConfig, resetFiscal]);
 
   // Derive the current company's latest groupId from the owned list (updated after link ops)
   const currentCompanyId = company?.id ?? '';
@@ -151,13 +124,6 @@ export const useCustomizationSettings = () => {
   )?.groupId;
 
   const handleSave = handleSubmit(async (values: CustomizationFormDto) => {
-    const fiscalValid = await fiscalTrigger();
-    if (!fiscalValid) {
-      toast.error('Verifique os dados fiscais');
-      return;
-    }
-
-    const fiscalValues = getFiscalValues();
     setLoading(true);
     try {
         let logoUrl = values.logo;
@@ -193,17 +159,16 @@ export const useCustomizationSettings = () => {
         const updatedWhiteLabel = await whiteLabelMutation.mutateAsync({
           name: values.wlName,
           logo: logoUrl,
+          logoContrast: logoFile
+            ? undefined
+            : resetLogoContrast
+              ? DEFAULT_WHITE_LABEL.logoContrast
+              : undefined,
           banner: bannerUrl,
           favicon: faviconUrl,
           primaryColor: values.primaryColor,
           secondaryColor: values.secondaryColor,
         });
-
-        const fiscalDto = await formValuesToFiscalConfigDtoAsync(
-          fiscalValues,
-          certificateFile,
-        );
-        await fiscalConfigMutation.mutateAsync(fiscalDto);
 
         setWhiteLabel(updatedWhiteLabel);
 
@@ -215,11 +180,12 @@ export const useCustomizationSettings = () => {
           });
         }
 
-        const faviconChanged = !!faviconFile;
+        const previousFavicon = whiteLabel?.favicon ?? '';
+        const faviconChanged = !!faviconFile || faviconUrl !== previousFavicon;
         setLogoFile(null);
         setBannerFile(null);
         setFaviconFile(null);
-        setCertificateFile(null);
+        setResetLogoContrast(false);
         toast.success('Configurações salvas com sucesso');
         if (faviconChanged) {
           setTimeout(() => window.location.reload(), 1000);
@@ -230,6 +196,51 @@ export const useCustomizationSettings = () => {
         setLoading(false);
       }
   });
+
+  const handleResetWhiteLabelField = (
+    field:
+      | 'wlName'
+      | 'logo'
+      | 'banner'
+      | 'favicon'
+      | 'primaryColor'
+      | 'secondaryColor',
+  ) => {
+    if (field === 'wlName') {
+      setValue('wlName', DEFAULT_WHITE_LABEL.name, { shouldDirty: true });
+      return;
+    }
+    if (field === 'logo') {
+      setLogoFile(null);
+      setResetLogoContrast(true);
+      setValue('logo', DEFAULT_WHITE_LABEL.logo, { shouldDirty: true });
+      return;
+    }
+    if (field === 'banner') {
+      setBannerFile(null);
+      setValue('banner', DEFAULT_WHITE_LABEL.banner, { shouldDirty: true });
+      return;
+    }
+    if (field === 'favicon') {
+      setFaviconFile(null);
+      setValue('favicon', DEFAULT_WHITE_LABEL.favicon, { shouldDirty: true });
+      return;
+    }
+    if (field === 'primaryColor') {
+      setValue('primaryColor', DEFAULT_WHITE_LABEL.primaryColor, {
+        shouldDirty: true,
+      });
+      return;
+    }
+    setValue('secondaryColor', DEFAULT_WHITE_LABEL.secondaryColor, {
+      shouldDirty: true,
+    });
+  };
+
+  const handleLogoChange = (file: File) => {
+    setResetLogoContrast(false);
+    setLogoFile(file);
+  };
 
   const handleCreateCompany = async () => {
     if (!newCompanyName.trim()) return;
@@ -292,7 +303,7 @@ export const useCustomizationSettings = () => {
     errors,
     setValue,
     logoFile,
-    setLogoFile,
+    setLogoFile: handleLogoChange,
     bannerFile,
     setBannerFile,
     faviconFile,
@@ -319,11 +330,7 @@ export const useCustomizationSettings = () => {
     handleToggleModule,
     toggleModuleLoading: toggleModuleMutation.isPending,
     hasWhiteLabelModule: hasModule('whitelabel'),
-    fiscalControl,
-    setFiscalValue,
-    fiscalStatus,
-    fiscalConfig,
-    certificateFile,
-    setCertificateFile,
+    hasFiscalModule: hasModule('fiscal'),
+    handleResetWhiteLabelField,
   };
 };

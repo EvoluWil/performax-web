@@ -2,7 +2,7 @@ import {
   Occurrence,
   occurrenceStatusLabels,
 } from '@/features/occurrence/types';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import {
@@ -112,7 +112,7 @@ export const OccurrenceCard: React.FC<OccurrenceCardProps> = ({
 
         <Box textAlign="right">
           <Typography variant="body2">
-            {occurrence.date ? formatDate(occurrence.date) : '-'}
+            {occurrence.date ? formatDateTime(occurrence.date) : '-'}
           </Typography>
           <Chip
             label={label}

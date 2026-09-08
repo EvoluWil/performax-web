@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { CompaniesCard } from './components/CompaniesCard';
-import { FiscalConfigCard } from './components/FiscalConfigCard';
+import { FiscalHub } from './components/FiscalHub';
 import { ModulesCard } from './components/ModulesCard';
 import { WhiteLabelCard } from './components/WhiteLabelCard';
 import { useCustomizationSettings } from './settings.hook';
@@ -47,12 +47,8 @@ export const CustomizationSettings: React.FC = () => {
     handleToggleModule,
     toggleModuleLoading,
     hasWhiteLabelModule,
-    fiscalControl,
-    setFiscalValue,
-    fiscalStatus,
-    fiscalConfig,
-    certificateFile,
-    setCertificateFile,
+    hasFiscalModule,
+    handleResetWhiteLabelField,
   } = useCustomizationSettings();
 
   return (
@@ -99,16 +95,11 @@ export const CustomizationSettings: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
-          <FiscalConfigCard
-            control={fiscalControl}
-            setValue={setFiscalValue}
-            fiscalStatus={fiscalStatus}
-            certificateFile={certificateFile}
-            onCertificateChange={setCertificateFile}
-            hasCertificate={fiscalConfig?.hasCertificate}
-          />
-        </Grid>
+        {hasFiscalModule && (
+          <Grid size={{ xs: 12 }}>
+            <FiscalHub />
+          </Grid>
+        )}
 
         {hasWhiteLabelModule && (
           <Grid size={{ xs: 12 }}>
@@ -121,6 +112,7 @@ export const CustomizationSettings: React.FC = () => {
               onLogoChange={setLogoFile}
               onBannerChange={setBannerFile}
               onFaviconChange={setFaviconFile}
+              onResetField={handleResetWhiteLabelField}
             />
           </Grid>
         )}

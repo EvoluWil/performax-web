@@ -7,6 +7,7 @@ import {
   ModalStyled,
 } from '@/components/modal/modal-base.styles';
 import { useFormResources } from '@/hooks/use-form-resources';
+import { formatDate } from '@/utils/date';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CloseOutlined } from '@mui/icons-material';
 import { Box, Button, Divider, Typography } from '@mui/material';
@@ -129,9 +130,7 @@ export const ContractRecurringModal: React.FC<Props> = ({
           </Typography>
           <Typography variant="body2">
             <strong>Vencimento:</strong>{' '}
-            {contract.dueDate
-              ? new Date(contract.dueDate).toLocaleDateString('pt-BR')
-              : '-'}
+            {contract.dueDate ? formatDate(contract.dueDate) : '-'}
           </Typography>
           <Typography variant="body2">
             <strong>Recorrência:</strong> Mensal (automática)

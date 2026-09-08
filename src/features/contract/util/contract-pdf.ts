@@ -1,9 +1,8 @@
 import { Contract } from '@/features/contract/types';
 import { File as StoredFile } from '@/types/file';
 import { formatCnpj } from '@/utils/cnpj';
+import { formatCivilDay, formatLongDate } from '@/utils/date';
 import { generateAndUploadDetailPdf } from '@/utils/detail-pdf';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Content } from 'pdfmake/interfaces';
 
 export type ContractPdfCompany = {
@@ -16,9 +15,9 @@ const formatCurrency = (value?: number) =>
     currency: 'BRL',
   });
 
-const formatLongDate = (value?: string | Date | null) => {
+const formatContractDate = (value?: string | Date | null) => {
   if (!value) return null;
-  return format(new Date(value), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  return formatLongDate(value) || null;
 };
 
 const clause = (
@@ -36,8 +35,8 @@ const clause = (
 });
 
 const buildTermText = (contract: Contract): string => {
-  const start = formatLongDate(contract.startDate);
-  const end = formatLongDate(contract.endDate);
+  const start = formatContractDate(contract.startDate);
+  const end = formatContractDate(contract.endDate);
 
   if (start && end) {
     return `O presente contrato vigorará de ${start} a ${end}, podendo ser prorrogado mediante termo aditivo escrito entre as partes.`;
@@ -53,9 +52,7 @@ const buildTermText = (contract: Contract): string => {
 
 const buildPaymentText = (contract: Contract): string => {
   const value = formatCurrency(contract.value);
-  const dueDay = contract.dueDate
-    ? format(new Date(contract.dueDate), 'dd')
-    : null;
+  const dueDay = contract.dueDate ? formatCivilDay(contract.dueDate) : null;
 
   let text = `Pela prestação dos serviços e manutenção objeto deste contrato, a CONTRATANTE pagará à CONTRATADA o valor mensal de ${value}, `;
 
@@ -106,9 +103,7 @@ export const generateContractPdfContents = (
     : '_______________________';
   const clientAddress = contract.client?.address?.trim() || '_______________________';
   const typeName = contract.type?.name ?? 'Prestação de Serviços e Manutenção';
-  const signedAt = format(new Date(), "dd 'de' MMMM 'de' yyyy", {
-    locale: ptBR,
-  });
+  const signedAt = formatLongDate(new Date());
 
   return [
     {

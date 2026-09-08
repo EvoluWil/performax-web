@@ -4,7 +4,7 @@ import { BaseDrawer } from '@/components/drawer';
 import { MaskInput, SelectInput, TextInput } from '@/components/inputs';
 import { Client } from '@/features/client/types';
 import { fetchViaCep } from '@/utils/viacep';
-import { Box, Button, Chip, Divider, Typography } from '@mui/material';
+import { Box, Button, Chip, Divider, SxProps, Theme, Typography } from '@mui/material';
 import { useClientDrawer } from './client.hook';
 
 export type ClientDrawerProps = {
@@ -14,6 +14,7 @@ export type ClientDrawerProps = {
   initialName?: string;
   onCreated?: (client: Client) => void;
   onSuccess?: () => void;
+  sx?: SxProps<Theme>;
 };
 
 export const ClientDrawer: React.FC<ClientDrawerProps> = (props) => {
@@ -49,6 +50,7 @@ export const ClientDrawer: React.FC<ClientDrawerProps> = (props) => {
       setOpen={handleClose}
       height="auto"
       title={editing ? 'Editar Cliente' : 'Novo Cliente'}
+      sx={props.sx}
       content={
         <Box
           gap={2}
@@ -141,6 +143,11 @@ export const ClientDrawer: React.FC<ClientDrawerProps> = (props) => {
           <TextInput label="Bairro" name="fiscalAddress.neighborhood" control={control} />
           <TextInput label="Cidade" name="fiscalAddress.city" control={control} />
           <TextInput label="UF" name="fiscalAddress.state" control={control} />
+          <TextInput
+            label="Código IBGE"
+            name="fiscalAddress.cityCode"
+            control={control}
+          />
 
           <Box
             mt="auto"

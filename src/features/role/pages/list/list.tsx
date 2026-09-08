@@ -10,6 +10,7 @@ import { useRoleMutation } from '@/features/role/hooks';
 import { RoleFormDto } from '@/features/role/schemas/role-drawer.schema';
 import { Role } from '@/features/role/types';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { formatDateTime } from '@/utils/date';
 import { DeleteOutlined } from '@mui/icons-material';
 import { Typography } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
@@ -35,7 +36,7 @@ const columns: MRT_ColumnDef<Role>[] = [
       align: 'center',
     },
     Cell({ cell }: any) {
-      return new Date(cell.getValue()).toLocaleDateString('pt-BR');
+      return formatDateTime(cell.getValue()) || '-';
     },
   },
 ];

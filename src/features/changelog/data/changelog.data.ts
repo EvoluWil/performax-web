@@ -2,6 +2,25 @@ import { Changelog } from '../types';
 
 export const CHANGELOGS: Changelog[] = [
   {
+    id: '21',
+    version: '1.21.0',
+    title: 'Emissão de NFS-e e cadastro fiscal',
+    description: [
+      'Nova tela de Emissões, agrupada por cliente, com competência do mês e filtros de status da nota e do lançamento.',
+      'Emitir e Emitir em massa passam a abrir uma revisão dos lançamentos antes de confirmar a nota.',
+      'Cliente sem conformidade pode completar o cadastro na própria revisão; ao salvar, a listagem é atualizada.',
+      'Se ainda houver cliente sem conformidade, um aviso informa que ele será removido daquela emissão.',
+      'Notas fiscais passam a ser um módulo habilitável, com permissão própria para o cadastro da empresa.',
+      'A tela de emissões inclui link para o cadastro da empresa e só aparece com o módulo fiscal habilitado.',
+      'Quando a nota é autorizada, o cliente recebe um e-mail com a competência, o valor e o número.',
+    ],
+    type: 'FEATURE',
+    date: '2026-09-08',
+    deleted: false,
+    createdAt: '2026-09-08',
+    updatedAt: '2026-09-08',
+  },
+  {
     id: '20',
     version: '1.20.0',
     title: 'Filtros iniciais ajustados e persistência de filtros na URL',

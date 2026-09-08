@@ -57,13 +57,24 @@ const columns: MRT_ColumnDef<Client>[] = [
     size: 80,
     muiTableHeadCellProps: { align: 'center' },
     muiTableBodyCellProps: { align: 'center' },
-    Cell() {
+    Cell({ row }) {
+      const client = row.original;
+      const document = client.personType === 'PF' ? client.cpf : client.cnpj;
+      const ready = Boolean(
+        document &&
+          client.email &&
+          client.fiscalAddress?.street &&
+          client.fiscalAddress?.number &&
+          client.fiscalAddress?.postalCode &&
+          client.fiscalAddress?.city &&
+          client.fiscalAddress?.state,
+      );
       return (
         <Chip
           icon={<ReceiptOutlined />}
-          label="Ver detalhe"
+          label={ready ? 'Completo' : 'Pendente'}
+          color={ready ? 'success' : 'warning'}
           size="small"
-          variant="outlined"
         />
       );
     },

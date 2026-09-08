@@ -1,3 +1,4 @@
+import { parsePickerDate } from '@/utils/date';
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
 import {
   FieldValues,
@@ -32,7 +33,7 @@ export function DateInput<T extends FieldValues>({
   const isDisabled = disabled || isSubmitting;
   return (
     <DatePicker
-      value={field.value}
+      value={parsePickerDate(field.value)}
       onChange={field.onChange}
       sx={{ width: '100%' }}
       disabled={isDisabled}

@@ -91,7 +91,10 @@ export const useClientDrawer = ({
   useEffect(() => {
     if (client) {
       reset(clientToFormValues(client));
-      clientService.getFiscalStatus(client.id).then(setFiscalStatus).catch(() => {});
+      clientService
+        .getFiscalStatus(client.id, true)
+        .then(setFiscalStatus)
+        .catch(() => {});
     } else {
       reset({ ...clientFormInitialValues, name: initialName || '' });
       setFiscalStatus(undefined);

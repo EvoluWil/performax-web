@@ -22,7 +22,7 @@ import {
 } from '@/features/occurrence/types';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -87,28 +87,28 @@ const columns: MRT_ColumnDef<Occurrence>[] = [
     accessorKey: 'date',
     header: 'Data da ocorrência',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'createdAt',
     header: 'Criado em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'updatedAt',
     header: 'Atualizado em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'completedAt',
     header: 'Concluída em',
     Cell({ cell }: any) {
-      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+      return cell.getValue() ? formatDateTime(cell.getValue()) : '-';
     },
   },
   {
@@ -151,6 +151,8 @@ type OccurrenceReportRow = {
   createdBy: string;
   date: string;
   createdAt: string;
+  updatedAt: string;
+  completedAt: string;
   status: string;
 };
 
@@ -268,9 +270,15 @@ export const OccurrenceList = () => {
           client: occurrence.client?.name || '-',
           type: occurrence.type?.name || '-',
           createdBy: occurrence.createdBy?.name || '-',
-          date: occurrence.date ? formatDate(occurrence.date) : '-',
+          date: occurrence.date ? formatDateTime(occurrence.date) : '-',
           createdAt: occurrence.createdAt
-            ? formatDate(occurrence.createdAt)
+            ? formatDateTime(occurrence.createdAt)
+            : '-',
+          updatedAt: occurrence.updatedAt
+            ? formatDateTime(occurrence.updatedAt)
+            : '-',
+          completedAt: occurrence.completedAt
+            ? formatDateTime(occurrence.completedAt)
             : '-',
           status: occurrence.status
             ? occurrenceStatusLabels[occurrence.status]?.label || '-'

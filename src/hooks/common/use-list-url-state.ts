@@ -7,7 +7,7 @@ import {
   parsePageParams,
   parseSearchParam,
 } from '@/utils/list-url-state';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 type UseListUrlStateOptions<TFilter> = {
@@ -25,7 +25,6 @@ export function useListUrlState<TFilter>({
 }: UseListUrlStateOptions<TFilter>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const router = useRouter();
 
   const parsed = useMemo(() => {
     const pagination = parsePageParams(searchParams, defaultPageSize);
@@ -61,9 +60,15 @@ export function useListUrlState<TFilter>({
       }
 
       lastSyncedRef.current = nextUrl;
-      router.replace(nextUrl, { scroll: false });
+
+      // Use history.replaceState instead of router.replace to keep the URL
+      // shareable without triggering a Next.js RSC refetch that remounts
+      // client state and clears in-flight filtered results.
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(window.history.state, '', nextUrl);
+      }
     },
-    [defaultPageSize, pathname, router, serializeFilter],
+    [defaultPageSize, pathname, serializeFilter],
   );
 
   return {
@@ -89,6 +94,7 @@ export function useSimpleListUrlState({
 
 type UseListUrlEffectsOptions<TFilter> = {
   hasUrlParams: boolean;
+  isReady?: boolean;
   urlState: {
     q: string;
     pagination: Pagination;
@@ -113,6 +119,7 @@ type UseListUrlEffectsOptions<TFilter> = {
 
 export function useListUrlEffects<TFilter>({
   hasUrlParams,
+  isReady = true,
   urlState,
   state,
   syncUrl,
@@ -122,7 +129,12 @@ export function useListUrlEffects<TFilter>({
   const skipNextSyncRef = useRef(hasUrlParams);
 
   useEffect(() => {
-    if (!hasUrlParams || appliedFromUrlRef.current || !onApplyFromUrl) {
+    if (
+      !hasUrlParams ||
+      !isReady ||
+      appliedFromUrlRef.current ||
+      !onApplyFromUrl
+    ) {
       return;
     }
 
@@ -132,7 +144,14 @@ export function useListUrlEffects<TFilter>({
       urlState.q,
       urlState.pagination.pageIndex + 1,
     );
-  }, [hasUrlParams, onApplyFromUrl, urlState]);
+  }, [
+    hasUrlParams,
+    isReady,
+    onApplyFromUrl,
+    urlState.filter,
+    urlState.q,
+    urlState.pagination.pageIndex,
+  ]);
 
   useEffect(() => {
     if (skipNextSyncRef.current) {
@@ -141,5 +160,11 @@ export function useListUrlEffects<TFilter>({
     }
 
     syncUrl(state);
-  }, [state, syncUrl]);
+  }, [
+    state.q,
+    state.pagination.pageIndex,
+    state.pagination.pageSize,
+    state.filter,
+    syncUrl,
+  ]);
 }

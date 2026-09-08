@@ -14,7 +14,12 @@ import { getTaskQuery } from '@/features/task/services/task.service';
 import { Task } from '@/features/task/types';
 import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  applyScopedFilter,
+  buildTextSearchOrFilter,
+  pushInFilter,
+  pushOrFilterGroups,
+} from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseTaskFilterFromUrl,
@@ -68,7 +73,8 @@ export const useTaskList = () => {
   } = useTasksQuery({ pageSize: pagination.pageSize });
 
   const tasks = data?.tasks ?? [];
-  const { getScopedUserIds, userId } = useCompanyPermissions();
+  const { getScopedUserIds, userId, isReady: permissionsReady } =
+    useCompanyPermissions();
   const [openModal, setOpenModal] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [openCustomizeColumnsModal, setOpenCustomizeColumnsModal] =
@@ -141,32 +147,24 @@ export const useTaskList = () => {
     data: TaskFilterDto,
     currentTerm = term,
   ): Query => {
-    const filterTerm: Filter = [];
-
-    if (currentTerm) {
-      filterTerm.push(
-        ...buildTextSearchOrFilter(
-          currentTerm,
-          ['title', 'description', 'protocol'],
-          { withClientName: true },
-        ),
-      );
-    }
-
     const queryFilter: Query = {
       ...getTaskQuery,
       filter: [],
     } as any;
 
     if (queryFilter.filter) {
-      const filterStatus = buildTaskStatusOrFilter(data);
-      if (filterStatus.length) {
-        queryFilter.filter.push(...filterStatus);
-      }
+      const statusOrItems = buildTaskStatusOrFilter(data).flatMap((entry) =>
+        'or' in entry && entry.or ? (entry.or as Filter) : [entry],
+      );
+      const termOrItems = currentTerm
+        ? buildTextSearchOrFilter(
+            currentTerm,
+            ['title', 'description', 'protocol'],
+            { withClientName: true },
+          )
+        : [];
 
-      if (filterTerm.length) {
-        queryFilter.filter.push({ or: filterTerm });
-      }
+      pushOrFilterGroups(queryFilter.filter, statusOrItems, termOrItems);
 
       pushInFilter(queryFilter.filter, 'clientId', data?.clientIds);
       pushInFilter(queryFilter.filter, 'typeId', data?.typeIds);
@@ -253,6 +251,10 @@ export const useTaskList = () => {
     const queryFilter = buildTaskFilterQuery(data, currentTerm);
 
     if (!hasTaskAccess) {
+      if (!permissionsReady) {
+        setFilterLoading(false);
+        return;
+      }
       setFilteredTasks([]);
       setShowFilter(false);
       return;
@@ -343,30 +345,37 @@ export const useTaskList = () => {
     await handleFilter(filter, search, 1);
   };
 
-  const activeTasks = hasTaskAccess
-    ? filteredTasks !== null
-      ? filteredTasks
-      : tasks
-    : [];
+  const isServerFiltered = filteredTasks !== null;
 
-  const filteredTasksLocal = activeTasks.filter(
-    (task) =>
-      task.title?.toLowerCase().includes(term.toLowerCase()) ||
-      task.description?.toLowerCase().includes(term.toLowerCase()) ||
-      task.protocol?.toLowerCase().includes(term.toLowerCase()),
-  );
+  const filteredTasksLocal = useMemo(() => {
+    if (!hasTaskAccess) return [];
 
-  const count = filteredTasks !== null ? filteredCount : (data?.count ?? 0);
+    if (isServerFiltered) {
+      return filteredTasks ?? [];
+    }
+
+    if (!term.trim()) return tasks;
+
+    const lowerTerm = term.toLowerCase();
+    return tasks.filter(
+      (task) =>
+        task.title?.toLowerCase().includes(lowerTerm) ||
+        task.description?.toLowerCase().includes(lowerTerm) ||
+        task.protocol?.toLowerCase().includes(lowerTerm) ||
+        task.client?.name?.toLowerCase().includes(lowerTerm),
+    );
+  }, [hasTaskAccess, isServerFiltered, filteredTasks, tasks, term]);
+
+  const count = isServerFiltered ? filteredCount : (data?.count ?? 0);
 
   // Filter active: filteredTasks is already the server page, no slice needed.
   // No filter: tasks is accumulated; slice for current page.
-  const paginatedTasks =
-    filteredTasks !== null
-      ? filteredTasksLocal
-      : filteredTasksLocal.slice(
-          pagination.pageIndex * pagination.pageSize,
-          (pagination.pageIndex + 1) * pagination.pageSize,
-        );
+  const paginatedTasks = isServerFiltered
+    ? filteredTasksLocal
+    : filteredTasksLocal.slice(
+        pagination.pageIndex * pagination.pageSize,
+        (pagination.pageIndex + 1) * pagination.pageSize,
+      );
 
   const handlePaginationChange = async (newPagination: Pagination) => {
     if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
@@ -378,7 +387,7 @@ export const useTaskList = () => {
 
     setPagination(newPagination);
 
-    if (filteredTasks !== null) {
+    if (isServerFiltered) {
       await handleFilter(filter, term, newPagination.pageIndex + 1);
     } else {
       const requiredCount =
@@ -422,6 +431,7 @@ export const useTaskList = () => {
 
   useListUrlEffects({
     hasUrlParams,
+    isReady: permissionsReady,
     urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
     state: { q: term, pagination, filter },
     syncUrl,

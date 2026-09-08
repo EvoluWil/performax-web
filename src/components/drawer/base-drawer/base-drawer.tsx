@@ -1,5 +1,5 @@
 import { ChevronRightOutlined } from '@mui/icons-material';
-import { Box, Fab, Typography } from '@mui/material';
+import { Box, Fab, SxProps, Theme, Typography } from '@mui/material';
 import { JSX } from 'react';
 import { DrawerStyled } from './base-drawer.styles';
 
@@ -11,6 +11,7 @@ interface BaseDrawerProps {
   height?: string;
   direction?: 'bottom' | 'left' | 'right' | 'top';
   title: string;
+  sx?: SxProps<Theme>;
 }
 
 export const BaseDrawer: React.FC<BaseDrawerProps> = ({
@@ -20,6 +21,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
   width = 32,
   direction = 'right',
   title,
+  sx,
 }) => {
   return (
     <Box>
@@ -28,7 +30,7 @@ export const BaseDrawer: React.FC<BaseDrawerProps> = ({
         anchor={direction}
         open={open}
         onClose={setOpen}
-        sx={{ position: 'relative' }}
+        sx={[{ position: 'relative' }, ...(Array.isArray(sx) ? sx : [sx])]}
       >
         <Box display="flex" height="100dvh" overflow="hidden">
           <Box

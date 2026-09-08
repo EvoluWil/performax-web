@@ -133,11 +133,12 @@ export function useToggleModuleMutation() {
   });
 }
 
-export function useFiscalConfigQuery() {
+export function useFiscalConfigQuery(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['fiscalConfig'],
     queryFn: () => fiscalConfigService.get(),
     refetchOnWindowFocus: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -149,6 +150,22 @@ export function useFiscalConfigStatusQuery() {
   });
 }
 
+export function useFiscalSyncMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (dto: {
+      certificateFileName?: string;
+      certificateFileBase64?: string;
+      certificatePassword?: string;
+    }) => fiscalConfigService.sync(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiscalConfig'] });
+      queryClient.invalidateQueries({ queryKey: ['fiscalConfigStatus'] });
+    },
+  });
+}
+
 export function useFiscalConfigMutation() {
   const queryClient = useQueryClient();
 
@@ -157,6 +174,7 @@ export function useFiscalConfigMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fiscalConfig'] });
       queryClient.invalidateQueries({ queryKey: ['fiscalConfigStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['service-invoices'] });
     },
   });
 }

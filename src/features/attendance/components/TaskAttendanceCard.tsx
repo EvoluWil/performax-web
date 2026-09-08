@@ -1,7 +1,7 @@
 'use client';
 
 import { taskStatusLabels } from '@/features/task/types';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   BusinessOutlined,
   CalendarTodayOutlined,
@@ -81,7 +81,7 @@ export const TaskAttendanceCard = ({
             <Box display="flex" alignItems="center" gap={0.5}>
               <CalendarTodayOutlined fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
-                {formatDate(task.date)}
+                {formatDateTime(task.date)}
               </Typography>
             </Box>
             {task.responsible && (

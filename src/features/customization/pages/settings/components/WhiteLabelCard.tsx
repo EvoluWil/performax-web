@@ -2,6 +2,7 @@
 
 import { TextInput } from '@/components/inputs';
 import { CompanyWhiteLabel } from '@/types/company';
+import { DEFAULT_WHITE_LABEL } from '@/utils/white-label.utils';
 import {
   Box,
   Card,
@@ -15,6 +16,15 @@ import { Control, useWatch } from 'react-hook-form';
 import { CustomizationFormDto } from '../../../schemas/customization.schema';
 import { ColorField } from './ColorField';
 import { ImageUpload } from './ImageUpload';
+import { ResetDefaultButton } from './ResetDefaultButton';
+
+type WhiteLabelField =
+  | 'wlName'
+  | 'logo'
+  | 'banner'
+  | 'favicon'
+  | 'primaryColor'
+  | 'secondaryColor';
 
 type WhiteLabelCardProps = {
   control: Control<CustomizationFormDto>;
@@ -25,7 +35,16 @@ type WhiteLabelCardProps = {
   onLogoChange: (file: File) => void;
   onBannerChange: (file: File) => void;
   onFaviconChange: (file: File) => void;
+  onResetField: (field: WhiteLabelField) => void;
 };
+
+function isSystemAsset(
+  value: string | null | undefined,
+  defaultUrl: string,
+  pendingPreview: string | null,
+) {
+  return !pendingPreview && (value || '') === defaultUrl;
+}
 
 export function WhiteLabelCard({
   control,
@@ -36,7 +55,9 @@ export function WhiteLabelCard({
   onLogoChange,
   onBannerChange,
   onFaviconChange,
+  onResetField,
 }: WhiteLabelCardProps) {
+  const wlName = useWatch({ control, name: 'wlName' }) as string;
   const logoUrl = useWatch({ control, name: 'logo' }) as string;
   const bannerUrl = useWatch({ control, name: 'banner' }) as string;
   const faviconUrl = useWatch({ control, name: 'favicon' }) as string;
@@ -56,12 +77,27 @@ export function WhiteLabelCard({
         </Box>
         <Divider sx={{ mb: 2 }} />
         <Box display="flex" flexDirection="column" gap={2}>
-          <TextInput
-            label="Nome exibido (white label)"
-            name="wlName"
-            control={control}
-            placeholder="Nome personalizado da plataforma"
-          />
+          <Box>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              gap={1}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Nome exibido (white label)
+              </Typography>
+              <ResetDefaultButton
+                onClick={() => onResetField('wlName')}
+                disabled={(wlName || '') === DEFAULT_WHITE_LABEL.name}
+              />
+            </Box>
+            <TextInput
+              name="wlName"
+              control={control}
+              placeholder={DEFAULT_WHITE_LABEL.name}
+            />
+          </Box>
 
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 'auto' }}>
@@ -71,6 +107,12 @@ export function WhiteLabelCard({
                 aspectRatio="1 / 1"
                 height={160}
                 onChange={onLogoChange}
+                onReset={() => onResetField('logo')}
+                isDefault={isSystemAsset(
+                  logoUrl,
+                  DEFAULT_WHITE_LABEL.logo,
+                  logoPreviewUrl,
+                )}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 'auto' }}>
@@ -82,6 +124,12 @@ export function WhiteLabelCard({
                 accept=".ico"
                 hint="Apenas arquivos .ico"
                 onChange={onFaviconChange}
+                onReset={() => onResetField('favicon')}
+                isDefault={isSystemAsset(
+                  faviconUrl,
+                  DEFAULT_WHITE_LABEL.favicon,
+                  faviconPreviewUrl,
+                )}
               />
             </Grid>
           </Grid>
@@ -93,6 +141,12 @@ export function WhiteLabelCard({
                 previewSrc={bannerPreviewSrc}
                 aspectRatio="700 / 140"
                 onChange={onBannerChange}
+                onReset={() => onResetField('banner')}
+                isDefault={isSystemAsset(
+                  bannerUrl,
+                  DEFAULT_WHITE_LABEL.banner,
+                  bannerPreviewUrl,
+                )}
               />
             </Grid>
           </Grid>
@@ -103,7 +157,8 @@ export function WhiteLabelCard({
                 label="Cor primária"
                 name="primaryColor"
                 control={control}
-                defaultColor="#1976d2"
+                defaultColor={DEFAULT_WHITE_LABEL.primaryColor}
+                onReset={() => onResetField('primaryColor')}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -111,7 +166,8 @@ export function WhiteLabelCard({
                 label="Cor secundária"
                 name="secondaryColor"
                 control={control}
-                defaultColor="#9c27b0"
+                defaultColor={DEFAULT_WHITE_LABEL.secondaryColor}
+                onReset={() => onResetField('secondaryColor')}
               />
             </Grid>
           </Grid>

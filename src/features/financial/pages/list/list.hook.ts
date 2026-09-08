@@ -17,7 +17,7 @@ import {
   FinanceFilterDto,
   makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
-import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import { buildTextSearchOrFilter, pushInFilter, pushOrFilterGroups } from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseFinanceFilterFromUrl,
@@ -54,23 +54,24 @@ const buildQuery = (
 
   if (!queryFilter.filter) return queryFilter;
 
-  if (searchTerm) {
-    queryFilter.filter.push({
-      or: buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
+  const searchOrItems = searchTerm
+    ? buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
         withClientName: true,
-      }),
-    } as any);
-  }
+      })
+    : [];
 
-  if (filterData?.flows && filterData.flows.length > 0) {
-    queryFilter.filter.push({
-      or: filterData.flows.map((flow) => ({
-        path: 'flow',
-        operator: 'equals',
-        value: flow,
-      })),
-    } as any);
-  } else if (filterData?.flow) {
+  const flowOrItems =
+    filterData?.flows && filterData.flows.length > 0
+      ? filterData.flows.map((flow) => ({
+          path: 'flow',
+          operator: 'equals' as const,
+          value: flow,
+        }))
+      : [];
+
+  pushOrFilterGroups(queryFilter.filter, searchOrItems, flowOrItems);
+
+  if (filterData?.flow && !filterData.flows?.length) {
     queryFilter.filter.push({
       path: 'flow',
       value: filterData.flow,

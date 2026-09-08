@@ -115,6 +115,12 @@ export const routes: Route[] = [
         modules: ['financial'],
       },
       {
+        id: 'Emissões',
+        path: '/panel/financial/invoices',
+        permissions: ['fiscal'],
+        modules: ['fiscal'],
+      },
+      {
         id: 'Adiantamentos',
         path: '/panel/financial/advances',
         permissions: ['financial'],

@@ -2,6 +2,7 @@
 
 import { ImageOutlined } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
+import { ResetDefaultButton } from './ResetDefaultButton';
 
 type ImageUploadProps = {
   label: string;
@@ -12,6 +13,8 @@ type ImageUploadProps = {
   accept?: string;
   hint?: string;
   onChange: (file: File) => void;
+  onReset?: () => void;
+  isDefault?: boolean;
 };
 
 export function ImageUpload({
@@ -23,12 +26,25 @@ export function ImageUpload({
   accept = 'image/*',
   hint,
   onChange,
+  onReset,
+  isDefault = false,
 }: ImageUploadProps) {
   return (
     <Box>
-      <Typography variant="body2" color="text.secondary" mb={0.5}>
-        {label}
-      </Typography>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={0.5}
+        gap={1}
+      >
+        <Typography variant="body2" color="text.secondary">
+          {label}
+        </Typography>
+        {onReset && (
+          <ResetDefaultButton onClick={onReset} disabled={isDefault} />
+        )}
+      </Box>
       <Box
         component="label"
         sx={{

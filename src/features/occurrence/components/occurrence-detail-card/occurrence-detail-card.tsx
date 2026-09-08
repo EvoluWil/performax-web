@@ -4,7 +4,7 @@ import {
   Occurrence,
   occurrenceStatusLabels,
 } from '@/features/occurrence/types';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   AssignmentLateOutlined,
   CalendarTodayOutlined,
@@ -173,24 +173,28 @@ export const OccurrenceDetailCard: React.FC<OccurrenceDetailCardProps> = ({
               </Box>
               <FieldRow
                 label="Data da ocorrência:"
-                value={occurrence.date ? formatDate(occurrence.date) : '-'}
+                value={occurrence.date ? formatDateTime(occurrence.date) : '-'}
               />
               <FieldRow
                 label="Criada em:"
                 value={
-                  occurrence.createdAt ? formatDate(occurrence.createdAt) : '-'
+                  occurrence.createdAt
+                    ? formatDateTime(occurrence.createdAt)
+                    : '-'
                 }
               />
               <FieldRow
                 label="Atualizada em:"
                 value={
-                  occurrence.updatedAt ? formatDate(occurrence.updatedAt) : '-'
+                  occurrence.updatedAt
+                    ? formatDateTime(occurrence.updatedAt)
+                    : '-'
                 }
               />
               {occurrence.completedAt && (
                 <FieldRow
                   label="Concluída em:"
-                  value={formatDate(occurrence.completedAt)}
+                  value={formatDateTime(occurrence.completedAt)}
                 />
               )}
             </Stack>

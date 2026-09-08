@@ -2,9 +2,8 @@ import { Task, taskStatusLabels } from '@/features/task/types';
 import { imageExtensions } from '@/types/file';
 import { base64ByElement } from '@/utils/base64';
 import { formatCnpj } from '@/utils/cnpj';
+import { formatDateTime } from '@/utils/date';
 import { getFileName } from '@/utils/file';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 export const generateTaskPdfObject = async (task: Task | null) => {
@@ -84,19 +83,11 @@ export const generateTaskPdfObject = async (task: Task | null) => {
           ],
           [
             {
-              text: `CRIADA EM: ${format(
-                new Date(task.createdAt),
-                'dd/MM/yyyy - HH:mm',
-                { locale: ptBR },
-              )}`,
+              text: `CRIADA EM: ${formatDateTime(task.createdAt)}`,
               fontSize: 10,
             },
             {
-              text: `ULTIMA ATUALIZAÇÃO: ${format(
-                new Date(task.updatedAt),
-                'dd/MM/yyyy - HH:mm',
-                { locale: ptBR },
-              )}`,
+              text: `ULTIMA ATUALIZAÇÃO: ${formatDateTime(task.updatedAt)}`,
               fontSize: 10,
             },
           ],
@@ -119,11 +110,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
           ],
           [
             {
-              text: `DATA PREVISTA: ${format(
-                new Date(task.date),
-                'dd/MM/yyyy - HH:mm',
-                { locale: ptBR },
-              )}`,
+              text: `DATA PREVISTA: ${formatDateTime(task.date)}`,
               fontSize: 10,
               colSpan: 2,
             },
@@ -192,11 +179,7 @@ export const generateTaskPdfObject = async (task: Task | null) => {
           },
           {
             text: `CONCLUÍDA: ${
-              task.completedAt
-                ? format(new Date(task.completedAt), 'dd/MM/yyyy - HH:mm', {
-                    locale: ptBR,
-                  })
-                : '-'
+              task.completedAt ? formatDateTime(task.completedAt) : '-'
             }`,
             fontSize: 10,
           },

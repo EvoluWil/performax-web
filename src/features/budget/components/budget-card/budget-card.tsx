@@ -1,4 +1,4 @@
-import { formatDate } from "@/utils/date";
+import { formatDateTime } from "@/utils/date";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import SwapHorizOutlined from "@mui/icons-material/SwapHorizOutlined";
@@ -130,7 +130,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
 
         <Box textAlign="right">
           <Typography variant="body2">
-            {formatDate(budget.createdAt)}
+            {formatDateTime(budget.createdAt)}
           </Typography>
           <Chip
             label={label}

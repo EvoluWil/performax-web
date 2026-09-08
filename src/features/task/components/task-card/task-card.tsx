@@ -1,5 +1,5 @@
 import { Task, taskStatusLabels } from '@/features/task/types';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import {
@@ -122,7 +122,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </Box>
 
         <Box textAlign="right">
-          <Typography variant="body2">{formatDate(task.date)}</Typography>
+          <Typography variant="body2">{formatDateTime(task.date)}</Typography>
           <Chip
             label={label}
             sx={{ color, borderColor: color }}

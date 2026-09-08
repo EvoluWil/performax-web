@@ -54,9 +54,13 @@ class ClientService extends BaseCompanyService {
     return data;
   }
 
-  async getFiscalStatus(clientId: string): Promise<FiscalStatus> {
+  async getFiscalStatus(
+    clientId: string,
+    resolveCep = false,
+  ): Promise<FiscalStatus> {
     const { data } = await api.get<FiscalStatus>(
       `${this.getUrlBase(this.path)}/${clientId}/fiscal-status`,
+      { params: resolveCep ? { resolveCep: true } : undefined },
     );
     return data;
   }

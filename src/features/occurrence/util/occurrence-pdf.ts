@@ -3,8 +3,7 @@ import { File, imageExtensions } from '@/types/file';
 import { base64ByElement } from '@/utils/base64';
 import { formatCnpj } from '@/utils/cnpj';
 import { getFileName } from '@/utils/file';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDateTime } from '@/utils/date';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 
 const mapFilesForPdf = async (sourceFiles: File[] = []) => {
@@ -137,7 +136,7 @@ export const generateOccurrencePdfObject = async (
           ],
           [
             {
-              text: `DATA DA OCORRÊNCIA: ${occurrenceDate ? format(new Date(occurrenceDate), 'dd/MM/yyyy - HH:mm', { locale: ptBR }) : '-'}`,
+              text: `DATA DA OCORRÊNCIA: ${occurrenceDate ? formatDateTime(occurrenceDate) : '-'}`,
               fontSize: 10,
             },
           ],

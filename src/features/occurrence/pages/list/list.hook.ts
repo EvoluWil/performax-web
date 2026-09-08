@@ -16,7 +16,12 @@ import {
 import { Occurrence } from '@/features/occurrence/types';
 import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  applyScopedFilter,
+  buildTextSearchOrFilter,
+  pushInFilter,
+  pushOrFilterGroups,
+} from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseOccurrenceFilterFromUrl,
@@ -93,7 +98,8 @@ export const useOccurrenceList = () => {
     useState<Occurrence | null>(null);
 
   const occurrenceMutation = useOccurrenceMutation();
-  const { getScopedUserIds, userId } = useCompanyPermissions();
+  const { getScopedUserIds, userId, isReady: permissionsReady } =
+    useCompanyPermissions();
 
   const scopedOccurrenceUserIds = useMemo(
     () => getScopedUserIds('occurrence'),
@@ -161,32 +167,24 @@ export const useOccurrenceList = () => {
     data: OccurrenceFilterDto,
     currentTerm = term,
   ): Query => {
-    const termFilter: Filter = [];
-
-    if (currentTerm) {
-      termFilter.push(
-        ...buildTextSearchOrFilter(
-          currentTerm,
-          ['title', 'description', 'protocol'],
-          { withClientName: true },
-        ),
-      );
-    }
-
     const queryFilter: Query = {
       ...getOccurrenceQuery,
       filter: [],
     } as any;
 
     if (queryFilter.filter) {
-      const statusFilter = buildOccurrenceStatusOrFilter(data);
-      if (statusFilter.length) {
-        queryFilter.filter.push(...statusFilter);
-      }
+      const statusOrItems = buildOccurrenceStatusOrFilter(data).flatMap(
+        (entry) => ('or' in entry && entry.or ? (entry.or as Filter) : [entry]),
+      );
+      const termOrItems = currentTerm
+        ? buildTextSearchOrFilter(
+            currentTerm,
+            ['title', 'description', 'protocol'],
+            { withClientName: true },
+          )
+        : [];
 
-      if (termFilter.length) {
-        queryFilter.filter.push({ or: termFilter });
-      }
+      pushOrFilterGroups(queryFilter.filter, statusOrItems, termOrItems);
 
       pushInFilter(queryFilter.filter, 'clientId', data?.clientIds);
 
@@ -242,6 +240,9 @@ export const useOccurrenceList = () => {
     setFilter(Object.keys(data)?.length ? data : null);
 
     if (!hasOccurrenceAccess) {
+      if (!permissionsReady) {
+        return;
+      }
       setFilteredOccurrences([]);
       setShowFilter(false);
       return;
@@ -326,7 +327,7 @@ export const useOccurrenceList = () => {
   const handleSearch = async (search: string) => {
     setTerm(search);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    await handleFilter(filter || ({} as OccurrenceFilterDto), search, 1);
+    await handleFilter(filter ?? occurrenceFilterInitialValues, search, 1);
   };
 
   const toggleView = () =>
@@ -358,6 +359,7 @@ export const useOccurrenceList = () => {
 
   useListUrlEffects({
     hasUrlParams,
+    isReady: permissionsReady,
     urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
     state: {
       q: term,
@@ -377,22 +379,35 @@ export const useOccurrenceList = () => {
     },
   });
 
-  const count = filter ? filteredCount : (data?.count ?? 0);
+  const isServerFiltered = filteredOccurrences !== null;
+  const count = isServerFiltered ? filteredCount : (data?.count ?? 0);
 
-  const currentOccurrencesAll = (
-    hasOccurrenceAccess
-      ? filter
-        ? filteredOccurrences || []
-        : occurrences
-      : []
-  ).filter(
-    (o) =>
-      o.title?.toLowerCase().includes(term.toLowerCase()) ||
-      o.description?.toLowerCase().includes(term.toLowerCase()) ||
-      o.protocol?.toLowerCase().includes(term.toLowerCase()),
-  );
+  const currentOccurrencesAll = useMemo(() => {
+    if (!hasOccurrenceAccess) return [];
 
-  const paginatedOccurrences = filter
+    if (isServerFiltered) {
+      return filteredOccurrences ?? [];
+    }
+
+    if (!term.trim()) return occurrences;
+
+    const lowerTerm = term.toLowerCase();
+    return occurrences.filter(
+      (o) =>
+        o.title?.toLowerCase().includes(lowerTerm) ||
+        o.description?.toLowerCase().includes(lowerTerm) ||
+        o.protocol?.toLowerCase().includes(lowerTerm) ||
+        o.client?.name?.toLowerCase().includes(lowerTerm),
+    );
+  }, [
+    hasOccurrenceAccess,
+    isServerFiltered,
+    filteredOccurrences,
+    occurrences,
+    term,
+  ]);
+
+  const paginatedOccurrences = isServerFiltered
     ? currentOccurrencesAll
     : currentOccurrencesAll.slice(
         pagination.pageIndex * pagination.pageSize,
@@ -409,8 +424,12 @@ export const useOccurrenceList = () => {
 
     setPagination(newPagination);
 
-    if (filter) {
-      await handleFilter(filter, term, newPagination.pageIndex + 1);
+    if (isServerFiltered) {
+      await handleFilter(
+        filter ?? occurrenceFilterInitialValues,
+        term,
+        newPagination.pageIndex + 1,
+      );
     } else {
       const requiredCount =
         (newPagination.pageIndex + 1) * newPagination.pageSize;

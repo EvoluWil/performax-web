@@ -11,7 +11,7 @@ import {
 } from '@/features/contract/hooks/queries/contracts.query';
 import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import { buildTextSearchOrFilter, pushInFilter, pushOrFilterGroups } from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseContractFilterFromUrl,
@@ -64,7 +64,9 @@ export const useContractList = () => {
       ? urlFilter
       : null,
   );
-  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
+  const [filteredContracts, setFilteredContracts] = useState<Contract[] | null>(
+    null,
+  );
   const [filteredCount, setFilteredCount] = useState(0);
   const [openModal, setOpenModal] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
@@ -93,13 +95,16 @@ export const useContractList = () => {
     isPending,
   } = useContractsQuery({
     pageSize: pagination.pageSize,
-    enabled: hasAccess && !filter,
+    enabled: hasAccess && filteredContracts === null,
   });
 
   const contractMutation = useContractMutation();
 
-  const contracts = filter ? filteredContracts : (data?.contracts ?? []);
-  const count = filter ? filteredCount : (data?.count ?? 0);
+  const isServerFiltered = filteredContracts !== null;
+  const contracts = isServerFiltered
+    ? (filteredContracts ?? [])
+    : (data?.contracts ?? []);
+  const count = isServerFiltered ? filteredCount : (data?.count ?? 0);
 
   const buildFilterQuery = (
     data: ContractFilterDto,
@@ -112,11 +117,12 @@ export const useContractList = () => {
     };
 
     if (searchTerm) {
-      queryFilter.filter?.push({
-        or: buildTextSearchOrFilter(searchTerm, ['scope'], {
+      pushOrFilterGroups(
+        queryFilter.filter,
+        buildTextSearchOrFilter(searchTerm, ['scope'], {
           withClientName: true,
         }),
-      } as any);
+      );
     }
 
     pushInFilter(queryFilter.filter, 'clientId', data.clientIds);
@@ -125,13 +131,19 @@ export const useContractList = () => {
     return queryFilter;
   };
 
-  const handleFilter = async (data: ContractFilterDto) => {
-    setFilter(Object.keys(data).some((k) => data[k as keyof ContractFilterDto]) ? data : null);
+  const handleFilter = async (
+    data: ContractFilterDto,
+    searchTerm = term,
+  ) => {
+    const hasFilterValues = Object.keys(data).some(
+      (k) => data[k as keyof ContractFilterDto],
+    );
+    setFilter(hasFilterValues ? data : null);
 
     if (!hasAccess) return;
 
     try {
-      const queryFilter = buildFilterQuery(data, term);
+      const queryFilter = buildFilterQuery(data, searchTerm);
       const result = await contractService.get(queryFilter as Query);
       setFilteredContracts(result?.data || []);
       setFilteredCount(result?.count ?? 0);
@@ -187,8 +199,8 @@ export const useContractList = () => {
       preConfirm: async () => {
         await contractMutation.mutateAsync({ type: 'delete', id: contractId });
         toast.success('Contrato excluído com sucesso');
-        if (filter) {
-          await handleFilter(filter);
+        if (isServerFiltered) {
+          await handleFilter(filter ?? contractFilterInitialValues);
         } else {
           await refetch();
         }
@@ -207,8 +219,8 @@ export const useContractList = () => {
       preConfirm: async () => {
         await contractMutation.mutateAsync({ type: 'inactivate', id: contractId });
         toast.success('Contrato inativado com sucesso');
-        if (filter) {
-          await handleFilter(filter);
+        if (isServerFiltered) {
+          await handleFilter(filter ?? contractFilterInitialValues);
         } else {
           await refetch();
         }
@@ -219,8 +231,8 @@ export const useContractList = () => {
   const handleActivateContract = async (contractId: string) => {
     await contractMutation.mutateAsync({ type: 'activate', id: contractId });
     toast.success('Contrato reativado com sucesso');
-    if (filter) {
-      await handleFilter(filter);
+    if (isServerFiltered) {
+      await handleFilter(filter ?? contractFilterInitialValues);
     } else {
       await refetch();
     }
@@ -232,19 +244,24 @@ export const useContractList = () => {
       return;
     }
 
-    if (filter) {
-      await handleFilter(filter);
+    if (isServerFiltered) {
+      await handleFilter(filter ?? contractFilterInitialValues);
     } else {
       const { data } = await refetch();
       if (data) toast.success('Dados atualizados com sucesso');
     }
   };
 
-  const handleSearch = (search: string) => {
+  const handleSearch = async (search: string) => {
     setTerm(search);
-    if (filter) {
-      handleFilter(filter);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+
+    if (!search.trim() && !filter) {
+      setFilteredContracts(null);
+      return;
     }
+
+    await handleFilter(filter ?? contractFilterInitialValues, search);
   };
 
   const handlePaginationChange = async (newPagination: Pagination) => {
@@ -260,7 +277,7 @@ export const useContractList = () => {
     setPagination(newPagination);
 
     if (
-      !filter &&
+      !isServerFiltered &&
       contracts.length < requiredCount &&
       hasNextPage &&
       !isFetchingNextPage
@@ -280,14 +297,14 @@ export const useContractList = () => {
   };
 
   const filteredByTerm = useMemo(() => {
-    if (filter || !term) return contracts;
+    if (isServerFiltered || !term) return contracts;
     return contracts.filter(
       (c) =>
         c.client?.name?.toLowerCase().includes(term.toLowerCase()) ||
         c.type?.name?.toLowerCase().includes(term.toLowerCase()) ||
         c.scope?.toLowerCase().includes(term.toLowerCase()),
     );
-  }, [contracts, term, filter]);
+  }, [contracts, term, isServerFiltered]);
 
   const paginatedContracts = filteredByTerm.slice(
     pagination.pageIndex * pagination.pageSize,
@@ -309,7 +326,7 @@ export const useContractList = () => {
       if (
         hasActiveFilterParams(serializeContractFilterToUrl(nextFilter), nextTerm)
       ) {
-        await handleFilter(nextFilter);
+        await handleFilter(nextFilter, nextTerm);
         if (nextTerm) {
           setTerm(nextTerm);
         }

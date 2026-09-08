@@ -1,7 +1,7 @@
 "use client";
 
 import { FieldRow } from "@/components/common";
-import { formatDate } from "@/utils/date";
+import { formatDateTime } from "@/utils/date";
 import {
   AssignmentLateOutlined,
   CalendarTodayOutlined,
@@ -206,11 +206,11 @@ export const BudgetDetailCard: React.FC<Props> = ({ budget }) => {
               </Box>
               <FieldRow
                 label="Criado em:"
-                value={formatDate(budget.createdAt)}
+                value={formatDateTime(budget.createdAt)}
               />
               <FieldRow
                 label="Atualizado em:"
-                value={formatDate(budget.updatedAt)}
+                value={formatDateTime(budget.updatedAt)}
               />
             </Stack>
           </Paper>

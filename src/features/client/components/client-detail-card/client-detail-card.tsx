@@ -4,7 +4,7 @@ import { FieldRow } from '@/components/common';
 import { Client, ClientComplianceStatus } from '@/features/client/types';
 import { formatCnpj } from '@/utils/cnpj';
 import { formatCpf } from '@/utils/cpf';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   BusinessOutlined,
   CalendarTodayOutlined,
@@ -137,11 +137,11 @@ export const ClientDetailCard: React.FC<Props> = ({ client }) => {
           </Box>
           <FieldRow
             label="Cadastrado em:"
-            value={formatDate(client.createdAt)}
+            value={formatDateTime(client.createdAt)}
           />
           <FieldRow
             label="Atualizado em:"
-            value={formatDate(client.updatedAt)}
+            value={formatDateTime(client.updatedAt)}
           />
           {client.email && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

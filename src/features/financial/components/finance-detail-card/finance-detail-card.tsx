@@ -1,7 +1,7 @@
 'use client';
 
 import { FieldRow } from '@/components/common';
-import { formatDate } from '@/utils/date';
+import { formatDate, formatDateTime } from '@/utils/date';
 import { formatRRuleToText } from '@/utils/rrule';
 import { Box, Chip, Divider, Paper, Typography } from '@mui/material';
 import {
@@ -188,7 +188,7 @@ export const FinanceDetailCard: React.FC<Props> = ({ finance }) => {
             {finance.createdBy && (
               <FieldRow label="Criado por" value={finance.createdBy.name} />
             )}
-            <FieldRow label="Criado em" value={formatDate(finance.createdAt)} />
+            <FieldRow label="Criado em" value={formatDateTime(finance.createdAt)} />
 
             {finance.status === FinanceStatusEnum.PENDING &&
               finance.approved === false && (

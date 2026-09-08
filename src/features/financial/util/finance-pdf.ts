@@ -1,5 +1,4 @@
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatDate, formatDateTime } from '@/utils/date';
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import {
   Finance,
@@ -9,14 +8,7 @@ import {
   financeStatusLabels,
 } from '../types/finance';
 
-const fmtDate = (d: Date | string | undefined) => {
-  if (!d) return '-';
-  try {
-    return format(new Date(d), 'dd/MM/yyyy', { locale: ptBR });
-  } catch {
-    return '-';
-  }
-};
+const fmtDate = (d: Date | string | undefined) => formatDate(d) || '-';
 
 const fmtCurrency = (cents: number) =>
   Number(cents / 100).toLocaleString('pt-BR', {
@@ -83,7 +75,7 @@ export const generateFinancePdfObject = (
           ],
           [
             {
-              text: `CRIADO EM: ${format(new Date(finance.createdAt), 'dd/MM/yyyy - HH:mm', { locale: ptBR })}`,
+              text: `CRIADO EM: ${formatDateTime(finance.createdAt)}`,
               fontSize: 10,
             },
             {

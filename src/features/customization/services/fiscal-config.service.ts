@@ -28,6 +28,25 @@ class FiscalConfigService extends BaseCompanyService {
     );
     return data;
   }
+
+  async sync(dto: {
+    certificateFileName?: string;
+    certificateFileBase64?: string;
+    certificatePassword?: string;
+  }): Promise<FiscalConfig> {
+    const { data } = await api.post<FiscalConfig>(
+      this.getUrlBase('fiscal-config/sync'),
+      dto,
+    );
+    return data;
+  }
+
+  async getCities(code?: string) {
+    const { data } = await api.get(this.getUrlBase('fiscal-config/cities'), {
+      params: code ? { code } : undefined,
+    });
+    return data;
+  }
 }
 
 export const fiscalConfigService = new FiscalConfigService();

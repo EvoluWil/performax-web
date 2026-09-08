@@ -5,7 +5,7 @@ import {
   Task,
   taskStatusLabels,
 } from '@/features/task/types';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   AssignmentLateOutlined,
   CalendarTodayOutlined,
@@ -203,15 +203,15 @@ export const TaskDetailCard = ({
                 <CalendarTodayOutlined color="action" />
                 <Typography variant="subtitle2">Datas</Typography>
               </Box>
-              <FieldRow label="Data prevista:" value={formatDate(task.date)} />
-              <FieldRow label="Criada em:" value={formatDate(task.createdAt)} />
+              <FieldRow label="Data prevista:" value={formatDateTime(task.date)} />
+              <FieldRow label="Criada em:" value={formatDateTime(task.createdAt)} />
               <FieldRow
                 label="Atualizada em:"
-                value={formatDate(task.updatedAt)}
+                value={formatDateTime(task.updatedAt)}
               />
               <FieldRow
                 label="Concluída em:"
-                value={task.completedAt ? formatDate(task.completedAt) : '-'}
+                value={task.completedAt ? formatDateTime(task.completedAt) : '-'}
               />
             </Stack>
           </Paper>

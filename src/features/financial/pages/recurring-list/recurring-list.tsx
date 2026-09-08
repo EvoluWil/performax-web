@@ -93,7 +93,7 @@ function rruleToDescription(rruleStr: string): string {
 
     if (o.count) text += ` · ${o.count}×`;
     if (o.until)
-      text += ` · até ${new Date(o.until).toLocaleDateString('pt-BR')}`;
+      text += ` · até ${formatDate(o.until)}`;
 
     return text;
   } catch {

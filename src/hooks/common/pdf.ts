@@ -3,6 +3,7 @@ import { useSession } from '@/providers/auth';
 import { useWhiteLabel } from '@/providers/white-label';
 import { companyService } from '@/services/company.service';
 import { getBase64 } from '@/utils/base64';
+import { formatDateTime } from '@/utils/date';
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
@@ -59,7 +60,7 @@ export const usePdfGenerator = () => {
         },
       ],
       footer: {
-        text: `Gerado por: ${user?.name} - ${new Date().toLocaleString()}`,
+        text: `Gerado por: ${user?.name} - ${formatDateTime(new Date())}`,
         alignment: 'center',
         fontSize: 10,
       },
@@ -158,7 +159,7 @@ export const usePdfGenerator = () => {
         },
       ],
       footer: {
-        text: `Gerado por: ${user?.name} - ${new Date().toLocaleString()}`,
+        text: `Gerado por: ${user?.name} - ${formatDateTime(new Date())}`,
         alignment: 'center',
         fontSize: 10,
       },

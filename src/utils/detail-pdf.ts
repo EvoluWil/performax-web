@@ -1,5 +1,6 @@
 import { firebaseApp } from '@/config/firebase';
 import { getBase64 } from '@/utils/base64';
+import { formatDateTime } from '@/utils/date';
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import pdfMake from 'pdfmake/build/pdfmake';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
@@ -55,7 +56,7 @@ export async function buildDetailPdfDefinition({
   return {
     content,
     footer: {
-      text: `Gerado por: ${userName ?? '-'} - ${new Date().toLocaleString('pt-BR')}`,
+      text: `Gerado por: ${userName ?? '-'} - ${formatDateTime(new Date())}`,
       alignment: 'center',
       fontSize: 10,
     },

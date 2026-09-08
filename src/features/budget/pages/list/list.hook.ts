@@ -1,7 +1,12 @@
 import { Pagination } from '@/components/common/table/table';
 import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { applyScopedFilter, buildTextSearchOrFilter, pushInFilter } from '@/utils/query';
+import {
+  applyScopedFilter,
+  buildTextSearchOrFilter,
+  pushInFilter,
+  pushOrFilterGroups,
+} from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseBudgetFilterFromUrl,
@@ -85,7 +90,7 @@ export const useBudgetList = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
 
-  const { getScopedUserIds, userId } = useCompanyPermissions();
+  const { getScopedUserIds, userId, isReady: permissionsReady } = useCompanyPermissions();
 
   const scopedBudgetUserIds = useMemo(
     () => getScopedUserIds('budget'),
@@ -150,32 +155,24 @@ export const useBudgetList = () => {
     data: BudgetFilterDto,
     currentTerm = term,
   ): Query => {
-    const termFilter: Filter = [];
-
-    if (currentTerm) {
-      termFilter.push(
-        ...buildTextSearchOrFilter(
-          currentTerm,
-          ['title', 'description', 'protocol'],
-          { withClientName: true },
-        ),
-      );
-    }
-
     const queryFilter: Query = {
       ...getBudgetQuery,
       filter: [],
     } as any;
 
     if (queryFilter.filter) {
-      const statusFilter = buildBudgetStatusOrFilter(data);
-      if (statusFilter.length) {
-        queryFilter.filter.push(...statusFilter);
-      }
+      const statusOrItems = buildBudgetStatusOrFilter(data).flatMap((entry) =>
+        'or' in entry && entry.or ? (entry.or as Filter) : [entry],
+      );
+      const termOrItems = currentTerm
+        ? buildTextSearchOrFilter(
+            currentTerm,
+            ['title', 'description', 'protocol'],
+            { withClientName: true },
+          )
+        : [];
 
-      if (termFilter.length) {
-        queryFilter.filter.push({ or: termFilter });
-      }
+      pushOrFilterGroups(queryFilter.filter, statusOrItems, termOrItems);
 
       pushInFilter(queryFilter.filter, 'clientId', data?.clientIds);
       pushInFilter(queryFilter.filter, 'typeId', data?.typeIds);
@@ -233,6 +230,9 @@ export const useBudgetList = () => {
     const queryFilter = buildBudgetFilterQuery(data, currentTerm);
 
     if (!hasBudgetAccess) {
+      if (!permissionsReady) {
+        return;
+      }
       setFilteredBudgets([]);
       setShowFilter(false);
       return;
@@ -315,7 +315,7 @@ export const useBudgetList = () => {
   const handleSearch = async (search: string) => {
     setTerm(search);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    await handleFilter(filter || ({} as BudgetFilterDto), search, 1);
+    await handleFilter(filter ?? budgetFilterInitialValues, search, 1);
   };
 
   const toggleView = () =>
@@ -344,8 +344,12 @@ export const useBudgetList = () => {
         ? 'Orçamento aprovado com sucesso'
         : 'Orçamento reprovado com sucesso',
     );
-    if (filter) {
-      await handleFilter(filter, term, pagination.pageIndex + 1);
+    if (filteredBudgets !== null) {
+      await handleFilter(
+        filter ?? budgetFilterInitialValues,
+        term,
+        pagination.pageIndex + 1,
+      );
     }
   };
 
@@ -356,13 +360,18 @@ export const useBudgetList = () => {
       data: { status } as any,
     });
     toast.success('Status atualizado com sucesso');
-    if (filter) {
-      await handleFilter(filter, term, pagination.pageIndex + 1);
+    if (filteredBudgets !== null) {
+      await handleFilter(
+        filter ?? budgetFilterInitialValues,
+        term,
+        pagination.pageIndex + 1,
+      );
     }
   };
 
   useListUrlEffects({
     hasUrlParams,
+    isReady: permissionsReady,
     urlState: { q: urlQ, pagination: urlPagination, filter: urlFilter },
     state: {
       q: term,
@@ -377,20 +386,31 @@ export const useBudgetList = () => {
     },
   });
 
-  const count = filter ? filteredCount : (data?.count ?? 0);
+  const isServerFiltered = filteredBudgets !== null;
+  const count = isServerFiltered ? filteredCount : (data?.count ?? 0);
 
-  const currentBudgetsAll = (
-    hasBudgetAccess ? (filter ? filteredBudgets || [] : budgets) : []
-  ).filter(
-    (b) =>
-      b.title?.toLowerCase().includes(term.toLowerCase()) ||
-      b.description?.toLowerCase().includes(term.toLowerCase()) ||
-      b.protocol?.toLowerCase().includes(term.toLowerCase()),
-  );
+  const currentBudgetsAll = useMemo(() => {
+    if (!hasBudgetAccess) return [];
+
+    if (isServerFiltered) {
+      return filteredBudgets ?? [];
+    }
+
+    if (!term.trim()) return budgets;
+
+    const lowerTerm = term.toLowerCase();
+    return budgets.filter(
+      (b) =>
+        b.title?.toLowerCase().includes(lowerTerm) ||
+        b.description?.toLowerCase().includes(lowerTerm) ||
+        b.protocol?.toLowerCase().includes(lowerTerm) ||
+        b.client?.name?.toLowerCase().includes(lowerTerm),
+    );
+  }, [hasBudgetAccess, isServerFiltered, filteredBudgets, budgets, term]);
 
   // Filter active: filteredBudgets is already the server page, no slice needed.
   // No filter: budgets is accumulated; slice for current page.
-  const paginatedBudgets = filter
+  const paginatedBudgets = isServerFiltered
     ? currentBudgetsAll
     : currentBudgetsAll.slice(
         pagination.pageIndex * pagination.pageSize,
@@ -407,8 +427,12 @@ export const useBudgetList = () => {
 
     setPagination(newPagination);
 
-    if (filter) {
-      await handleFilter(filter, term, newPagination.pageIndex + 1);
+    if (isServerFiltered) {
+      await handleFilter(
+        filter ?? budgetFilterInitialValues,
+        term,
+        newPagination.pageIndex + 1,
+      );
     } else {
       const requiredCount =
         (newPagination.pageIndex + 1) * newPagination.pageSize;

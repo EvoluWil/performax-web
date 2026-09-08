@@ -1,5 +1,4 @@
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatDateTime } from "@/utils/date";
 import { TDocumentDefinitions } from "pdfmake/interfaces";
 import { Budget, budgetStatusLabels } from "../types/budget";
 import { formatBudgetCurrency } from "../util/currency";
@@ -40,19 +39,11 @@ export const generateBudgetPdfObject = async (budget: Budget | null) => {
           ],
           [
             {
-              text: `CRIADO EM: ${format(
-                new Date(budget.createdAt),
-                "dd/MM/yyyy - HH:mm",
-                { locale: ptBR }
-              )}`,
+              text: `CRIADO EM: ${formatDateTime(budget.createdAt)}`,
               fontSize: 10,
             },
             {
-              text: `ATUALIZADO EM: ${format(
-                new Date(budget.updatedAt),
-                "dd/MM/yyyy - HH:mm",
-                { locale: ptBR }
-              )}`,
+              text: `ATUALIZADO EM: ${formatDateTime(budget.updatedAt)}`,
               fontSize: 10,
             },
           ],

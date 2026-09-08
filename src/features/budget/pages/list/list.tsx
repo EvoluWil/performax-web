@@ -9,7 +9,7 @@ import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { formatDate } from '@/utils/date';
+import { formatDateTime } from '@/utils/date';
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -97,14 +97,14 @@ const columns: MRT_ColumnDef<Budget>[] = [
     accessorKey: 'createdAt',
     header: 'Criado em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
     accessorKey: 'updatedAt',
     header: 'Atualizado em',
     Cell({ cell }: any) {
-      return formatDate(cell.getValue());
+      return formatDateTime(cell.getValue());
     },
   },
   {
@@ -285,8 +285,8 @@ export const BudgetList = () => {
         observation: budget.observation || '-',
         value: formatBudgetCurrency(Number(budget.value || 0)),
         createdBy: budget.createdBy?.name || '-',
-        createdAt: formatDate(budget.createdAt) || '-',
-        updatedAt: formatDate(budget.updatedAt) || '-',
+        createdAt: formatDateTime(budget.createdAt) || '-',
+        updatedAt: formatDateTime(budget.updatedAt) || '-',
         status: budget.status
           ? budgetStatusLabels[budget.status]?.label || '-'
           : '-',

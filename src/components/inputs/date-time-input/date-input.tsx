@@ -1,3 +1,4 @@
+import { parsePickerDateTime } from '@/utils/date';
 import {
   DateTimePicker,
   DateTimePickerProps,
@@ -35,7 +36,7 @@ export function DateTimeInput<T extends FieldValues>({
   const isDisabled = disabled || isSubmitting;
   return (
     <DateTimePicker
-      value={field.value}
+      value={parsePickerDateTime(field.value)}
       onChange={field.onChange}
       sx={{ width: '100%' }}
       disabled={isDisabled}

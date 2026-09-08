@@ -10,7 +10,7 @@ import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { formatDate } from '@/utils/date';
+import { formatDate, formatDateTime } from '@/utils/date';
 import {
   AccountBalanceWalletOutlined,
   CheckCircleOutlined,
@@ -75,6 +75,8 @@ type FinanceReportRow = {
   employee: string;
   payee: string;
   createdBy: string;
+  createdAt: string;
+  updatedAt: string;
   status: string;
 };
 
@@ -259,14 +261,14 @@ const columns: MRT_ColumnDef<Finance>[] = [
     accessorKey: 'createdAt',
     header: 'Criado em',
     Cell({ cell }: any) {
-      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+      return cell.getValue() ? formatDateTime(cell.getValue()) : '-';
     },
   },
   {
     accessorKey: 'updatedAt',
     header: 'Atualizado em',
     Cell({ cell }: any) {
-      return cell.getValue() ? formatDate(cell.getValue()) : '-';
+      return cell.getValue() ? formatDateTime(cell.getValue()) : '-';
     },
   },
   {
@@ -456,6 +458,8 @@ export const FinanceList = () => {
         employee: (f as any).employee?.name || '-',
         payee: f.payee?.name || '-',
         createdBy: f.createdBy?.name || '-',
+        createdAt: f.createdAt ? formatDateTime(f.createdAt) : '-',
+        updatedAt: f.updatedAt ? formatDateTime(f.updatedAt) : '-',
         status:
           f.approved === false
             ? 'Aguardando aprov.'

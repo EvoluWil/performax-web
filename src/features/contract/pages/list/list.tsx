@@ -8,7 +8,7 @@ import { PdfPreviewModal } from '@/components/modal';
 import { CustomizeColumnsModal } from '@/components/modal/customize-columns/customize-columns.modal';
 import { usePdfGenerator } from '@/hooks/common/pdf';
 import { useCompanyPermissions } from '@/hooks/common/permission';
-import { formatDate } from '@/utils/date';
+import { formatDate, formatDateTime } from '@/utils/date';
 import {
   BlockOutlined,
   CheckCircleOutline,
@@ -155,13 +155,13 @@ const columns: MRT_ColumnDef<Contract>[] = [
     accessorKey: 'createdAt',
     header: 'Criado em',
     Cell: ({ cell }) =>
-      cell.getValue() ? formatDate(cell.getValue() as string) : '-',
+      cell.getValue() ? formatDateTime(cell.getValue() as string) : '-',
   },
   {
     accessorKey: 'updatedAt',
     header: 'Atualizado em',
     Cell: ({ cell }) =>
-      cell.getValue() ? formatDate(cell.getValue() as string) : '-',
+      cell.getValue() ? formatDateTime(cell.getValue() as string) : '-',
   },
 ];
 
@@ -366,6 +366,12 @@ export const ContractList = () => {
           : '-',
         dueDate: contract.dueDate
           ? formatDate(contract.dueDate as string)
+          : '-',
+        createdAt: contract.createdAt
+          ? formatDateTime(contract.createdAt as string)
+          : '-',
+        updatedAt: contract.updatedAt
+          ? formatDateTime(contract.updatedAt as string)
           : '-',
         scope: contract.scope || '-',
         active: contract.active ? 'Ativo' : 'Inativo',

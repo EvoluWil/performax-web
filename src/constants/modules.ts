@@ -10,6 +10,7 @@ export const MODULE_CODES = [
   'role',
   'register',
   'whitelabel',
+  'fiscal',
 ] as const;
 
 export type ModuleCode = (typeof MODULE_CODES)[number];
@@ -61,5 +62,9 @@ export const MODULE_DEFINITIONS: Record<
   whitelabel: {
     name: 'White Label',
     description: 'Personalização visual da empresa',
+  },
+  fiscal: {
+    name: 'Notas fiscais',
+    description: 'Emissão de NFS-e e cadastro fiscal da empresa',
   },
 };

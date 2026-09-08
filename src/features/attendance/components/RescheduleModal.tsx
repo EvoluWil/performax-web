@@ -5,10 +5,11 @@ import {
   ModalContainer,
   ModalStyled,
 } from '@/components/modal';
+import { parsePickerDateTime } from '@/utils/date';
 import { CloseOutlined } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useState } from 'react';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { useEffect, useState } from 'react';
 
 type RescheduleModalProps = {
   open: boolean;
@@ -26,8 +27,14 @@ export const RescheduleModal = ({
   loading,
 }: RescheduleModalProps) => {
   const [value, setValue] = useState<Date | null>(
-    currentDate ? new Date(currentDate) : null,
+    parsePickerDateTime(currentDate),
   );
+
+  useEffect(() => {
+    if (open) {
+      setValue(parsePickerDateTime(currentDate));
+    }
+  }, [open, currentDate]);
 
   const handleSubmit = async () => {
     if (!value) return;
@@ -49,8 +56,8 @@ export const RescheduleModal = ({
         <Typography variant="h6">Reagendar OS</Typography>
 
         <Box mt={2}>
-          <DatePicker
-            label="Nova data"
+          <DateTimePicker
+            label="Nova data e hora"
             value={value}
             onChange={(v: Date | null) => setValue(v)}
             sx={{ width: '100%' }}

@@ -37,6 +37,30 @@ export const buildTextSearchOrFilter = (
   return filters;
 };
 
+/**
+ * Pushes one or more OR filter groups into the query filter.
+ *
+ * Each group is emitted as `{ or: [...] }`, which FilterResolver flattens into
+ * leaf filters that always carry `path` (avoids "path should not be empty").
+ *
+ * Note: sibling `{ or }` blocks are flattened into the same OR bucket by
+ * FilterResolver. True AND(OR, OR) requires a FilterResolver update in
+ * nestjs-prisma-querybuilder-interface to flatten `{ and: [{ or }, { or }] }`.
+ */
+export function pushOrFilterGroups(
+  filters: NonNullable<Query['filter']> | undefined,
+  ...groups: Filter[]
+): void {
+  if (!filters) return;
+
+  const orGroups = groups.filter((group) => group.length);
+  if (!orGroups.length) return;
+
+  orGroups.forEach((group) => {
+    (filters as Filter).push({ or: group } as Filter[number]);
+  });
+}
+
 type StatusFilterMapEntry<T> = {
   status: string;
   field: keyof T;

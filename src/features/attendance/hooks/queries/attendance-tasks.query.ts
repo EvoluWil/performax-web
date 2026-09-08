@@ -1,5 +1,5 @@
 import { Task, TaskStatusEnum } from '@/features/task/types';
-import { buildTextSearchOrFilter } from '@/utils/query';
+import { buildTextSearchOrFilter, pushOrFilterGroups } from '@/utils/query';
 import { useMeQuery } from '@/hooks/queries/me.query';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -67,14 +67,18 @@ export function useAttendanceTasksQuery(filters: AttendanceFilters = {}) {
           const statusList = filters.statuses?.length
             ? filters.statuses
             : ACTIVE_STATUSES;
-          query.filter.push(
-            ...statusList.map((s) => ({
-              path: 'status',
-              operator: 'equals' as any,
-              value: s,
-              filterGroup: 'or' as any,
-            })),
-          );
+          const statusOrItems = statusList.map((s) => ({
+            path: 'status',
+            operator: 'equals' as const,
+            value: s,
+          }));
+          const searchOrItems = filters.search
+            ? buildTextSearchOrFilter(filters.search, ['title', 'protocol'], {
+                withClientName: true,
+              })
+            : [];
+
+          pushOrFilterGroups(query.filter, statusOrItems, searchOrItems);
 
           // Date ceiling filter
           if (filters.dateLte) {
@@ -84,14 +88,6 @@ export function useAttendanceTasksQuery(filters: AttendanceFilters = {}) {
               value: filters.dateLte,
               filterGroup: 'and' as any,
             });
-          }
-
-          if (filters.search) {
-            query.filter.push({
-              or: buildTextSearchOrFilter(filters.search, ['title', 'protocol'], {
-                withClientName: true,
-              }),
-            } as any);
           }
 
           const response = await attendanceService.getTasks(companyId, query);

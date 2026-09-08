@@ -1,6 +1,7 @@
 import { ChecklistDtoSchema } from '@/features/task/components';
 import { ChecklistDto } from '@/features/task/types';
 import { File } from '@/types/file';
+import { toIsoDateTime } from '@/utils/date';
 import { subHours } from 'date-fns';
 import * as yup from 'yup';
 
@@ -50,7 +51,7 @@ export const taskFormSchema = yup.object().shape({
       },
     )
     .required('Data de previsão é obrigatória')
-    .transform((value) => value && subHours(new Date(value), 3).toISOString()),
+    .transform((value) => (value ? toIsoDateTime(value) : value)),
   clientId: yup.string().required('Cliente é obrigatório'),
   typeId: yup.string().required('Tipo de OS é obrigatório'),
   responsibleId: yup.string().required('Responsável é obrigatório'),
