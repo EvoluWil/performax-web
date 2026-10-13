@@ -69,7 +69,7 @@ export const MODULE_DEFINITIONS: Record<
     description: 'Emissão de NFS-e e cadastro fiscal da empresa',
   },
   dashboard: {
-    name: 'Painéis',
+    name: 'Dashboard',
     description:
       'Visão consolidada de OS, ocorrências, orçamentos e financeiro',
   },

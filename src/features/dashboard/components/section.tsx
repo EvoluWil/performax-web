@@ -1,7 +1,7 @@
 'use client';
 
 import { IndicatorTitle } from '@/features/dashboard/components/indicator';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Paper } from '@mui/material';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -16,7 +16,7 @@ type SectionProps = {
 
 export function Section({ id, title, hint, href, actionLabel, children }: SectionProps) {
   return (
-    <Box id={id} component="section" sx={{ scrollMarginTop: 120 }}>
+    <Paper id={id} component="section" sx={{ p: 2, scrollMarginTop: 120 }}>
       <Box
         display="flex"
         alignItems="center"
@@ -33,6 +33,6 @@ export function Section({ id, title, hint, href, actionLabel, children }: Sectio
         ) : null}
       </Box>
       {children}
-    </Box>
+    </Paper>
   );
 }

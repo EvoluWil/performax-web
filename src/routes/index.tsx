@@ -40,7 +40,7 @@ export type SubRoute = {
 
 export const routes: Route[] = [
   {
-    id: 'Painéis',
+    id: 'Dashboard',
     icon: <DashboardOutlined sx={{ color: 'white' }} />,
     path: '/panel/dashboard',
     permissions: ['dashboard'],

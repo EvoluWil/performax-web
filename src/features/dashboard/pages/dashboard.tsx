@@ -73,7 +73,7 @@ export function DashboardPage() {
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       <PageTitle
-        title="Painéis"
+        title="Dashboard"
         subtitle={data ? data.window.label : 'Visão do mês'}
       />
 
@@ -96,19 +96,19 @@ export function DashboardPage() {
       </Box>
 
       {(checkingAccess || (allowed && isFetching && !data)) && (
-        <Loading message="Carregando painéis..." />
+        <Loading message="Carregando dashboard..." />
       )}
 
       {!checkingAccess && !allowed ? (
         <Empty
-          message="Você não tem permissão para acessar os painéis."
+          message="Você não tem permissão para acessar o dashboard."
           showReloadButton={false}
         />
       ) : null}
 
       {!checkingAccess && allowed && isError && !data ? (
         <Empty
-          message="Não foi possível carregar os painéis."
+          message="Não foi possível carregar o dashboard."
           onReload={async () => {
             await refetch();
           }}
@@ -120,7 +120,7 @@ export function DashboardPage() {
           <Overview data={data} />
           {!data.operations && !data.financial && !data.commercial ? (
             <Empty
-              message="O cargo não tem painel liberado além do acesso à página."
+              message="O cargo não tem seção liberada além do acesso à página."
               showReloadButton={false}
             />
           ) : null}
