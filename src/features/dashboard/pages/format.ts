@@ -37,28 +37,6 @@ export function monthKeyTitle(month: string) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export function monthTitle(iso: string) {
-  const label = format(parseISO(iso), 'MMMM yyyy', { locale: ptBR });
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-export function windowLabel(input: {
-  from: string;
-  to: string;
-  previousFrom: string;
-  previousTo: string;
-  complete: boolean;
-}) {
-  if (input.complete) {
-    return `${monthTitle(input.from)} inteiro × ${monthTitle(input.previousFrom)} inteiro`;
-  }
-
-  const span = (from: string, to: string) =>
-    `${format(parseISO(from), 'd', { locale: ptBR })}–${format(parseISO(to), "d 'de' MMM", { locale: ptBR })}`;
-
-  return `${span(input.from, input.to)} × ${span(input.previousFrom, input.previousTo)}`;
-}
-
 export function formatDay(iso: string | null) {
   if (!iso) return 'Sem data';
   return format(parseISO(iso), 'dd/MM/yyyy', { locale: ptBR });

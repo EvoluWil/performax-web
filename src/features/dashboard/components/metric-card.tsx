@@ -23,38 +23,53 @@ export function MetricCard({
   const ink = tone === 'primary' ? 'primary.main' : `${tone}.dark`;
   const body = (
     <Box
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
       textAlign="center"
+      gap={0.5}
       p={2}
+      width="100%"
+      minHeight={120}
       bgcolor={tone === 'primary' ? 'background.paper' : `${tone}.light`}
       borderRadius={2}
-      minWidth={180}
-      flex="1 1 180px"
-      height="100%"
     >
-      <Typography variant="h6" color={ink}>
+      <Typography
+        variant="h6"
+        color={ink}
+        sx={{ overflow: 'visible', whiteSpace: 'normal' }}
+      >
         {label}
       </Typography>
-      <Typography variant="h4" color={ink} fontWeight="bold">
+      <Typography
+        variant="h4"
+        color={ink}
+        fontWeight="bold"
+        sx={{ overflow: 'visible', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}
+      >
         {value}
       </Typography>
       {detail ? (
-        <Typography variant="body2" color={ink}>
+        <Typography
+          variant="body2"
+          color={ink}
+          sx={{ overflow: 'visible', whiteSpace: 'normal' }}
+        >
           {detail}
         </Typography>
       ) : null}
     </Box>
   );
 
-  if (!href) return body;
-
   return (
     <Box
-      component={Link}
+      component={href ? Link : 'div'}
       href={href}
       sx={{
         display: 'flex',
-        flex: '1 1 180px',
-        minWidth: 180,
+        flex: '1 1 200px',
+        minWidth: { xs: '100%', sm: 200 },
         textDecoration: 'none',
         color: 'inherit',
       }}

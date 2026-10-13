@@ -4,6 +4,7 @@ import { Empty, PageTitle } from '@/components/common';
 import { Loading } from '@/components/common/loading/loading';
 import { MetricCard } from '@/features/dashboard/components/metric-card';
 import { MonthSwitch } from '@/features/dashboard/components/month-switch';
+import { IndicatorEmpty } from '@/features/dashboard/components/indicator';
 import { PanelChart, PanelSurface } from '@/features/dashboard/components/panel-chart';
 import { PriorityList } from '@/features/dashboard/components/priority-list';
 import { Section } from '@/features/dashboard/components/section';
@@ -18,16 +19,16 @@ import {
   formatPoints,
   monthKeyTitle,
   percent,
-  windowLabel,
 } from '@/features/dashboard/pages/format';
 import { DashboardResponse } from '@/features/dashboard/types/dashboard';
 import { budgetStatusLabels, BudgetStatusEnum } from '@/features/budget/types/budget';
 import { occurrenceStatusLabels, OccurrenceStatusEnum } from '@/features/occurrence/types/occurrence';
 import { taskStatusLabels, TaskStatusEnum } from '@/features/task/types/task';
+import { CheckCircleOutline } from '@mui/icons-material';
 import { Box, Button, Paper, Typography } from '@mui/material';
-import Link from 'next/link';
 import { useTheme } from '@mui/material/styles';
 import { addMonths, format, parse } from 'date-fns';
+import Link from 'next/link';
 import { useState } from 'react';
 
 function taskLabel(status: string) {
@@ -73,7 +74,7 @@ export function DashboardPage() {
     <Box display="flex" flexDirection="column" gap={3}>
       <PageTitle
         title="Painéis"
-        subtitle={data ? windowLabel(data.window) : 'Visão do mês'}
+        subtitle={data ? data.window.label : 'Visão do mês'}
       />
 
       <Box
@@ -159,18 +160,26 @@ function Overview({ data }: { data: DashboardResponse }) {
           {punctuality ? (
             <MetricCard
               label="Prazo cumprido"
-              value={formatPercent(rate)}
-              detail={formatPoints(delta)}
-              tone="success"
+              value={punctuality.total ? formatPercent(rate) : '—'}
+              detail={
+                punctuality.total
+                  ? formatPoints(delta)
+                  : 'Sem dados suficientes para calcular o cumprimento de prazo.'
+              }
+              tone={punctuality.total ? 'success' : 'primary'}
             />
           ) : null}
           {cards.overdueReceivables ? (
             <MetricCard
               label="Recebimentos vencidos"
               value={formatCents(cards.overdueReceivables.value)}
-              detail={`${cards.overdueReceivables.count} lançamentos`}
-              href={receivables?.href}
-              tone="error"
+              detail={
+                cards.overdueReceivables.count
+                  ? `${cards.overdueReceivables.count} lançamentos`
+                  : 'Nenhum recebimento vencido.'
+              }
+              href={cards.overdueReceivables.count ? receivables?.href : undefined}
+              tone={cards.overdueReceivables.count ? 'error' : 'primary'}
             />
           ) : null}
           {cards.negotiation ? (
@@ -190,12 +199,13 @@ function Overview({ data }: { data: DashboardResponse }) {
               tone={cards.result.current >= 0 ? 'success' : 'error'}
             />
           ) : null}
-          {cards.impeded && cards.impeded.count > 0 ? (
+          {cards.impeded ? (
             <MetricCard
               label="Impedidas"
               value={String(cards.impeded.count)}
-              href="/panel/tasks?status=IMPEDED"
-              tone="warning"
+              detail={cards.impeded.count ? undefined : 'Nenhuma na fila'}
+              href={cards.impeded.count ? '/panel/tasks?status=IMPEDED' : undefined}
+              tone={cards.impeded.count ? 'warning' : 'primary'}
             />
           ) : null}
         </Box>
@@ -221,20 +231,23 @@ function Operations({ data }: { data: DashboardResponse }) {
   return (
     <Section id="operacao" title="Operação" href="/panel/tasks" actionLabel="Ordens de serviço">
       {tasks ? (
-        <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
+        <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr', xl: 'repeat(4, minmax(0, 1fr))' }} gap={2}>
           <PanelChart
             title="Fila por status"
-            caption="Categorias que não se sobrepõem. Aguardando aprovação fica de fora desta barra."
+            hint="Categorias que não se sobrepõem. Aguardando aprovação fica de fora desta barra."
             horizontal
+            integer
             labels={tasks.queue.map((item) => taskLabel(item.status))}
             barColors={tasks.queue.map((item) =>
               statusColor(taskStatusLabels[item.status as TaskStatusEnum]?.color, theme),
             )}
             series={[{ data: tasks.queue.map((item) => item.count), label: 'OS' }]}
+            empty="Nenhuma OS na fila."
           />
           <PanelChart
             title="Criadas e concluídas"
-            caption={`Saldo da janela: ${balance > 0 ? '+' : ''}${balance} OS. Esse saldo não é a variação exata do backlog.`}
+            hint={`Saldo da janela: ${balance > 0 ? '+' : ''}${balance} OS. Esse saldo não é a variação exata do backlog.`}
+            integer
             labels={['Anterior', 'Atual']}
             series={[
               {
@@ -248,17 +261,27 @@ function Operations({ data }: { data: DashboardResponse }) {
                 color: theme.palette.secondary.main,
               },
             ]}
+            empty="Nenhuma OS criada ou concluída neste período."
           />
           <PanelSurface
             title="Prazo cumprido"
-            caption="Só entram OS fechadas com prazo vigente. Abertas com prazo vencido ficam no gráfico ao lado."
+            hint="Só entram OS fechadas com prazo vigente. Abertas com prazo vencido ficam no gráfico ao lado."
           >
-            <Typography variant="h4" color="primary" fontWeight="bold">
-              {formatPercent(rate)}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              {tasks.punctuality.onTime} de {tasks.punctuality.total} concluídas no prazo
-            </Typography>
+            {tasks.punctuality.total ? (
+              <>
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {formatPercent(rate)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mb={2}>
+                  {tasks.punctuality.onTime} de {tasks.punctuality.total} concluídas no prazo
+                </Typography>
+              </>
+            ) : (
+              <IndicatorEmpty
+                message="Sem dados suficientes para calcular o cumprimento de prazo."
+                icon={<CheckCircleOutline sx={{ color: 'text.secondary', fontSize: 28 }} />}
+              />
+            )}
             <Box display="flex" gap={1} flexWrap="wrap">
               <StatusChip label={`${tasks.attention.expired} vencidas agora`} color="error.main" />
               <StatusChip label={`${tasks.attention.impeded} impedidas`} color="warning.main" />
@@ -270,9 +293,10 @@ function Operations({ data }: { data: DashboardResponse }) {
             </Box>
           </PanelSurface>
           <PanelChart
-            title="Vencidas agora, pelo mês do prazo vigente"
-            caption="OS abertas cujo prazo vigente já passou. Não é o atraso que existia no fim de cada mês."
+            title="OS com prazo vencido"
+            hint="OS abertas cujo prazo vigente já passou. Não é o atraso que existia no fim de cada mês."
             horizontal
+            integer
             labels={tasks.overdueByDueMonth.map((item) => item.month)}
             series={[
               {
@@ -282,6 +306,7 @@ function Operations({ data }: { data: DashboardResponse }) {
               },
             ]}
             empty="Nenhuma OS aberta com prazo vencido."
+            emptyPositive
           />
         </Box>
       ) : null}
@@ -345,16 +370,14 @@ function Financial({ data }: { data: DashboardResponse }) {
     <Section
       id="financeiro"
       title="Financeiro"
+      hint="Os valores seguem a data de vencimento. Não são fluxo de caixa. Transferência, parcela e pagamento com adiantamento ficam de fora, como no balanço."
       href="/panel/financial"
       actionLabel="Lançamentos"
     >
-      <Typography variant="body2" color="text.secondary" mb={2}>
-        Os valores seguem a data de vencimento. Não são fluxo de caixa. Transferência, parcela e pagamento com adiantamento ficam de fora, como no balanço.
-      </Typography>
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
+      <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr', xl: 'repeat(4, minmax(0, 1fr))' }} gap={2}>
         <PanelChart
           title="Lançamentos por vencimento"
-          caption="Resultado dos lançamentos na janela comparável."
+          hint="Entradas e saídas pela data de vencimento na janela comparável. O resultado não é o saldo da carteira."
           labels={['Anterior', 'Atual']}
           series={[
             {
@@ -370,9 +393,11 @@ function Financial({ data }: { data: DashboardResponse }) {
               valueFormatter: moneyAxis,
             },
           ]}
+          empty="Nenhum lançamento no período selecionado."
         />
         <PanelChart
           title="Pagos e pendentes no vencimento"
+          hint="Pagos contra pendentes e aprovados, separados em entrada e saída, pela data de vencimento."
           labels={['Anterior', 'Atual']}
           series={[
             {
@@ -404,10 +429,15 @@ function Financial({ data }: { data: DashboardResponse }) {
               valueFormatter: moneyAxis,
             },
           ]}
+          empty="Nenhum lançamento no período selecionado."
         />
         <PanelChart
           title="Recebimentos vencidos"
-          caption={`${formatCents(financial.overdueReceivables.value)} · ${financial.overdueReceivables.count} lançamentos`}
+          caption={
+            financial.overdueReceivables.count
+              ? `${formatCents(financial.overdueReceivables.value)} · ${financial.overdueReceivables.count} lançamentos`
+              : undefined
+          }
           horizontal
           labels={financial.overdueReceivables.buckets.map((item) => item.label)}
           series={[
@@ -418,10 +448,16 @@ function Financial({ data }: { data: DashboardResponse }) {
               valueFormatter: moneyAxis,
             },
           ]}
+          empty="Nenhum recebimento vencido."
+          emptyPositive
         />
         <PanelChart
           title="Contas vencidas"
-          caption={`${formatCents(financial.overduePayables.value)} · ${financial.overduePayables.count} lançamentos`}
+          caption={
+            financial.overduePayables.count
+              ? `${formatCents(financial.overduePayables.value)} · ${financial.overduePayables.count} lançamentos`
+              : undefined
+          }
           horizontal
           labels={financial.overduePayables.buckets.map((item) => item.label)}
           series={[
@@ -432,6 +468,8 @@ function Financial({ data }: { data: DashboardResponse }) {
               valueFormatter: moneyAxis,
             },
           ]}
+          empty="Nenhuma conta vencida."
+          emptyPositive
         />
       </Box>
       {financial.forecast ? (
@@ -466,8 +504,8 @@ function Financial({ data }: { data: DashboardResponse }) {
           <MetricCard
             label="Adiantamentos com saldo"
             value={formatCents(financial.advances.value)}
-            detail={`${financial.advances.count} em aberto`}
-            tone="warning"
+            detail={financial.advances.count ? `${financial.advances.count} em aberto` : 'Nenhum em aberto'}
+            tone={financial.advances.count ? 'warning' : 'primary'}
           />
         </Box>
       </Paper>
@@ -487,8 +525,9 @@ function Commercial({ data }: { data: DashboardResponse }) {
       <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
         <PanelChart
           title="Carteira comercial por etapa"
-          caption="Distribuição do valor no status atual. Não é conversão histórica."
+          hint="Distribuição do valor no status atual. Não é conversão histórica."
           horizontal
+          hideZeros
           labels={commercial.stages.map((item) => budgetLabel(item.status))}
           barColors={commercial.stages.map((item) =>
             statusColor(budgetStatusLabels[item.status as BudgetStatusEnum]?.color, theme),
@@ -500,9 +539,11 @@ function Commercial({ data }: { data: DashboardResponse }) {
               valueFormatter: moneyAxis,
             },
           ]}
+          empty="Nenhum orçamento na carteira."
         />
         <PanelChart
           title="Orçamentos criados"
+          integer
           labels={['Anterior', 'Atual']}
           series={[
             {
@@ -511,6 +552,7 @@ function Commercial({ data }: { data: DashboardResponse }) {
               color: theme.palette.primary.main,
             },
           ]}
+          empty="Nenhum orçamento criado neste período."
         />
       </Box>
       <Paper sx={{ bgcolor: 'grey.50', p: 2, mt: 2 }}>
@@ -518,15 +560,23 @@ function Commercial({ data }: { data: DashboardResponse }) {
           <MetricCard
             label="Valor em negociação"
             value={formatCents(commercial.negotiation.value)}
-            detail={`${commercial.negotiation.count} sem decisão`}
-            href="/panel/budgets?awaitingDecision=1"
-            tone="warning"
+            detail={
+              commercial.negotiation.count
+                ? `${commercial.negotiation.count} sem decisão`
+                : 'Nenhuma proposta sem decisão.'
+            }
+            href={commercial.negotiation.count ? '/panel/budgets?awaitingDecision=1' : undefined}
+            tone={commercial.negotiation.count ? 'warning' : 'primary'}
           />
           <MetricCard
             label="Aprovação da carteira decidida"
-            value={formatPercent(rate)}
-            detail={`${commercial.approval.approved} aprovados comercialmente · ${commercial.rejected} rejeitados`}
-            tone="success"
+            value={decided ? formatPercent(rate) : '—'}
+            detail={
+              decided
+                ? `${commercial.approval.approved} aprovados comercialmente · ${commercial.rejected} rejeitados`
+                : 'Sem dados suficientes para calcular a aprovação da carteira.'
+            }
+            tone={decided ? 'success' : 'primary'}
           />
           <MetricCard
             label="Criados na janela"

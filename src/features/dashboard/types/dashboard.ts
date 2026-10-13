@@ -54,6 +54,7 @@ export type DashboardWindow = {
   previousTo: string;
   complete: boolean;
   forecastTo: string;
+  label: string;
 };
 
 export type DashboardResponse = {

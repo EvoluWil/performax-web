@@ -1,17 +1,20 @@
 'use client';
 
-import { Empty } from '@/components/common';
+import { IndicatorEmpty, IndicatorTitle } from '@/features/dashboard/components/indicator';
 import { BarChart } from '@mui/x-charts/BarChart';
+import { CheckCircleOutline, DescriptionOutlined } from '@mui/icons-material';
 import { Box, Paper, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { ReactNode } from 'react';
 
 export function PanelSurface({
   title,
+  hint,
   caption,
   children,
 }: {
   title: string;
+  hint?: string;
   caption?: string;
   children: ReactNode;
 }) {
@@ -26,11 +29,14 @@ export function PanelSurface({
         borderLeft: `6px solid ${theme.palette.primary.main}`,
       }}
     >
-      <Typography variant="subtitle1" color="primary" fontWeight="bold">
-        {title}
-      </Typography>
+      <IndicatorTitle title={title} hint={hint} />
       {caption ? (
-        <Typography variant="body2" color="text.secondary" mb={1}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          mb={1}
+          sx={{ overflow: 'visible', whiteSpace: 'normal' }}
+        >
           {caption}
         </Typography>
       ) : (
@@ -51,6 +57,7 @@ type Series = {
 
 type PanelChartProps = {
   title: string;
+  hint?: string;
   caption?: string;
   labels: string[];
   series: Series[];
@@ -58,10 +65,18 @@ type PanelChartProps = {
   horizontal?: boolean;
   height?: number;
   empty?: string;
+  emptyPositive?: boolean;
+  integer?: boolean;
+  hideZeros?: boolean;
 };
+
+function integerTick(value: number) {
+  return Number.isInteger(value) ? String(value) : '';
+}
 
 export function PanelChart({
   title,
+  hint,
   caption,
   labels,
   series,
@@ -69,23 +84,54 @@ export function PanelChart({
   horizontal,
   height,
   empty = 'Sem dados neste recorte.',
+  emptyPositive = false,
+  integer = false,
+  hideZeros = false,
 }: PanelChartProps) {
   const theme = useTheme();
-  const hasValue = series.some((item) => item.data.some((value) => value !== 0));
-  const chartHeight = height ?? (horizontal ? Math.max(220, labels.length * 42) : 280);
+  const indexes = labels
+    .map((_, index) => index)
+    .filter((index) => !hideZeros || series.some((item) => (item.data[index] ?? 0) !== 0));
+  const visibleLabels = indexes.map((index) => labels[index]);
+  const visibleSeries = series.map((item) => ({
+    ...item,
+    data: indexes.map((index) => item.data[index] ?? 0),
+  }));
+  const visibleColors = barColors ? indexes.map((index) => barColors[index]) : undefined;
+  const hasValue = visibleSeries.some((item) => item.data.some((value) => value !== 0));
+  const stacked = visibleSeries.some((item) => item.stack);
+  const showLabels = hasValue && !stacked && visibleLabels.length > 0 && visibleLabels.length <= 6;
+  const chartHeight = height ?? (horizontal ? Math.max(160, visibleLabels.length * 36) : 240);
   const band = {
     scaleType: 'band' as const,
-    data: labels,
-    ...(horizontal ? { width: 148 } : {}),
-    ...(barColors
-      ? { colorMap: { type: 'ordinal' as const, colors: barColors } }
+    data: visibleLabels,
+    ...(horizontal ? { width: 132 } : {}),
+    ...(visibleColors
+      ? { colorMap: { type: 'ordinal' as const, colors: visibleColors } }
       : {}),
   };
+  const valueAxis = integer
+    ? [{
+        min: 0,
+        valueFormatter: integerTick,
+        tickLabelInterval: (value: number) => Number.isInteger(value),
+      }]
+    : [{ min: 0 }];
+  const labelFormatter = visibleSeries.find((item) => item.valueFormatter)?.valueFormatter;
 
   return (
-    <PanelSurface title={title} caption={caption}>
-      {!labels.length || !hasValue ? (
-        <Empty message={empty} showReloadButton={false} />
+    <PanelSurface title={title} hint={hint} caption={hasValue ? caption : undefined}>
+      {!visibleLabels.length || !hasValue ? (
+        <IndicatorEmpty
+          message={empty}
+          icon={
+            emptyPositive ? (
+              <CheckCircleOutline sx={{ color: 'success.main', fontSize: 28 }} />
+            ) : (
+              <DescriptionOutlined sx={{ color: 'text.secondary', fontSize: 28 }} />
+            )
+          }
+        />
       ) : (
         <Box sx={{ width: '100%', height: chartHeight }}>
           <BarChart
@@ -100,11 +146,23 @@ export function PanelChart({
               theme.palette.error.main,
             ]}
             grid={{ horizontal: !horizontal }}
-            xAxis={horizontal ? [{ min: 0 }] : [band]}
-            yAxis={horizontal ? [band] : [{ min: 0 }]}
-            series={series}
-            hideLegend={series.length < 2}
-            margin={{ left: horizontal ? 8 : 56, right: 16, top: 16, bottom: 24 }}
+            xAxis={horizontal ? valueAxis : [band]}
+            yAxis={horizontal ? [band] : valueAxis}
+            series={visibleSeries.map((item) => ({
+              ...item,
+              barLabel: showLabels
+                ? (bar: { value: number | null }) => {
+                    if (bar.value == null || bar.value === 0) return null;
+                    return item.valueFormatter
+                      ? item.valueFormatter(bar.value)
+                      : labelFormatter
+                        ? labelFormatter(bar.value)
+                        : String(bar.value);
+                  }
+                : undefined,
+            }))}
+            hideLegend={visibleSeries.length < 2}
+            margin={{ left: horizontal ? 8 : 48, right: 16, top: 16, bottom: 24 }}
             sx={{
               '& .MuiChartsAxis-tickLabel': { fill: theme.palette.text.secondary },
               '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': {
