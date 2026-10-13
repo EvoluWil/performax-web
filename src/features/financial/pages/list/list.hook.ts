@@ -79,7 +79,16 @@ const buildQuery = (
     } as any);
   }
 
-  if (filterData?.status) {
+  if (filterData?.statuses?.length) {
+    pushOrFilterGroups(
+      queryFilter.filter,
+      filterData.statuses.map((status) => ({
+        path: 'status',
+        operator: 'equals' as const,
+        value: status,
+      })),
+    );
+  } else if (filterData?.status) {
     queryFilter.filter.push({
       path: 'status',
       value: filterData.status,

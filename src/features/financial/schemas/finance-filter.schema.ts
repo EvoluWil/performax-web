@@ -6,6 +6,7 @@ export type FinanceFilterDto = {
   flow?: FinanceFlowEnum;
   flows?: FinanceFlowEnum[];
   status?: FinanceStatusEnum;
+  statuses?: FinanceStatusEnum[];
   typeIds?: string[];
   bankIds?: string[];
   categoryIds?: string[];

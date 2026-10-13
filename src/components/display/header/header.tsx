@@ -1,6 +1,7 @@
 'use client';
 
 import { HeaderUser } from '@/components/cards';
+import { NotificationBell } from '@/features/notification/components/notification-bell';
 import { useWhiteLabel } from '@/providers/white-label';
 import { Menu } from '@mui/icons-material';
 import {
@@ -88,7 +89,12 @@ export const Header: React.FC<HeaderProps> = ({ simple = false }) => {
                   <Typography color="white">{whiteLabel.name}</Typography>
                 </Box>
               </Box>
-              {!simple && <HeaderUser />}
+              {!simple && (
+                <Box display="flex" alignItems="center">
+                  <NotificationBell />
+                  <HeaderUser />
+                </Box>
+              )}
             </Box>
           </Toolbar>
         </AppBar>

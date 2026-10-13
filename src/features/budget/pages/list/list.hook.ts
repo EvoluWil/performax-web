@@ -215,6 +215,16 @@ export const useBudgetList = () => {
         });
       }
 
+      if (data.awaitingDecision) {
+        queryFilter.filter.push({
+          path: 'approved',
+          operator: 'equals',
+          value: false,
+          type: 'boolean',
+          filterGroup: 'and',
+        } as any);
+      }
+
       pushInFilter(queryFilter.filter, 'responsibleId', data?.userIds);
     }
 

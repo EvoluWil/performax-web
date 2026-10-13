@@ -112,6 +112,7 @@ export function parseBudgetFilterFromUrl(
     userIds: parseArrayField(params, 'userIds'),
     startDate: startDateRaw ? new Date(startDateRaw) : null,
     endDate: endDateRaw ? new Date(endDateRaw) : null,
+    awaitingDecision: params.get('awaitingDecision') === '1',
   };
 }
 
@@ -131,6 +132,7 @@ export function serializeBudgetFilterToUrl(
     userIds: serializeArrayField(filter.userIds),
     startDate: serializeDateOnlyParam(filter.startDate),
     endDate: serializeDateOnlyParam(filter.endDate),
+    awaitingDecision: filter.awaitingDecision ? '1' : undefined,
   };
 }
 
@@ -180,6 +182,8 @@ export function parseFinanceFilterFromUrl(
   const defaults = makeFinanceFilterInitialValues();
   const flows = parseArrayField(params, 'flows');
 
+  const statuses = parseArrayField(params, 'statuses');
+
   return {
     ...defaults,
     flow: (params.get('flow') as FinanceFilterDto['flow']) || undefined,
@@ -187,6 +191,9 @@ export function parseFinanceFilterFromUrl(
       ? (flows as NonNullable<FinanceFilterDto['flows']>)
       : undefined,
     status: (params.get('status') as FinanceFilterDto['status']) || undefined,
+    statuses: statuses.length
+      ? (statuses as FinanceFilterDto['statuses'])
+      : undefined,
     typeIds: parseArrayField(params, 'typeIds'),
     bankIds: parseArrayField(params, 'bankIds'),
     categoryIds: parseArrayField(params, 'categoryIds'),
@@ -206,6 +213,7 @@ export function serializeFinanceFilterToUrl(
     flow: filter.flow,
     flows: serializeArrayField(filter.flows),
     status: filter.status,
+    statuses: serializeArrayField(filter.statuses),
     typeIds: serializeArrayField(filter.typeIds),
     bankIds: serializeArrayField(filter.bankIds),
     categoryIds: serializeArrayField(filter.categoryIds),

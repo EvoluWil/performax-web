@@ -17,6 +17,7 @@
     "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.1.2",
     "@mui/material-nextjs": "^7.3.6",
+    "@mui/x-charts": "^8.29.3",
     "@mui/x-date-pickers": "^8.10.0",
     "@tanstack/react-query": "^5.81.5",
     "axios": "^1.10.0",

@@ -11,6 +11,7 @@ export const MODULE_CODES = [
   'register',
   'whitelabel',
   'fiscal',
+  'dashboard',
 ] as const;
 
 export type ModuleCode = (typeof MODULE_CODES)[number];
@@ -66,5 +67,10 @@ export const MODULE_DEFINITIONS: Record<
   fiscal: {
     name: 'Notas fiscais',
     description: 'Emissão de NFS-e e cadastro fiscal da empresa',
+  },
+  dashboard: {
+    name: 'Painéis',
+    description:
+      'Visão consolidada de OS, ocorrências, orçamentos e financeiro',
   },
 };

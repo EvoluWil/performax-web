@@ -19,6 +19,7 @@ export type BudgetFilterDto = {
 
   protocol?: string;
   title?: string;
+  awaitingDecision?: boolean;
 };
 
 export const budgetFilterInitialValues: BudgetFilterDto = {
@@ -36,6 +37,7 @@ export const budgetFilterInitialValues: BudgetFilterDto = {
   endDate: null,
   protocol: '',
   title: '',
+  awaitingDecision: false,
 };
 
 export const BUDGET_STATUS_FILTER_MAP: Array<{

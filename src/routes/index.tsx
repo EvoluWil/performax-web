@@ -4,6 +4,7 @@ import {
   BadgeOutlined,
   BusinessCenter,
   ContactsOutlined,
+  DashboardOutlined,
   MonetizationOn,
   PeopleOutline,
   SecurityOutlined,
@@ -38,6 +39,14 @@ export type SubRoute = {
 };
 
 export const routes: Route[] = [
+  {
+    id: 'Painéis',
+    icon: <DashboardOutlined sx={{ color: 'white' }} />,
+    path: '/panel/dashboard',
+    permissions: ['dashboard'],
+    modules: ['dashboard'],
+    scope: 'read',
+  },
   {
     id: 'Atendimento',
     icon: <SupportAgent sx={{ color: 'white' }} />,
