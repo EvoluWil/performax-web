@@ -1,8 +1,45 @@
 'use client';
 
+import { Empty } from '@/components/common';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box, Paper, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { ReactNode } from 'react';
+
+export function PanelSurface({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption?: string;
+  children: ReactNode;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        height: '100%',
+        borderLeft: `6px solid ${theme.palette.primary.main}`,
+      }}
+    >
+      <Typography variant="subtitle1" color="primary" fontWeight="bold">
+        {title}
+      </Typography>
+      {caption ? (
+        <Typography variant="body2" color="text.secondary" mb={1}>
+          {caption}
+        </Typography>
+      ) : (
+        <Box mb={1} />
+      )}
+      {children}
+    </Paper>
+  );
+}
 
 type Series = {
   data: number[];
@@ -17,6 +54,7 @@ type PanelChartProps = {
   caption?: string;
   labels: string[];
   series: Series[];
+  barColors?: string[];
   horizontal?: boolean;
   height?: number;
   empty?: string;
@@ -27,72 +65,56 @@ export function PanelChart({
   caption,
   labels,
   series,
+  barColors,
   horizontal,
   height,
   empty = 'Sem dados neste recorte.',
 }: PanelChartProps) {
+  const theme = useTheme();
   const hasValue = series.some((item) => item.data.some((value) => value !== 0));
   const chartHeight = height ?? (horizontal ? Math.max(220, labels.length * 42) : 280);
+  const band = {
+    scaleType: 'band' as const,
+    data: labels,
+    ...(horizontal ? { width: 148 } : {}),
+    ...(barColors
+      ? { colorMap: { type: 'ordinal' as const, colors: barColors } }
+      : {}),
+  };
 
   return (
-    <Paper sx={{ p: 2, height: '100%' }}>
-      <Typography variant="h6" color="primary" fontWeight={700}>
-        {title}
-      </Typography>
-      {caption ? (
-        <Typography variant="body2" color="text.secondary" mb={1}>
-          {caption}
-        </Typography>
-      ) : null}
+    <PanelSurface title={title} caption={caption}>
       {!labels.length || !hasValue ? (
-        <Typography color="text.secondary" sx={{ py: 4 }}>
-          {empty}
-        </Typography>
+        <Empty message={empty} showReloadButton={false} />
       ) : (
         <Box sx={{ width: '100%', height: chartHeight }}>
           <BarChart
             height={chartHeight}
+            borderRadius={3}
             layout={horizontal ? 'horizontal' : 'vertical'}
-            xAxis={
-              horizontal
-                ? [{ min: 0 }]
-                : [{ scaleType: 'band', data: labels }]
-            }
-            yAxis={
-              horizontal
-                ? [{ scaleType: 'band', data: labels, width: 140 }]
-                : [{ min: 0 }]
-            }
+            colors={[
+              theme.palette.primary.main,
+              theme.palette.secondary.main,
+              theme.palette.success.main,
+              theme.palette.warning.main,
+              theme.palette.error.main,
+            ]}
+            grid={{ horizontal: !horizontal }}
+            xAxis={horizontal ? [{ min: 0 }] : [band]}
+            yAxis={horizontal ? [band] : [{ min: 0 }]}
             series={series}
             hideLegend={series.length < 2}
-            margin={{ left: horizontal ? 16 : 56, right: 16, top: 24, bottom: 24 }}
+            margin={{ left: horizontal ? 8 : 56, right: 16, top: 16, bottom: 24 }}
+            sx={{
+              '& .MuiChartsAxis-tickLabel': { fill: theme.palette.text.secondary },
+              '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': {
+                stroke: theme.palette.grey[300],
+              },
+              '& .MuiChartsGrid-line': { stroke: theme.palette.grey[200] },
+            }}
           />
         </Box>
       )}
-    </Paper>
-  );
-}
-
-export function Section({
-  id,
-  title,
-  action,
-  children,
-}: {
-  id: string;
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <Box id={id} component="section" sx={{ scrollMarginTop: 96 }}>
-      <Box display="flex" alignItems="baseline" justifyContent="space-between" gap={2} mb={2}>
-        <Typography variant="h5" fontWeight={700}>
-          {title}
-        </Typography>
-        {action}
-      </Box>
-      {children}
-    </Box>
+    </PanelSurface>
   );
 }
