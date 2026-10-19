@@ -12,6 +12,7 @@ import {
   parseBudgetFilterFromUrl,
   serializeBudgetFilterToUrl,
 } from '@/utils/list-url-serializers';
+import { mergePaginationChange } from '@/utils/list-url-state';
 import { useMediaQuery } from '@mui/material';
 import { Filter, Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
@@ -428,24 +429,24 @@ export const useBudgetList = () => {
       );
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (isServerFiltered) {
       await handleFilter(
         filter ?? budgetFilterInitialValues,
         term,
-        newPagination.pageIndex + 1,
+        merged.pageIndex + 1,
       );
     } else {
-      const requiredCount =
-        (newPagination.pageIndex + 1) * newPagination.pageSize;
+      const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
       if (
         budgets.length < requiredCount &&
         hasNextPage &&

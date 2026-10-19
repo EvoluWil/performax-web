@@ -196,3 +196,45 @@ export const toIsoDateTime = (value?: Date | string | null): string => {
   const parsed = parsePickerDateTime(value);
   return parsed ? parsed.toISOString() : '';
 };
+
+const toPickerCalendarDate = (value: Date | string): Date | null => {
+  if (value instanceof Date) {
+    return parsePickerDate(value);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (DATE_ONLY.test(trimmed) || UTC_MIDNIGHT.test(trimmed)) {
+    return parseLocalCalendarDate(trimmed);
+  }
+  return parsePickerDate(trimmed);
+};
+
+/** Inclusive lower bound for finance due-date filters (start of civil day). */
+export const toFinanceFilterDateFrom = (value: Date | string): Date => {
+  const parsed = toPickerCalendarDate(value);
+  if (!parsed) return new Date(Number.NaN);
+  return new Date(
+    parsed.getFullYear(),
+    parsed.getMonth(),
+    parsed.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+};
+
+/** Inclusive upper bound for finance due-date filters (end of civil day). */
+export const toFinanceFilterDateTo = (value: Date | string): Date => {
+  const parsed = toPickerCalendarDate(value);
+  if (!parsed) return new Date(Number.NaN);
+  return new Date(
+    parsed.getFullYear(),
+    parsed.getMonth(),
+    parsed.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+};

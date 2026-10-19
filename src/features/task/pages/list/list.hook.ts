@@ -13,6 +13,7 @@ import { taskService } from '@/features/task/services';
 import { getTaskQuery } from '@/features/task/services/task.service';
 import { Task } from '@/features/task/types';
 import { useListUrlEffects, useListUrlState } from '@/hooks/common/use-list-url-state';
+import { mergePaginationChange } from '@/utils/list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import {
   applyScopedFilter,
@@ -378,20 +379,20 @@ export const useTaskList = () => {
       );
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (isServerFiltered) {
-      await handleFilter(filter, term, newPagination.pageIndex + 1);
+      await handleFilter(filter, term, merged.pageIndex + 1);
     } else {
-      const requiredCount =
-        (newPagination.pageIndex + 1) * newPagination.pageSize;
+      const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
       if (tasks.length < requiredCount && hasNextPage && !isFetchingNextPage) {
         await fetchNextPage();
       }

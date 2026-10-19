@@ -5,6 +5,7 @@ import {
 } from '@/features/employee/hooks';
 import { Employee } from '@/features/employee/types';
 import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
+import { mergePaginationChange } from '@/utils/list-url-state';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
@@ -84,19 +85,17 @@ export const useEmployeeList = () => {
   };
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) {
-      return;
-    }
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    const requiredCount =
-      (newPagination.pageIndex + 1) * newPagination.pageSize;
+    const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (
       employees.length < requiredCount &&

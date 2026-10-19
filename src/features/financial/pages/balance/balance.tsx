@@ -19,6 +19,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
+import { endOfMonth, startOfMonth } from 'date-fns';
 import { useState } from 'react';
 import { BalanceFilters } from '../../components/balance-filters/balance-filters';
 import { BalanceSummary } from '../../components/balance-summary/balance-summary';
@@ -53,13 +54,12 @@ const MONTHS_PT = [
   'Dezembro',
 ];
 
-function firstDayISO(year: number, month: number): string {
-  return `${year}-${String(month + 1).padStart(2, '0')}-01`;
-}
-
-function lastDayISO(year: number, month: number): string {
-  const d = new Date(year, month + 1, 0);
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function monthRangeISO(year: number, month: number) {
+  const anchor = new Date(year, month, 1);
+  return {
+    dateFrom: startOfMonth(anchor).toISOString(),
+    dateTo: endOfMonth(anchor).toISOString(),
+  };
 }
 
 export function FinanceBalance() {
@@ -104,8 +104,9 @@ export function FinanceBalance() {
       newYear++;
     }
     setQuickMonth({ year: newYear, month: newMonth });
-    setValue('dateFrom', firstDayISO(newYear, newMonth));
-    setValue('dateTo', lastDayISO(newYear, newMonth));
+    const range = monthRangeISO(newYear, newMonth);
+    setValue('dateFrom', range.dateFrom);
+    setValue('dateTo', range.dateTo);
     fetchBalance();
   };
 

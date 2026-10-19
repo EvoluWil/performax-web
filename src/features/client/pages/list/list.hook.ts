@@ -3,6 +3,7 @@ import { useClientMutation, useClientsQuery } from '@/features/client/hooks';
 import { Client } from '@/features/client/types';
 import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
+import { mergePaginationChange } from '@/utils/list-url-state';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
@@ -89,19 +90,17 @@ export const useClientList = () => {
   };
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) {
-      return;
-    }
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    const requiredCount =
-      (newPagination.pageIndex + 1) * newPagination.pageSize;
+    const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (clients.length < requiredCount && hasNextPage && !isFetchingNextPage) {
       await fetchNextPage();

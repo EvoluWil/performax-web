@@ -10,6 +10,21 @@ export type ListUrlPagination = {
   pageSize: number;
 };
 
+/** Applies table pagination updates; resets to page 0 when only page size changes. */
+export function mergePaginationChange(
+  current: ListUrlPagination,
+  next: ListUrlPagination,
+): ListUrlPagination | null {
+  if (JSON.stringify(next) === JSON.stringify(current)) return null;
+  if (
+    next.pageIndex === current.pageIndex &&
+    next.pageSize !== current.pageSize
+  ) {
+    return { pageIndex: 0, pageSize: next.pageSize };
+  }
+  return next;
+}
+
 export function parseCommaList(value: string | null): string[] {
   if (!value) return [];
   return value.split(',').map((item) => item.trim()).filter(Boolean);

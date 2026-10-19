@@ -6,6 +6,10 @@ import {
   ResourceItem,
 } from '@/services/form-resources.service';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  toFinanceFilterDateFrom,
+  toFinanceFilterDateTo,
+} from '@/utils/date';
 import { endOfMonth, startOfMonth } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -232,14 +236,14 @@ export function useFinanceBalance() {
         and.push({
           path: 'date',
           operator: 'gte',
-          value: new Date(values.dateFrom),
+          value: toFinanceFilterDateFrom(values.dateFrom),
         });
       }
       if (values.dateTo) {
         and.push({
           path: 'date',
           operator: 'lte',
-          value: new Date(values.dateTo),
+          value: toFinanceFilterDateTo(values.dateTo),
         });
       }
       if (values.flow && values.flow !== 'ALL') {

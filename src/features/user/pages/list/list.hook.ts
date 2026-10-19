@@ -3,6 +3,7 @@ import { useUserMutation, useUsersQuery } from '@/features/user/hooks';
 import { useListUrlEffects, useSimpleListUrlState } from '@/hooks/common/use-list-url-state';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { companyService } from '@/services/company.service';
+import { mergePaginationChange } from '@/utils/list-url-state';
 import { User } from '@/types/user';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -147,17 +148,17 @@ export const useUserList = () => {
   }));
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    const requiredCount =
-      (newPagination.pageIndex + 1) * newPagination.pageSize;
+    const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (users.length < requiredCount && hasNextPage && !isFetchingNextPage) {
       await fetchNextPage();

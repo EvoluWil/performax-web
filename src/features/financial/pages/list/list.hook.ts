@@ -4,7 +4,8 @@ import { companyService } from '@/services/company.service';
 import { useMediaQuery } from '@mui/material';
 import { Query } from 'nestjs-prisma-querybuilder-interface';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { mergePaginationChange } from '@/utils/list-url-state';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 import { useFinancesQuery } from '../../hooks/queries/finances.query';
@@ -17,6 +18,10 @@ import {
   FinanceFilterDto,
   makeFinanceFilterInitialValues,
 } from '../../schemas/finance-filter.schema';
+import {
+  toFinanceFilterDateFrom,
+  toFinanceFilterDateTo,
+} from '@/utils/date';
 import { buildTextSearchOrFilter, pushInFilter, pushOrFilterGroups } from '@/utils/query';
 import {
   hasActiveFilterParams,
@@ -106,7 +111,7 @@ const buildQuery = (
     queryFilter.filter.push({
       path: 'date',
       operator: 'gte',
-      value: new Date(filterData.dateFrom),
+      value: toFinanceFilterDateFrom(filterData.dateFrom),
       filterGroup: 'and',
     } as any);
   }
@@ -115,7 +120,7 @@ const buildQuery = (
     queryFilter.filter.push({
       path: 'date',
       operator: 'lte',
-      value: new Date(filterData.dateTo),
+      value: toFinanceFilterDateTo(filterData.dateTo),
       filterGroup: 'and',
     } as any);
   }
@@ -162,6 +167,14 @@ export const useFinanceList = () => {
   const currentCompanyId = defaultCompany?.id ?? '';
   const groupId = defaultCompany?.groupId ?? '';
 
+  const financesQuery = useMemo(
+    () => ({
+      ...currentQuery,
+      limit: pagination.pageSize,
+    }),
+    [currentQuery, pagination.pageSize],
+  );
+
   const {
     data,
     refetch,
@@ -170,7 +183,7 @@ export const useFinanceList = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFinancesQuery(currentQuery);
+  } = useFinancesQuery(financesQuery);
 
   const { data: wallet } = useWalletQuery();
   const walletRecalculateMutation = useWalletRecalculateMutation();
@@ -255,17 +268,17 @@ export const useFinanceList = () => {
   };
 
   const handlePaginationChange = async (newPagination: Pagination) => {
-    if (JSON.stringify(newPagination) === JSON.stringify(pagination)) return;
+    const merged = mergePaginationChange(pagination, newPagination);
+    if (!merged) return;
 
     if (newPagination.pageIndex === pagination.pageIndex) {
-      setPagination((prev) => ({ ...prev, pageSize: newPagination.pageSize }));
+      setPagination(merged);
       return;
     }
 
-    const requiredCount =
-      (newPagination.pageIndex + 1) * newPagination.pageSize;
+    const requiredCount = (merged.pageIndex + 1) * merged.pageSize;
 
-    setPagination(newPagination);
+    setPagination(merged);
 
     if (finances.length < requiredCount && hasNextPage && !isFetchingNextPage) {
       setIsChangingPage(true);
