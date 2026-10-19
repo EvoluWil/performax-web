@@ -89,7 +89,11 @@ export function buildRRuleFromForm(
       : [data.byweekday];
     if (weekdays.length) options.byweekday = weekdays.map(toWeekday);
   }
-  if (data.bymonthday) options.bymonthday = Number(data.bymonthday);
+  if (data.bymonthday) {
+    options.bymonthday = Number(data.bymonthday);
+  } else if (data.freq === 'MONTHLY' && dtstart) {
+    options.bymonthday = dtstart.getDate();
+  }
   if (data.bysetpos) options.bysetpos = Number(data.bysetpos);
   if (data.bymonth) options.bymonth = Number(data.bymonth);
   (options as any).wkst = RRule.SU; // assume Sunday
