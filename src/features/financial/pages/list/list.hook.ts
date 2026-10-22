@@ -22,8 +22,11 @@ import {
   toFinanceFilterDateFrom,
   toFinanceFilterDateTo,
 } from '@/utils/date';
-import { buildTextSearchOrFilter } from '@/utils/query';
-import type { Filter } from 'nestjs-prisma-querybuilder-interface';
+import {
+  buildTextSearchOrFilter,
+  pushInFilter,
+  pushOrFilterGroups,
+} from '@/utils/query';
 import {
   hasActiveFilterParams,
   parseFinanceFilterFromUrl,
@@ -49,24 +52,16 @@ export const defaultColumns = [
   'status',
 ];
 
-const pushInToAnd = (
-  and: Filter,
-  path: string,
-  values: string[] | undefined,
-) => {
-  if (!values?.length) return;
-  and.push({
-    path,
-    operator: 'in',
-    value: values.join(';'),
-  } as Filter[number]);
-};
-
 const buildQuery = (
   filterData: FinanceFilterDto | null,
   searchTerm: string,
 ): Query => {
-  const and: Filter = [];
+  const queryFilter: Query = {
+    ...getFinanceQuery,
+    filter: [],
+  } as Query;
+
+  if (!queryFilter.filter) return queryFilter;
 
   const searchOrItems = searchTerm
     ? buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
@@ -74,68 +69,66 @@ const buildQuery = (
       })
     : [];
 
-  const flowOrItems =
-    filterData?.flows && filterData.flows.length > 0
-      ? filterData.flows.map((flow) => ({
-          path: 'flow',
-          operator: 'equals' as const,
-          value: flow,
-        }))
-      : [];
-
   if (searchOrItems.length) {
-    and.push({ or: searchOrItems } as Filter[number]);
-  }
-  if (flowOrItems.length) {
-    and.push({ or: flowOrItems } as Filter[number]);
+    pushOrFilterGroups(queryFilter.filter, searchOrItems);
   }
 
-  if (filterData?.flow && !filterData.flows?.length) {
-    and.push({ path: 'flow', value: filterData.flow } as Filter[number]);
+  if (filterData?.flows && filterData.flows.length > 0) {
+    queryFilter.filter.push({
+      path: 'flow',
+      operator: 'in',
+      value: filterData.flows.join(';'),
+      filterGroup: 'and',
+    } as any);
+  } else if (filterData?.flow) {
+    queryFilter.filter.push({
+      path: 'flow',
+      value: filterData.flow,
+      filterGroup: 'and',
+    } as any);
   }
 
   if (filterData?.statuses?.length) {
-    and.push({
-      or: filterData.statuses.map((status) => ({
-        path: 'status',
-        operator: 'equals' as const,
-        value: status,
-      })),
-    } as Filter[number]);
+    queryFilter.filter.push({
+      path: 'status',
+      operator: 'in',
+      value: filterData.statuses.join(';'),
+      filterGroup: 'and',
+    } as any);
   } else if (filterData?.status) {
-    and.push({
+    queryFilter.filter.push({
       path: 'status',
       value: filterData.status,
-    } as Filter[number]);
+      filterGroup: 'and',
+    } as any);
   }
 
-  pushInToAnd(and, 'clientId', filterData?.clientIds);
-  pushInToAnd(and, 'typeId', filterData?.typeIds);
-  pushInToAnd(and, 'bankId', filterData?.bankIds);
-  pushInToAnd(and, 'categoryId', filterData?.categoryIds);
-  pushInToAnd(and, 'segmentId', filterData?.segmentIds);
-  pushInToAnd(and, 'payeeId', filterData?.payeeIds);
+  pushInFilter(queryFilter.filter, 'clientId', filterData?.clientIds);
+  pushInFilter(queryFilter.filter, 'typeId', filterData?.typeIds);
+  pushInFilter(queryFilter.filter, 'bankId', filterData?.bankIds);
+  pushInFilter(queryFilter.filter, 'categoryId', filterData?.categoryIds);
+  pushInFilter(queryFilter.filter, 'segmentId', filterData?.segmentIds);
+  pushInFilter(queryFilter.filter, 'payeeId', filterData?.payeeIds);
 
   if (filterData?.dateFrom) {
-    and.push({
+    queryFilter.filter.push({
       path: 'date',
       operator: 'gte',
       value: toFinanceFilterDateFrom(filterData.dateFrom),
-    } as Filter[number]);
+      filterGroup: 'and',
+    } as any);
   }
 
   if (filterData?.dateTo) {
-    and.push({
+    queryFilter.filter.push({
       path: 'date',
       operator: 'lte',
       value: toFinanceFilterDateTo(filterData.dateTo),
-    } as Filter[number]);
+      filterGroup: 'and',
+    } as any);
   }
 
-  return {
-    ...getFinanceQuery,
-    filter: and.length ? [{ and }] : undefined,
-  } as Query;
+  return queryFilter;
 };
 
 export const useFinanceList = () => {

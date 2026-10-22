@@ -268,7 +268,9 @@ export function useFinanceBalance() {
           { path: 'category', select: 'id name' },
           { path: 'client', select: 'id name' },
         ],
-        filter: and.length ? [{ and }] : undefined,
+        filter: and.length
+          ? and.map((item) => ({ ...item, filterGroup: 'and' as const }))
+          : undefined,
         sort: { field: 'date', criteria: 'asc' },
         limit: 5000,
       });

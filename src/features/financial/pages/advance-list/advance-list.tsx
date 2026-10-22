@@ -75,16 +75,11 @@ const createDefaults: CreateAdvanceFormDto = {
 const eligibleFinancesQuery = {
   ...getFinanceQuery,
   filter: [
+    { path: 'flow', value: FinanceFlowEnum.IN },
     {
-      and: [
-        { path: 'flow', value: FinanceFlowEnum.IN },
-        {
-          or: [
-            { path: 'status', operator: 'equals', value: FinanceStatusEnum.PENDING },
-            { path: 'status', operator: 'equals', value: FinanceStatusEnum.APPROVED },
-          ],
-        },
-      ],
+      path: 'status',
+      operator: 'in',
+      value: [FinanceStatusEnum.PENDING, FinanceStatusEnum.APPROVED].join(';'),
     },
   ],
   limit: 500,
