@@ -202,7 +202,7 @@ export const FinanceAdvanceList = () => {
     () =>
       eligibleFinances.map((f) => ({
         value: f.id,
-        label: `${f.protocol} — ${f.title} (${formatCurrency(f.value)})`,
+        label: `${f.client?.name?.trim() || 'Sem cliente'} — ${f.title} (${formatCurrency(f.value)})`,
       })),
     [eligibleFinances],
   );

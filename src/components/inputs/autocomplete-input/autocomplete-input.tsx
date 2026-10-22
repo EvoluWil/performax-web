@@ -31,6 +31,8 @@ export type AutocompleteInputProps<T extends FieldValues> = {
   multiple?: boolean;
   /** Called with the debounced input text — use to drive server search */
   onInputChange?: (value: string) => void;
+  /** Debounce for onInputChange (ms). Default 1000. */
+  inputDebounceMs?: number;
   createLabel?: string;
   enableCreate?: boolean;
   onCreate?: (label: string) => Promise<string>;
@@ -57,11 +59,11 @@ export function AutocompleteInput<T extends FieldValues>({
   loading,
   multiple = false,
   onInputChange,
+  inputDebounceMs = 1000,
   createLabel = 'Adicionar novo',
   enableCreate = false,
   onCreate,
 }: AutocompleteInputProps<T>) {
-  const [pending, setPending] = useState(false);
   const [creating, setCreating] = useState(false);
   const [draftValue, setDraftValue] = useState('');
   const [createdOption, setCreatedOption] = useState<AutocompleteOption | null>(
@@ -80,19 +82,15 @@ export function AutocompleteInput<T extends FieldValues>({
         setDraftValue('');
       }
 
-      if (reason !== 'input') return;
+      if (reason !== 'input' || !onInputChange) return;
 
       if (timerRef.current) clearTimeout(timerRef.current);
 
-      if (onInputChange) {
-        setPending(true);
-        timerRef.current = setTimeout(() => {
-          setPending(false);
-          onInputChange(inputValue);
-        }, 500);
-      }
+      timerRef.current = setTimeout(() => {
+        onInputChange(inputValue);
+      }, inputDebounceMs);
     },
-    [onInputChange],
+    [inputDebounceMs, onInputChange],
   );
 
   useEffect(() => {
@@ -101,7 +99,7 @@ export function AutocompleteInput<T extends FieldValues>({
     };
   }, []);
 
-  const busy = pending || loading || creating;
+  const busy = loading || creating;
 
   return (
     <Controller
@@ -160,7 +158,7 @@ export function AutocompleteInput<T extends FieldValues>({
           <Autocomplete
             multiple={multiple}
             options={mergedOptions}
-            filterOptions={(opts) => opts}
+            filterOptions={onInputChange ? (opts) => opts : undefined}
             loading={busy}
             disabled={disabled}
             disableCloseOnSelect={multiple}

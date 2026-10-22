@@ -22,11 +22,8 @@ import {
   toFinanceFilterDateFrom,
   toFinanceFilterDateTo,
 } from '@/utils/date';
-import {
-  buildTextSearchOrFilter,
-  pushInFilter,
-  pushOrFilterGroups,
-} from '@/utils/query';
+import { pushInFilter, pushOrFilterGroups } from '@/utils/query';
+import { buildFinanceListSearchOrFilter } from '../../util/finance-search-filter';
 import {
   hasActiveFilterParams,
   parseFinanceFilterFromUrl,
@@ -64,9 +61,7 @@ const buildQuery = (
   if (!queryFilter.filter) return queryFilter;
 
   const searchOrItems = searchTerm
-    ? buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
-        withClientName: true,
-      })
+    ? buildFinanceListSearchOrFilter(searchTerm)
     : [];
 
   if (searchOrItems.length) {
