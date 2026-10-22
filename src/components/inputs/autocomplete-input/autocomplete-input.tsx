@@ -10,8 +10,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Control, Controller, FieldValues, Path } from 'react-hook-form';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Control, Controller, FieldValues, Path, useWatch } from 'react-hook-form';
 
 export type AutocompleteOption = {
   value: string;
@@ -78,16 +78,12 @@ export function AutocompleteInput<T extends FieldValues>({
 
   const handleInputChange = useCallback(
     (_: unknown, newInputValue: string, reason: string) => {
-      // MUI emits "reset" when options/value refresh — would wipe the search text.
-      if (reason === 'reset' && onInputChangeRef.current) {
+      // MUI emits "reset" when the options array changes (e.g. large local lists).
+      if (reason === 'reset') {
         return;
       }
 
-      if (
-        reason === 'input' ||
-        reason === 'clear' ||
-        reason === 'reset'
-      ) {
+      if (reason === 'input' || reason === 'clear') {
         setInputValue(newInputValue);
       }
 
@@ -109,38 +105,36 @@ export function AutocompleteInput<T extends FieldValues>({
   }, []);
 
   const busy = loading || creating;
+  const watchedValue = useWatch({ control, name });
+
+  const selectedOptions = useMemo((): AutocompleteOption | AutocompleteOption[] | null => {
+    if (multiple) {
+      const fieldValues = (watchedValue as string[] | undefined) ?? [];
+      const fromOptions = options.filter((o) => fieldValues.includes(o.value));
+      const fromCache = selectedCache.filter((o) =>
+        fieldValues.includes(o.value),
+      );
+      return mergeOptions(fromOptions, fromCache);
+    }
+
+    const fieldValue = watchedValue as string | undefined;
+    return (
+      options.find((o) => o.value === fieldValue) ??
+      (createdOption?.value === fieldValue ? createdOption : null)
+    );
+  }, [multiple, options, selectedCache, watchedValue, createdOption]);
+
+  const mergedOptions = useMemo(() => {
+    if (!multiple) return options;
+    const selected = Array.isArray(selectedOptions) ? selectedOptions : [];
+    return mergeOptions(options, selected);
+  }, [multiple, options, selectedOptions]);
 
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        const fieldValues = multiple
-          ? ((field.value as string[] | undefined) ?? [])
-          : [];
-
-        let selectedOptions: AutocompleteOption | AutocompleteOption[] | null;
-
-        if (multiple) {
-          const fromOptions = options.filter((o) =>
-            fieldValues.includes(o.value),
-          );
-          const fromCache = selectedCache.filter((o) =>
-            fieldValues.includes(o.value),
-          );
-          selectedOptions = mergeOptions(fromOptions, fromCache);
-        } else {
-          selectedOptions =
-            options.find((o) => o.value === field.value) ??
-            (createdOption?.value === field.value ? createdOption : null);
-        }
-
-        const mergedOptions = multiple
-          ? mergeOptions(
-              options,
-              Array.isArray(selectedOptions) ? selectedOptions : [],
-            )
-          : options;
 
         const handleCreate = async () => {
           if (!canCreate || !onCreate) return;

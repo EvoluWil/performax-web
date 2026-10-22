@@ -356,12 +356,13 @@ export const FinanceAdvanceList = () => {
             para a soma dos lançamentos gera uma saída de juros.
           </Typography>
           <AutocompleteInput
+            key={openCreate ? 'advance-finance-picker' : 'advance-finance-picker-closed'}
             label="Lançamentos (entrada, não pagos)"
             name="financeIds"
             control={control}
             multiple
             options={financeOptions}
-            loading={loadingEligible}
+            loading={loadingEligible && financeOptions.length === 0}
           />
           <Typography variant="body2" fontWeight={600}>
             Soma dos lançamentos: {formatCurrency(nominalTotalCents)}
