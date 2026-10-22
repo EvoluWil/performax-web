@@ -31,6 +31,14 @@ export const financeStatusLabels: Record<
   [FinanceStatusEnum.CANCELLED]: { label: 'Cancelado', color: 'gray' },
 };
 
+export const ORDERED_FINANCE_STATUSES = [
+  FinanceStatusEnum.PENDING,
+  FinanceStatusEnum.APPROVED,
+  FinanceStatusEnum.PAID,
+  FinanceStatusEnum.CANCELLED,
+  FinanceStatusEnum.REJECTED,
+] as const;
+
 export const isFinanceCancelled = (status?: FinanceStatusEnum) =>
   status === FinanceStatusEnum.CANCELLED;
 

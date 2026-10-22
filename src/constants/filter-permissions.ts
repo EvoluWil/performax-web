@@ -28,6 +28,7 @@ export const CONTRACT_FILTER_FIELDS: FilterFieldConfig[] = [
 ];
 
 export const FINANCE_FILTER_FIELDS: FilterFieldConfig[] = [
+  { field: 'clientIds', module: 'client' },
   { field: 'typeIds', module: 'financial' },
   { field: 'bankIds', module: 'financial' },
   { field: 'categoryIds', module: 'financial' },

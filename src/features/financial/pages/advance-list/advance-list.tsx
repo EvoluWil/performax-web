@@ -1,7 +1,6 @@
 'use client';
 
 import { ListHeader, Table } from '@/components/common';
-import { CsvImportModal, useListCsvImport } from '@/components/csv-import';
 import { Actions } from '@/components/common/table/table';
 import {
   AutocompleteInput,
@@ -25,12 +24,9 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { MRT_ColumnDef } from 'material-react-table';
-import { useCallback, useMemo, useState } from 'react';
-import {
-  createAdvanceCsvImportConfig,
-  type AdvanceCreatePayload,
-} from '@/features/shared/config/entity-csv-import.configs';
-import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import swal from 'sweetalert2';
 import {
@@ -38,16 +34,26 @@ import {
   useFinanceAdvancesQuery,
 } from '../../hooks/queries/finance-advances.query';
 import {
+  financeService,
+  getFinanceQuery,
+} from '../../services/finance.service';
+import {
   AdvanceStatusEnum,
   FinanceAdvance,
   advanceStatusLabels,
 } from '../../types/finance-advance';
+import {
+  Finance,
+  FinanceFlowEnum,
+  FinanceStatusEnum,
+} from '../../types/finance';
 
 type CreateAdvanceFormDto = {
   title: string;
   description: string;
   observation: string;
-  value: number | string;
+  financeIds: string[];
+  receivedValue: number | string;
   date: Date | null;
   bankId: string;
   methodId: string;
@@ -58,12 +64,32 @@ const createDefaults: CreateAdvanceFormDto = {
   title: '',
   description: '',
   observation: '',
-  value: 0,
+  financeIds: [],
+  receivedValue: 0,
   date: new Date(),
   bankId: '',
   methodId: '',
   typeId: '',
 };
+
+const eligibleFinancesQuery = {
+  ...getFinanceQuery,
+  filter: [
+    {
+      and: [
+        { path: 'flow', value: FinanceFlowEnum.IN },
+        {
+          or: [
+            { path: 'status', operator: 'equals', value: FinanceStatusEnum.PENDING },
+            { path: 'status', operator: 'equals', value: FinanceStatusEnum.APPROVED },
+          ],
+        },
+      ],
+    },
+  ],
+  limit: 500,
+  page: 1,
+} as const;
 
 function formatCurrency(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', {
@@ -77,21 +103,28 @@ const columns: MRT_ColumnDef<FinanceAdvance>[] = [
   { accessorKey: 'title', header: 'Título' },
   {
     accessorKey: 'totalValue',
-    header: 'Valor Total',
+    header: 'Valor nominal',
     Cell({ cell }: any) {
       return formatCurrency(cell.getValue());
     },
   },
   {
+    accessorKey: 'receivedValue',
+    header: 'Valor recebido',
+    Cell({ cell }: any) {
+      return formatCurrency(cell.getValue() ?? 0);
+    },
+  },
+  {
     accessorKey: 'remainingValue',
-    header: 'Saldo Disponível',
+    header: 'Saldo nominal',
     Cell({ cell }: any) {
       return formatCurrency(cell.getValue());
     },
   },
   {
     id: 'usedValue',
-    header: 'Utilizado',
+    header: 'Quitado',
     Cell({ row }: any) {
       const used = row.original.totalValue - row.original.remainingValue;
       return formatCurrency(used);
@@ -132,6 +165,16 @@ const columns: MRT_ColumnDef<FinanceAdvance>[] = [
   },
 ];
 
+function isEligibleForAdvance(f: Finance) {
+  return (
+    !f.advanceId &&
+    !f.isAdvanceDeposit &&
+    f.flow === FinanceFlowEnum.IN &&
+    f.status !== FinanceStatusEnum.PAID &&
+    f.status !== FinanceStatusEnum.CANCELLED
+  );
+}
+
 export const FinanceAdvanceList = () => {
   const { data: advances, refetch } = useFinanceAdvancesQuery();
   const mutation = useFinanceAdvanceMutation();
@@ -148,9 +191,39 @@ export const FinanceAdvanceList = () => {
     'financeTypes',
   ]);
 
+  const { data: eligibleResult, isLoading: loadingEligible } = useQuery({
+    queryKey: ['finances', 'advance-eligible'],
+    queryFn: () => financeService.get(eligibleFinancesQuery as any),
+    enabled: openCreate,
+    refetchOnWindowFocus: false,
+  });
+
+  const eligibleFinances = useMemo(
+    () => (eligibleResult?.data ?? []).filter(isEligibleForAdvance),
+    [eligibleResult],
+  );
+
+  const financeOptions = useMemo(
+    () =>
+      eligibleFinances.map((f) => ({
+        value: f.id,
+        label: `${f.protocol} — ${f.title} (${formatCurrency(f.value)})`,
+      })),
+    [eligibleFinances],
+  );
+
   const { control, handleSubmit, reset } = useForm<CreateAdvanceFormDto>({
     defaultValues: createDefaults,
   });
+
+  const selectedFinanceIds = useWatch({ control, name: 'financeIds' }) ?? [];
+
+  const nominalTotalCents = useMemo(() => {
+    const idSet = new Set(selectedFinanceIds);
+    return eligibleFinances
+      .filter((f) => idSet.has(f.id))
+      .reduce((sum, f) => sum + f.value, 0);
+  }, [selectedFinanceIds, eligibleFinances]);
 
   const filtered = useMemo(
     () =>
@@ -165,23 +238,25 @@ export const FinanceAdvanceList = () => {
     if (data) toast.success('Dados atualizados com sucesso');
   };
 
-  const handleImportCreate = useCallback(
-    (row: AdvanceCreatePayload) =>
-      mutation.mutateAsync({ type: 'create', data: row }),
-    [mutation],
-  );
-
-  const { importOpen, setImportOpen, config: csvImportConfig } =
-    useListCsvImport(createAdvanceCsvImportConfig, handleImportCreate, [
-      handleImportCreate,
-    ]);
-
   const handleOpenCreate = () => {
     reset(createDefaults);
     setOpenCreate(true);
   };
 
   const handleCreate = handleSubmit(async (values) => {
+    if (!values.financeIds?.length) {
+      toast.error('Selecione ao menos um lançamento');
+      return;
+    }
+    const receivedValue = Math.round(Number(values.receivedValue || 0) * 100);
+    if (receivedValue <= 0) {
+      toast.error('Informe o valor efetivo recebido');
+      return;
+    }
+    if (receivedValue > nominalTotalCents) {
+      toast.error('Valor recebido não pode ser maior que a soma dos lançamentos');
+      return;
+    }
     try {
       await mutation.mutateAsync({
         type: 'create',
@@ -189,7 +264,8 @@ export const FinanceAdvanceList = () => {
           title: values.title,
           description: values.description || undefined,
           observation: values.observation || undefined,
-          totalValue: Math.round(Number(values.value || 0) * 100),
+          financeIds: values.financeIds,
+          receivedValue,
           date: (values.date as Date).toISOString(),
           bankId: values.bankId,
           methodId: values.methodId,
@@ -206,7 +282,7 @@ export const FinanceAdvanceList = () => {
   const handleDelete = (id: string) => {
     swal.fire({
       title: 'Excluir adiantamento?',
-      text: 'O valor será removido do saldo da empresa.',
+      text: 'Os lançamentos vinculados serão desvinculados e os depósitos removidos.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d32f2f',
@@ -217,6 +293,12 @@ export const FinanceAdvanceList = () => {
         toast.success('Adiantamento excluído');
       },
     });
+  };
+
+  const canDeleteAdvance = (advance: FinanceAdvance) => {
+    const apps = advance.applications ?? [];
+    if (!apps.length) return true;
+    return !apps.some((a) => a.status === FinanceStatusEnum.PAID);
   };
 
   const actions: Actions<FinanceAdvance>[] = [
@@ -232,7 +314,7 @@ export const FinanceAdvanceList = () => {
       icon: () => <DeleteOutlined />,
       label: () => 'Excluir',
       onClick: (a) => handleDelete(a.id),
-      condition: (a) => (a.applications?.length ?? 0) === 0,
+      condition: canDeleteAdvance,
     });
   }
 
@@ -243,8 +325,9 @@ export const FinanceAdvanceList = () => {
           ADIANTAMENTOS
         </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>
-          Antecipações que entram no saldo da empresa e podem ser aplicadas em
-          lançamentos pagos.
+          Selecione lançamentos de entrada, informe o valor recebido e o
+          sistema registra o caixa e os juros. Ao quitar os lançamentos
+          vinculados, o saldo não é contado novamente.
         </Typography>
       </Box>
 
@@ -252,7 +335,6 @@ export const FinanceAdvanceList = () => {
         onReload={handleReload}
         onSearch={(s) => setTerm(s)}
         onAdd={canWrite ? handleOpenCreate : undefined}
-        onImport={canWrite ? () => setImportOpen(true) : undefined}
         searchTitle="Pesquise por título"
         addTitle="Novo Adiantamento"
       />
@@ -262,7 +344,7 @@ export const FinanceAdvanceList = () => {
       <Dialog
         open={openCreate}
         onClose={() => setOpenCreate(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>Novo Adiantamento</DialogTitle>
@@ -275,11 +357,27 @@ export const FinanceAdvanceList = () => {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            O valor informado entrará imediatamente no saldo da empresa.
+            O valor efetivo recebido entra no saldo na criação. A diferença
+            para a soma dos lançamentos gera uma saída de juros.
+          </Typography>
+          <AutocompleteInput
+            label="Lançamentos (entrada, não pagos)"
+            name="financeIds"
+            control={control}
+            multiple
+            options={financeOptions}
+            loading={loadingEligible}
+          />
+          <Typography variant="body2" fontWeight={600}>
+            Soma dos lançamentos: {formatCurrency(nominalTotalCents)}
           </Typography>
           <TextInput label="Título" name="title" control={control} />
           <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-            <CurrencyInput label="Valor" name="value" control={control} />
+            <CurrencyInput
+              label="Valor efetivo recebido"
+              name="receivedValue"
+              control={control}
+            />
             <DateInput label="Data" name="date" control={control} />
           </Box>
           <AutocompleteInput
@@ -326,6 +424,7 @@ export const FinanceAdvanceList = () => {
             variant="contained"
             onClick={handleCreate}
             loading={mutation.isPending}
+            disabled={!selectedFinanceIds.length}
           >
             Criar Adiantamento
           </Button>
@@ -338,41 +437,32 @@ export const FinanceAdvanceList = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>
-          Lançamentos — {detailTarget?.title}
-        </DialogTitle>
+        <DialogTitle>Lançamentos — {detailTarget?.title}</DialogTitle>
         <DialogContent>
-          {(detailTarget?.applications ?? []).map((app) => {
-            const net =
-              app.flow === 'IN'
-                ? app.value - app.tax - app.retention
-                : app.value + app.tax + app.retention;
-            return (
-              <Box
-                key={app.id}
-                display="flex"
-                justifyContent="space-between"
-                py={1}
-                borderBottom="1px solid"
-                borderColor="divider"
-              >
-                <Box>
-                  <Typography variant="body2" fontWeight="medium">
-                    {app.title}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {app.protocol}
-                    {app.paymentDate
-                      ? ` · ${formatDate(app.paymentDate)}`
-                      : ''}
-                  </Typography>
-                </Box>
+          {(detailTarget?.applications ?? []).map((app) => (
+            <Box
+              key={app.id}
+              display="flex"
+              justifyContent="space-between"
+              py={1}
+              borderBottom="1px solid"
+              borderColor="divider"
+            >
+              <Box>
                 <Typography variant="body2" fontWeight="medium">
-                  {formatCurrency(net)}
+                  {app.title}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {app.protocol}
+                  {app.paymentDate ? ` · ${formatDate(app.paymentDate)}` : ''}
+                  {` · ${app.status}`}
                 </Typography>
               </Box>
-            );
-          })}
+              <Typography variant="body2" fontWeight="medium">
+                {formatCurrency(app.value)}
+              </Typography>
+            </Box>
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetailTarget(null)}>Fechar</Button>
@@ -380,13 +470,6 @@ export const FinanceAdvanceList = () => {
       </Dialog>
 
       {mutation.isPending && <LinearProgress />}
-
-      <CsvImportModal
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        config={csvImportConfig}
-        onComplete={handleReload}
-      />
     </>
   );
 };

@@ -1,10 +1,6 @@
 import { api } from '@/config/api';
 import { BaseCompanyService } from '@/services/base-url.service';
-import {
-  CreateAdvanceDto,
-  FinanceAdvance,
-  FinanceAdvanceAvailable,
-} from '../types/finance-advance';
+import { CreateAdvanceDto, FinanceAdvance } from '../types/finance-advance';
 
 class FinanceAdvanceService extends BaseCompanyService {
   private path = 'finance-advance';
@@ -12,13 +8,6 @@ class FinanceAdvanceService extends BaseCompanyService {
   async getAll(): Promise<FinanceAdvance[]> {
     const { data } = await api.get<FinanceAdvance[]>(
       this.getUrlBase(this.path),
-    );
-    return data;
-  }
-
-  async getAvailable(): Promise<FinanceAdvanceAvailable[]> {
-    const { data } = await api.get<FinanceAdvanceAvailable[]>(
-      `${this.getUrlBase(this.path)}/available`,
     );
     return data;
   }

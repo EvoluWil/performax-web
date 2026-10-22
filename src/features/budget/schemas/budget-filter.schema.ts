@@ -46,10 +46,10 @@ export const BUDGET_STATUS_FILTER_MAP: Array<{
 }> = [
   { status: 'PENDING', field: 'pending' },
   { status: 'APPROVED', field: 'approved' },
+  { status: 'COMPLETED', field: 'completed' },
+  { status: 'FINANCIAL', field: 'financial' },
   { status: 'CHARGED', field: 'charged' },
   { status: 'PAID', field: 'paid' },
-  { status: 'FINANCIAL', field: 'financial' },
-  { status: 'COMPLETED', field: 'completed' },
   { status: 'REJECTED', field: 'rejected' },
 ];
 

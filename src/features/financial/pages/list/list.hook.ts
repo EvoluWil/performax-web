@@ -22,7 +22,8 @@ import {
   toFinanceFilterDateFrom,
   toFinanceFilterDateTo,
 } from '@/utils/date';
-import { buildTextSearchOrFilter, pushInFilter, pushOrFilterGroups } from '@/utils/query';
+import { buildTextSearchOrFilter } from '@/utils/query';
+import type { Filter } from 'nestjs-prisma-querybuilder-interface';
 import {
   hasActiveFilterParams,
   parseFinanceFilterFromUrl,
@@ -48,16 +49,24 @@ export const defaultColumns = [
   'status',
 ];
 
+const pushInToAnd = (
+  and: Filter,
+  path: string,
+  values: string[] | undefined,
+) => {
+  if (!values?.length) return;
+  and.push({
+    path,
+    operator: 'in',
+    value: values.join(';'),
+  } as Filter[number]);
+};
+
 const buildQuery = (
   filterData: FinanceFilterDto | null,
   searchTerm: string,
 ): Query => {
-  const queryFilter: Query = {
-    ...getFinanceQuery,
-    filter: [],
-  } as any;
-
-  if (!queryFilter.filter) return queryFilter;
+  const and: Filter = [];
 
   const searchOrItems = searchTerm
     ? buildTextSearchOrFilter(searchTerm, ['title', 'description', 'protocol'], {
@@ -74,58 +83,59 @@ const buildQuery = (
         }))
       : [];
 
-  pushOrFilterGroups(queryFilter.filter, searchOrItems, flowOrItems);
+  if (searchOrItems.length) {
+    and.push({ or: searchOrItems } as Filter[number]);
+  }
+  if (flowOrItems.length) {
+    and.push({ or: flowOrItems } as Filter[number]);
+  }
 
   if (filterData?.flow && !filterData.flows?.length) {
-    queryFilter.filter.push({
-      path: 'flow',
-      value: filterData.flow,
-      filterGroup: 'and',
-    } as any);
+    and.push({ path: 'flow', value: filterData.flow } as Filter[number]);
   }
 
   if (filterData?.statuses?.length) {
-    pushOrFilterGroups(
-      queryFilter.filter,
-      filterData.statuses.map((status) => ({
+    and.push({
+      or: filterData.statuses.map((status) => ({
         path: 'status',
         operator: 'equals' as const,
         value: status,
       })),
-    );
+    } as Filter[number]);
   } else if (filterData?.status) {
-    queryFilter.filter.push({
+    and.push({
       path: 'status',
       value: filterData.status,
-      filterGroup: 'and',
-    } as any);
+    } as Filter[number]);
   }
 
-  pushInFilter(queryFilter.filter, 'typeId', filterData?.typeIds);
-  pushInFilter(queryFilter.filter, 'bankId', filterData?.bankIds);
-  pushInFilter(queryFilter.filter, 'categoryId', filterData?.categoryIds);
-  pushInFilter(queryFilter.filter, 'segmentId', filterData?.segmentIds);
-  pushInFilter(queryFilter.filter, 'payeeId', filterData?.payeeIds);
+  pushInToAnd(and, 'clientId', filterData?.clientIds);
+  pushInToAnd(and, 'typeId', filterData?.typeIds);
+  pushInToAnd(and, 'bankId', filterData?.bankIds);
+  pushInToAnd(and, 'categoryId', filterData?.categoryIds);
+  pushInToAnd(and, 'segmentId', filterData?.segmentIds);
+  pushInToAnd(and, 'payeeId', filterData?.payeeIds);
 
   if (filterData?.dateFrom) {
-    queryFilter.filter.push({
+    and.push({
       path: 'date',
       operator: 'gte',
       value: toFinanceFilterDateFrom(filterData.dateFrom),
-      filterGroup: 'and',
-    } as any);
+    } as Filter[number]);
   }
 
   if (filterData?.dateTo) {
-    queryFilter.filter.push({
+    and.push({
       path: 'date',
       operator: 'lte',
       value: toFinanceFilterDateTo(filterData.dateTo),
-      filterGroup: 'and',
-    } as any);
+    } as Filter[number]);
   }
 
-  return queryFilter;
+  return {
+    ...getFinanceQuery,
+    filter: and.length ? [{ and }] : undefined,
+  } as Query;
 };
 
 export const useFinanceList = () => {

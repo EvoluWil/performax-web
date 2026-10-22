@@ -11,16 +11,6 @@ export function useFinanceAdvancesQuery() {
   });
 }
 
-export function useFinanceAdvancesAvailableQuery(enabled = true) {
-  return useQuery({
-    queryKey: ['financeAdvancesAvailable'],
-    queryFn: () => financeAdvanceService.getAvailable(),
-    initialData: [],
-    enabled,
-    refetchOnWindowFocus: false,
-  });
-}
-
 export function useFinanceAdvanceMutation() {
   const queryClient = useQueryClient();
 
@@ -37,7 +27,6 @@ export function useFinanceAdvanceMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['financeAdvances'] });
-      queryClient.invalidateQueries({ queryKey: ['financeAdvancesAvailable'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
       queryClient.invalidateQueries({ queryKey: ['financeWallet'] });
     },

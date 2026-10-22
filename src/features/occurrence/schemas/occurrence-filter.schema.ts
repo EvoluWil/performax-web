@@ -35,9 +35,9 @@ export const OCCURRENCE_STATUS_FILTER_MAP: Array<{
 }> = [
   { status: 'PENDING', field: 'pending' },
   { status: 'APPROVED', field: 'approved' },
+  { status: 'COMPLETED', field: 'completed' },
   { status: 'IN_PROGRESS', field: 'in_progress' },
   { status: 'REJECTED', field: 'rejected' },
-  { status: 'COMPLETED', field: 'completed' },
 ];
 
 export const buildOccurrenceStatusOrFilter = (data: OccurrenceFilterDto): Filter =>

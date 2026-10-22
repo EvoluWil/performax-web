@@ -12,6 +12,7 @@ export type FinanceFilterDto = {
   categoryIds?: string[];
   segmentIds?: string[];
   payeeIds?: string[];
+  clientIds?: string[];
   dateFrom: string;
   dateTo: string;
 };
@@ -25,6 +26,7 @@ export const makeFinanceFilterInitialValues = (): FinanceFilterDto => ({
   categoryIds: [],
   segmentIds: [],
   payeeIds: [],
+  clientIds: [],
   dateFrom: startOfMonth(new Date()).toISOString(),
   dateTo: endOfMonth(new Date()).toISOString(),
 });
@@ -45,6 +47,7 @@ export const financeFilterSchema = yup.object().shape({
   categoryIds: yup.array().of(yup.string()).optional(),
   segmentIds: yup.array().of(yup.string()).optional(),
   payeeIds: yup.array().of(yup.string()).optional(),
+  clientIds: yup.array().of(yup.string()).optional(),
   dateFrom: yup.string().required('Data inicial é obrigatória'),
   dateTo: yup.string().required('Data final é obrigatória'),
 });

@@ -49,12 +49,12 @@ export const TASK_STATUS_FILTER_MAP: Array<{
 }> = [
   { status: 'PENDING', field: 'pending' },
   { status: 'APPROVED', field: 'approved' },
-  { status: 'OPEN', field: 'open' },
-  { status: 'EXPIRED', field: 'expired' },
-  { status: 'EMERGENCY', field: 'emergency' },
   { status: 'SCHEDULED', field: 'scheduled' },
-  { status: 'IMPEDED', field: 'impeded' },
+  { status: 'OPEN', field: 'open' },
   { status: 'IN_PROGRESS', field: 'in_progress' },
+  { status: 'IMPEDED', field: 'impeded' },
+  { status: 'EMERGENCY', field: 'emergency' },
+  { status: 'EXPIRED', field: 'expired' },
   { status: 'CLOSED', field: 'closed' },
   { status: 'REJECTED', field: 'rejected' },
 ];

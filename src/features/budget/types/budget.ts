@@ -25,10 +25,10 @@ export const budgetStatusLabels = {
 export const ORDERED_BUDGET_STATUSES = [
   BudgetStatusEnum.PENDING,
   BudgetStatusEnum.APPROVED,
+  BudgetStatusEnum.COMPLETED,
   BudgetStatusEnum.FINANCIAL,
   BudgetStatusEnum.CHARGED,
   BudgetStatusEnum.PAID,
-  BudgetStatusEnum.COMPLETED,
   BudgetStatusEnum.REJECTED,
 ] as const;
 

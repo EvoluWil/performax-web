@@ -199,6 +199,7 @@ export function parseFinanceFilterFromUrl(
     categoryIds: parseArrayField(params, 'categoryIds'),
     segmentIds: parseArrayField(params, 'segmentIds'),
     payeeIds: parseArrayField(params, 'payeeIds'),
+    clientIds: parseArrayField(params, 'clientIds'),
     dateFrom: parseStringParam(params.get('dateFrom'), defaults.dateFrom),
     dateTo: parseStringParam(params.get('dateTo'), defaults.dateTo),
   };
@@ -219,6 +220,7 @@ export function serializeFinanceFilterToUrl(
     categoryIds: serializeArrayField(filter.categoryIds),
     segmentIds: serializeArrayField(filter.segmentIds),
     payeeIds: serializeArrayField(filter.payeeIds),
+    clientIds: serializeArrayField(filter.clientIds),
     dateFrom:
       filter.dateFrom !== defaults.dateFrom ? filter.dateFrom : undefined,
     dateTo: filter.dateTo !== defaults.dateTo ? filter.dateTo : undefined,

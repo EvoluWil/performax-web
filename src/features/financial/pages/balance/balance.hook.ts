@@ -155,7 +155,7 @@ function buildRows(
   for (const f of finances) {
     if (f.flow === FinanceFlowEnum.TRANSFER) continue;
     if (f.isInstallment) continue;
-    if (f.paidFromAdvance) continue;
+    if (f.paidFromAdvance || f.advanceId) continue;
 
     let key: string;
     let label: string;

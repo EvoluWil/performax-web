@@ -22,6 +22,7 @@ export type FinanceAdvance = {
   description?: string;
   observation?: string;
   totalValue: number;
+  receivedValue: number;
   remainingValue: number;
   date: Date;
   status: AdvanceStatusEnum;
@@ -47,16 +48,12 @@ export type FinanceAdvance = {
   >[];
 };
 
-export type FinanceAdvanceAvailable = Pick<
-  FinanceAdvance,
-  'id' | 'protocol' | 'title' | 'totalValue' | 'remainingValue' | 'status' | 'date'
->;
-
 export type CreateAdvanceDto = {
   title: string;
   description?: string;
   observation?: string;
-  totalValue: number;
+  financeIds: string[];
+  receivedValue: number;
   date: string;
   bankId: string;
   methodId: string;

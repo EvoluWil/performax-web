@@ -16,7 +16,7 @@ import {
 } from '../../schemas/finance-filter.schema';
 import {
   FinanceFlowEnum,
-  FinanceStatusEnum,
+  ORDERED_FINANCE_STATUSES,
   financeStatusLabels,
 } from '../../types/finance';
 
@@ -34,7 +34,7 @@ const ALL_FLOWS = [
 
 const statusOptions = [
   { value: '', label: 'Todos' },
-  ...Object.values(FinanceStatusEnum).map((v) => ({
+  ...ORDERED_FINANCE_STATUSES.map((v) => ({
     value: v,
     label: financeStatusLabels[v].label,
   })),
@@ -60,6 +60,7 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
     if (fieldAccess.categoryIds) keys.push('financeCategories');
     if (fieldAccess.segmentIds) keys.push('financeSegments');
     if (fieldAccess.payeeIds) keys.push('financePayees');
+    if (fieldAccess.clientIds) keys.push('clients');
     return keys;
   }, [fieldAccess]);
 
@@ -85,7 +86,14 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
     }
   }, [values, reset]);
 
-  const handleFilter = handleSubmit((values) => onFilter(values));
+  const resolveFlowsFilter = (): FinanceFlowEnum[] | undefined => {
+    const flows = quickFlow as FinanceFlowEnum[];
+    return flows.length === ALL_FLOWS.length ? undefined : flows;
+  };
+
+  const handleFilter = handleSubmit((formValues) =>
+    onFilter({ ...formValues, flows: resolveFlowsFilter() }),
+  );
 
   const handleClear = () => {
     const initial = makeFinanceFilterInitialValues();
@@ -98,7 +106,9 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
     setQuickFlow(selected);
     const flows = selected as FinanceFlowEnum[];
     const flowsFilter = flows.length === ALL_FLOWS.length ? undefined : flows;
-    handleSubmit((values) => onFilter({ ...values, flows: flowsFilter }))();
+    handleSubmit((formValues) =>
+      onFilter({ ...formValues, flows: flowsFilter }),
+    )();
   };
 
   return (
@@ -195,6 +205,18 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
                   options={options.financePayees ?? []}
                   loading={isLoading}
                   onInputChange={(v) => setSearch('financePayees', v)}
+                />
+              )}
+
+              {fieldAccess.clientIds && (
+                <AutocompleteInput
+                  label="Cliente"
+                  name="clientIds"
+                  control={control}
+                  multiple
+                  options={options.clients ?? []}
+                  loading={isLoading}
+                  onInputChange={(v) => setSearch('clients', v)}
                 />
               )}
             </Box>
