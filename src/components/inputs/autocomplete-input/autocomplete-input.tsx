@@ -65,32 +65,41 @@ export function AutocompleteInput<T extends FieldValues>({
   onCreate,
 }: AutocompleteInputProps<T>) {
   const [creating, setCreating] = useState(false);
-  const [draftValue, setDraftValue] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [createdOption, setCreatedOption] = useState<AutocompleteOption | null>(
     null,
   );
   const [selectedCache, setSelectedCache] = useState<AutocompleteOption[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onInputChangeRef = useRef(onInputChange);
+  onInputChangeRef.current = onInputChange;
 
   const canCreate = !multiple && enableCreate && !!onCreate;
 
   const handleInputChange = useCallback(
-    (_: unknown, inputValue: string, reason: string) => {
-      if (reason === 'input') {
-        setDraftValue(inputValue);
-      } else if (reason === 'clear') {
-        setDraftValue('');
+    (_: unknown, newInputValue: string, reason: string) => {
+      // MUI emits "reset" when options/value refresh — would wipe the search text.
+      if (reason === 'reset' && onInputChangeRef.current) {
+        return;
       }
 
-      if (reason !== 'input' || !onInputChange) return;
+      if (
+        reason === 'input' ||
+        reason === 'clear' ||
+        reason === 'reset'
+      ) {
+        setInputValue(newInputValue);
+      }
+
+      if (reason !== 'input' || !onInputChangeRef.current) return;
 
       if (timerRef.current) clearTimeout(timerRef.current);
 
       timerRef.current = setTimeout(() => {
-        onInputChange(inputValue);
+        onInputChangeRef.current?.(newInputValue);
       }, inputDebounceMs);
     },
-    [inputDebounceMs, onInputChange],
+    [inputDebounceMs],
   );
 
   useEffect(() => {
@@ -136,7 +145,7 @@ export function AutocompleteInput<T extends FieldValues>({
         const handleCreate = async () => {
           if (!canCreate || !onCreate) return;
 
-          const labelToCreate = draftValue.trim() || '';
+          const labelToCreate = inputValue.trim() || '';
 
           setCreating(true);
 
@@ -146,7 +155,7 @@ export function AutocompleteInput<T extends FieldValues>({
 
             setCreatedOption(nextOption);
             field.onChange(createdId);
-            setDraftValue(labelToCreate);
+            setInputValue(labelToCreate);
           } catch {
             // Drawer-based create can be canceled by the user.
           } finally {
@@ -162,6 +171,8 @@ export function AutocompleteInput<T extends FieldValues>({
             loading={busy}
             disabled={disabled}
             disableCloseOnSelect={multiple}
+            clearOnBlur={!onInputChange}
+            inputValue={inputValue}
             value={
               multiple
                 ? (selectedOptions as AutocompleteOption[])
@@ -172,12 +183,13 @@ export function AutocompleteInput<T extends FieldValues>({
                 const next = (newValue as AutocompleteOption[]) ?? [];
                 setSelectedCache(next);
                 field.onChange(next.map((o) => o.value));
+                setInputValue('');
                 return;
               }
 
               const single = newValue as AutocompleteOption | null;
               field.onChange(single?.value ?? '');
-              setDraftValue(single?.label ?? '');
+              setInputValue(single?.label ?? '');
             }}
             onInputChange={handleInputChange}
             getOptionLabel={(option) => option.label}
