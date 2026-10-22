@@ -10,7 +10,12 @@ import {
 } from '@/components/inputs';
 import { useCompanyPermissions } from '@/hooks/common/permission';
 import { useFormResources } from '@/hooks/use-form-resources';
-import { formatDate } from '@/utils/date';
+import {
+  formatDate,
+  toFinanceFilterDateFrom,
+  toFinanceFilterDateTo,
+} from '@/utils/date';
+import { endOfMonth, startOfMonth } from 'date-fns';
 import { DeleteOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Box,
@@ -72,19 +77,37 @@ const createDefaults: CreateAdvanceFormDto = {
   typeId: '',
 };
 
-const eligibleFinancesQuery = {
-  ...getFinanceQuery,
-  filter: [
-    { path: 'flow', value: FinanceFlowEnum.IN },
-    {
-      path: 'status',
-      operator: 'in',
-      value: [FinanceStatusEnum.PENDING, FinanceStatusEnum.APPROVED].join(';'),
-    },
-  ],
-  limit: 500,
-  page: 1,
-} as const;
+function buildEligibleFinancesQuery() {
+  const now = new Date();
+  return {
+    ...getFinanceQuery,
+    filter: [
+      { path: 'flow', value: FinanceFlowEnum.IN, filterGroup: 'and' as const },
+      {
+        path: 'status',
+        operator: 'in' as const,
+        value: [FinanceStatusEnum.PENDING, FinanceStatusEnum.APPROVED].join(
+          ';',
+        ),
+        filterGroup: 'and' as const,
+      },
+      {
+        path: 'date',
+        operator: 'gte' as const,
+        value: toFinanceFilterDateFrom(startOfMonth(now)),
+        filterGroup: 'and' as const,
+      },
+      {
+        path: 'date',
+        operator: 'lte' as const,
+        value: toFinanceFilterDateTo(endOfMonth(now)),
+        filterGroup: 'and' as const,
+      },
+    ],
+    limit: 500,
+    page: 1,
+  };
+}
 
 function formatCurrency(cents: number) {
   return (cents / 100).toLocaleString('pt-BR', {
@@ -186,9 +209,11 @@ export const FinanceAdvanceList = () => {
     'financeTypes',
   ]);
 
+  const eligibleMonthKey = startOfMonth(new Date()).toISOString();
+
   const { data: eligibleResult, isLoading: loadingEligible } = useQuery({
-    queryKey: ['finances', 'advance-eligible'],
-    queryFn: () => financeService.get(eligibleFinancesQuery as any),
+    queryKey: ['finances', 'advance-eligible', eligibleMonthKey],
+    queryFn: () => financeService.get(buildEligibleFinancesQuery() as any),
     enabled: openCreate,
     refetchOnWindowFocus: false,
   });
@@ -357,7 +382,7 @@ export const FinanceAdvanceList = () => {
           </Typography>
           <AutocompleteInput
             key={openCreate ? 'advance-finance-picker' : 'advance-finance-picker-closed'}
-            label="Lançamentos (entrada, não pagos)"
+            label="Lançamentos do mês (entrada, não pagos)"
             name="financeIds"
             control={control}
             multiple
