@@ -17,18 +17,20 @@ export const buildTextSearchOrFilter = (
     path: field,
     operator: 'contains',
     value: term,
-    insensitive: true,
+    insensitive: 'true',
   }));
 
   if (options?.withClientName) {
     filters.push({
       path: 'client',
+      filterGroup: 'or',
+      filterInsideOperator: 'is',
       filter: [
         {
           path: 'name',
           operator: 'contains',
           value: term,
-          insensitive: true,
+          insensitive: 'true',
         },
       ],
     } as Filter[number]);
