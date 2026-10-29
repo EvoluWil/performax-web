@@ -39,7 +39,7 @@ export const useEmployeeDrawer = ({
 
   const { control, handleSubmit, reset } = useForm<EmployeeFormDto>({
     defaultValues: employeeFormInitialValues,
-    resolver: yupResolver(employeeFormSchema),
+    resolver: yupResolver(employeeFormSchema) as any,
   });
 
   const handleEmployee = handleSubmit(async (data: EmployeeFormDto) => {

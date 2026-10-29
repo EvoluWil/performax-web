@@ -3,7 +3,7 @@ import * as yup from 'yup';
 
 export type EmployeeFormDto = {
   name: string;
-  cpf: string;
+  cpf?: string;
   clientId?: string;
 };
 
