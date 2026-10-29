@@ -11,8 +11,8 @@ const VIEW_MODE_LABELS: Record<ViewMode, string> = {
   period: 'Por Período',
   segment: 'Por Segmento',
   category: 'Por Categoria',
-  type: 'Por Centro de Custo',
-  client: 'Por Cliente',
+  type: 'Por Marcador',
+  client: 'Por Centro de Custo',
 };
 
 function q(value: string | number) {

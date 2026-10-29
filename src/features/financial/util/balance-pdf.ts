@@ -14,8 +14,8 @@ export const VIEW_MODE_LABELS_PDF: Record<ViewMode, string> = {
   period: 'por Período',
   segment: 'por Segmento',
   category: 'por Categoria',
-  type: 'por Centro de Custo',
-  client: 'por Cliente',
+  type: 'por Marcador',
+  client: 'por Centro de Custo',
 };
 
 function summaryCard(label: string, value: string, color: string): Content {

@@ -17,7 +17,7 @@ export const employeeFormSchema = yup.object().shape({
   name: yup.string().required('Nome é obrigatório'),
   cpf: yup
     .string()
-    .required('CPF é obrigatório')
+    .nullable()
     .test('isValidCpf', 'CPF inválido', function (cpf) {
       const { path, createError } = this;
       if (!cpf) return true;

@@ -1,6 +1,8 @@
 import * as yup from 'yup';
 import { FinanceFlowEnum } from '../types/finance';
 
+export type FinancePaidToKind = 'employee' | 'payee' | '';
+
 export type FinanceFormDto = {
   title: string;
   description?: string;
@@ -18,6 +20,7 @@ export type FinanceFormDto = {
   responsibleId?: string;
   employeeId?: string;
   recurrence?: string;
+  paidToKind?: FinancePaidToKind;
 };
 
 export const financeFormInitialValues: FinanceFormDto = {
@@ -37,6 +40,7 @@ export const financeFormInitialValues: FinanceFormDto = {
   responsibleId: '',
   employeeId: '',
   recurrence: '',
+  paidToKind: '',
 };
 
 export const financeFormSchema = yup.object().shape({
@@ -63,11 +67,13 @@ export const financeFormSchema = yup.object().shape({
     .mixed<FinanceFlowEnum>()
     .oneOf(Object.values(FinanceFlowEnum))
     .required('Fluxo é obrigatório'),
-  typeId: yup.string().required('Centro de custo é obrigatório'),
-  clientId: yup
-    .string()
-    .nullable()
-    .transform((v) => v || undefined),
+  typeId: yup.string().required('Marcador é obrigatório'),
+  clientId: yup.string().when('flow', {
+    is: FinanceFlowEnum.OUT,
+    then: (schema) => schema.required('Centro de custo é obrigatório'),
+    otherwise: (schema) =>
+      schema.nullable().transform((v) => v || undefined),
+  }),
   methodId: yup.string().required('Método de pagamento é obrigatório'),
   bankId: yup.string().required('Banco é obrigatório'),
   categoryId: yup
@@ -78,17 +84,31 @@ export const financeFormSchema = yup.object().shape({
     .string()
     .nullable()
     .transform((v) => v || undefined),
-  payeeId: yup
-    .string()
-    .nullable()
-    .transform((v) => v || undefined),
+  payeeId: yup.string().when(['flow', 'paidToKind'], {
+    is: (flow: FinanceFlowEnum, paidToKind: FinancePaidToKind) =>
+      flow === FinanceFlowEnum.OUT && paidToKind === 'payee',
+    then: (schema) => schema.required('Favorecido é obrigatório'),
+    otherwise: (schema) =>
+      schema.nullable().transform((v) => v || undefined),
+  }),
   responsibleId: yup
     .string()
     .nullable()
     .transform((v) => v || undefined),
-  employeeId: yup
-    .string()
-    .nullable()
-    .transform((v) => v || undefined),
+  employeeId: yup.string().when(['flow', 'paidToKind'], {
+    is: (flow: FinanceFlowEnum, paidToKind: FinancePaidToKind) =>
+      flow === FinanceFlowEnum.OUT && paidToKind === 'employee',
+    then: (schema) => schema.required('Funcionário é obrigatório'),
+    otherwise: (schema) =>
+      schema.nullable().transform((v) => v || undefined),
+  }),
+  paidToKind: yup.string().when('flow', {
+    is: FinanceFlowEnum.OUT,
+    then: (schema) =>
+      schema
+        .oneOf(['employee', 'payee'], 'Selecione funcionário ou favorecido')
+        .required('Pago a é obrigatório'),
+    otherwise: (schema) => schema.nullable(),
+  }),
   recurrence: yup.string().optional().nullable(),
 });

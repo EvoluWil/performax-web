@@ -51,7 +51,7 @@ export const EmployeeDrawer: React.FC<EmployeeDrawerProps> = (props) => {
           />
           <MaskInput
             mask="999.999.999-99"
-            label="CPF"
+            label="CPF (opcional)"
             name="cpf"
             control={control}
           />

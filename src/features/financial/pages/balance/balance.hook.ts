@@ -29,6 +29,7 @@ export type BalanceFilterDto = {
   categoryId: string;
   typeId: string;
   segmentId: string;
+  clientId: string;
 };
 
 export type BalanceRow = {
@@ -80,6 +81,7 @@ const makeInitialValues = (): BalanceFilterDto => ({
   categoryId: '',
   typeId: '',
   segmentId: '',
+  clientId: '',
 });
 
 const balanceFilterSchema = yup.object().shape({
@@ -90,6 +92,7 @@ const balanceFilterSchema = yup.object().shape({
   categoryId: yup.string().nullable(),
   typeId: yup.string().nullable(),
   segmentId: yup.string().nullable(),
+  clientId: yup.string().nullable(),
 });
 
 function accumulate(row: BalanceRow, finance: Finance): void {
@@ -176,10 +179,10 @@ function buildRows(
       label = cat?.name ?? 'Sem categoria';
     } else if (viewMode === 'client') {
       key = f.clientId ?? '__sem_cliente__';
-      label = (f.clientId && clientMap.get(f.clientId)) || 'Sem cliente';
+      label = (f.clientId && clientMap.get(f.clientId)) || 'Sem centro de custo';
     } else {
       key = f.typeId ?? '__sem_cc__';
-      label = (f.typeId && typeMap.get(f.typeId)) || 'Sem centro de custo';
+      label = (f.typeId && typeMap.get(f.typeId)) || 'Sem marcador';
     }
 
     if (!map.has(key)) {
@@ -260,6 +263,9 @@ export function useFinanceBalance() {
       }
       if (values.segmentId) {
         and.push({ path: 'segmentId', value: values.segmentId });
+      }
+      if (values.clientId) {
+        and.push({ path: 'clientId', value: values.clientId });
       }
 
       const result = await financeService.get({

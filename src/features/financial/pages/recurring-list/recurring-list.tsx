@@ -429,7 +429,7 @@ export const FinanceRecurringList = () => {
             <DateInput label="Data" name="date" control={control} />
           </Box>
           <AutocompleteInput
-            label="Centro de Custo"
+            label="Marcador"
             name="typeId"
             control={control}
             options={options.financeTypes ?? []}

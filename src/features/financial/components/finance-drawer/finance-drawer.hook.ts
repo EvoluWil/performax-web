@@ -47,9 +47,7 @@ export const useFinanceDrawer = ({
   const [loading, setLoading] = useState(false);
   const [isDuplicata, setIsDuplicata] = useState(false);
   const [installmentCount, setInstallmentCount] = useState(2);
-  const [paidTo, setPaidTo] = useState<'client' | 'employee' | 'other'>(
-    'client',
-  );
+  const [paidTo, setPaidTo] = useState<'employee' | 'payee' | ''>('');
   const [clientDrawerOpen, setClientDrawerOpen] = useState(false);
   const [clientInitialName, setClientInitialName] = useState('');
   const [responsibleDrawerOpen, setResponsibleDrawerOpen] = useState(false);
@@ -132,8 +130,11 @@ export const useFinanceDrawer = ({
   const isOutFlow = selectedFlow === FinanceFlowEnum.OUT;
 
   useEffect(() => {
-    if (!isOutFlow) setPaidTo('client');
-  }, [isOutFlow]);
+    if (!isOutFlow) {
+      setPaidTo('');
+      setValue('paidToKind', '');
+    }
+  }, [isOutFlow, setValue]);
   const selectedTypeOption = (options.financeTypes ?? []).find(
     (t) => t.value === selectedTypeId,
   );
@@ -327,20 +328,28 @@ export const useFinanceDrawer = ({
         responsibleId: finance.responsibleId ?? undefined,
         employeeId: finance.employeeId ?? undefined,
         recurrence: finance.recurringMaster?.recurrence ?? '',
+        paidToKind: '',
       });
       if (finance.flow === FinanceFlowEnum.OUT) {
-        if (finance.employeeId) setPaidTo('employee');
-        else if (finance.payeeId) setPaidTo('other');
-        else setPaidTo('client');
+        if (finance.employeeId) {
+          setPaidTo('employee');
+          setValue('paidToKind', 'employee');
+        } else if (finance.payeeId) {
+          setPaidTo('payee');
+          setValue('paidToKind', 'payee');
+        } else {
+          setPaidTo('');
+          setValue('paidToKind', '');
+        }
       } else {
-        setPaidTo('client');
+        setPaidTo('');
       }
     } else if (open && !finance) {
       reset({
         ...financeFormInitialValues,
         responsibleId: showResponsibleSelect ? '' : currentUserId,
       });
-      setPaidTo('client');
+      setPaidTo('');
     }
   }, [open, finance, reset, showResponsibleSelect, currentUserId]);
 
@@ -362,14 +371,15 @@ export const useFinanceDrawer = ({
       const normalizedOutTargets =
         values.flow === FinanceFlowEnum.OUT
           ? {
-              clientId: paidTo === 'client' ? values.clientId : undefined,
+              clientId: values.clientId || undefined,
               employeeId: paidTo === 'employee' ? values.employeeId : undefined,
-              payeeId: paidTo === 'other' ? values.payeeId : undefined,
+              payeeId: paidTo === 'payee' ? values.payeeId : undefined,
             }
           : {};
 
+      const { paidToKind: _paidToKind, ...formValues } = values;
       const payload = {
-        ...values,
+        ...formValues,
         ...normalizedOutTargets,
         value: Math.round(Number(values.value || 0) * 100),
       };
@@ -399,9 +409,8 @@ export const useFinanceDrawer = ({
             categoryId: values.categoryId || undefined,
             segmentId: values.segmentId || undefined,
             payeeId:
-              paidTo === 'other' ? values.payeeId || undefined : undefined,
-            clientId:
-              paidTo === 'client' ? values.clientId || undefined : undefined,
+              paidTo === 'payee' ? values.payeeId || undefined : undefined,
+            clientId: values.clientId || undefined,
             employeeId:
               paidTo === 'employee' ? values.employeeId || undefined : undefined,
             responsibleId: values.responsibleId || undefined,
@@ -477,7 +486,12 @@ export const useFinanceDrawer = ({
     handleCloseEmployeeDrawer,
     handleEmployeeCreated,
     paidTo,
-    setPaidTo,
+    setPaidTo: (kind: 'employee' | 'payee' | '') => {
+      setPaidTo(kind);
+      setValue('paidToKind', kind);
+      if (kind !== 'employee') setValue('employeeId', '');
+      if (kind !== 'payee') setValue('payeeId', '');
+    },
     companyOptions,
     selectedCompanyId,
     setSelectedCompanyId,

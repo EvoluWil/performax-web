@@ -51,14 +51,14 @@ export const FinanceTypeDrawer: React.FC<FinanceTypeDrawerProps> = ({
           id: financeType.id,
           data: values,
         });
-        toast.success('Centro de custo atualizado com sucesso');
+        toast.success('Marcador atualizado com sucesso');
       } else {
         await mutation.mutateAsync({ type: 'create', data: values });
-        toast.success('Centro de custo criado com sucesso');
+        toast.success('Marcador criado com sucesso');
       }
       onClose();
     } catch {
-      toast.error('Erro ao salvar centro de custo');
+      toast.error('Erro ao salvar marcador');
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export const FinanceTypeDrawer: React.FC<FinanceTypeDrawerProps> = ({
       open={open}
       setOpen={onClose}
       height="auto"
-      title={financeType ? 'Editar Centro de Custo' : 'Novo Centro de Custo'}
+      title={financeType ? 'Editar Marcador' : 'Novo Marcador'}
       content={
         <Box display="flex" flexDirection="column" gap={2}>
           <TextInput label="Nome" name="name" control={control} />

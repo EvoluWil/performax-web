@@ -58,14 +58,14 @@ export const FinanceTypeList = () => {
 
   const handleDelete = (id: string) => {
     swal.fire({
-      title: 'Excluir centro de custo?',
+      title: 'Excluir marcador?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sim, excluir',
       cancelButtonText: 'Cancelar',
       preConfirm: async () => {
         await mutation.mutateAsync({ type: 'delete', id });
-        toast.success('Centro de custo excluído com sucesso');
+        toast.success('Marcador excluído com sucesso');
       },
     });
   };
@@ -86,7 +86,7 @@ export const FinanceTypeList = () => {
   return (
     <>
       <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
-        CENTROS DE CUSTO
+        MARCADORES
       </Typography>
       <ListHeader
         onAdd={canAdmin ? () => setOpenModal(true) : undefined}
@@ -94,7 +94,7 @@ export const FinanceTypeList = () => {
         onReload={handleReload}
         onSearch={handleSearch}
         searchTitle="Pesquise por nome"
-        addTitle="Adicionar centro de custo"
+        addTitle="Adicionar marcador"
       />
       <Table
         data={filtered}

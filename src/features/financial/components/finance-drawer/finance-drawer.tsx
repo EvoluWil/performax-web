@@ -15,7 +15,6 @@ import { formatRRuleToText } from '@/utils/rrule';
 import {
   Box,
   Button,
-  ButtonGroup,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -29,6 +28,12 @@ import { grey } from '@mui/material/colors';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useWatch } from 'react-hook-form';
+import {
+  FINANCE_CLIENT_LABEL,
+  FINANCE_CLIENT_LABEL_OPTIONAL,
+  FINANCE_PAID_TO_LABEL,
+  FINANCE_TYPE_LABEL,
+} from '../../constants/field-labels';
 import type { Finance } from '../../types/finance';
 import { FinanceFlowEnum } from '../../types/finance';
 import { useFinanceDrawer } from './finance-drawer.hook';
@@ -131,7 +136,7 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 width="100%"
               >
                 <Typography variant="caption">
-                  Este centro de custo requer aprovação antes de ser processado.
+                  Este marcador requer aprovação antes de ser processado.
                 </Typography>
               </Box>
             )}
@@ -176,84 +181,68 @@ export const FinanceDrawer: React.FC<FinanceDrawerProps> = (props) => {
                 control={control}
               />
             </Box>
+            <AutocompleteInput
+              label={isOutFlow ? FINANCE_CLIENT_LABEL : FINANCE_CLIENT_LABEL_OPTIONAL}
+              name="clientId"
+              control={control}
+              options={options.clients ?? []}
+              onInputChange={(v) => setSearch('clients', v)}
+              enableCreate={canCreateClient}
+              createLabel="Adicionar centro de custo"
+              onCreate={handleOpenCreateClient}
+            />
             {isOutFlow && (
-              <ButtonGroup fullWidth size="small">
-                <Button
-                  variant={paidTo === 'client' ? 'contained' : 'outlined'}
-                  onClick={() => {
-                    setPaidTo('client');
-                    setValue('employeeId', '');
-                    setValue('payeeId', '');
-                  }}
-                >
-                  Cliente
-                </Button>
-                <Button
-                  variant={paidTo === 'employee' ? 'contained' : 'outlined'}
-                  onClick={() => {
-                    setPaidTo('employee');
-                    setValue('clientId', '');
-                    setValue('payeeId', '');
-                  }}
-                >
-                  Funcionário
-                </Button>
-                <Button
-                  variant={paidTo === 'other' ? 'contained' : 'outlined'}
-                  onClick={() => {
-                    setPaidTo('other');
-                    setValue('clientId', '');
-                    setValue('employeeId', '');
-                  }}
-                >
-                  Outro
-                </Button>
-              </ButtonGroup>
-            )}
-            {isOutFlow && paidTo === 'employee' && (
-              <AutocompleteInput
-                label={isOutFlow ? 'Funcionário' : 'Funcionário (opcional)'}
-                name="employeeId"
-                control={control}
-                options={options.employees ?? []}
-                onInputChange={(v) => setSearch('employees', v)}
-                enableCreate={canCreateEmployee}
-                createLabel="Adicionar funcionário"
-                onCreate={handleOpenCreateEmployee}
-              />
-            )}
-            {(!isOutFlow || paidTo === 'client') && (
-              <AutocompleteInput
-                label={isOutFlow ? 'Cliente' : 'Cliente (opcional)'}
-                name="clientId"
-                control={control}
-                options={options.clients ?? []}
-                onInputChange={(v) => setSearch('clients', v)}
-                enableCreate={canCreateClient}
-                createLabel="Adicionar cliente"
-                onCreate={handleOpenCreateClient}
-              />
-            )}
-            {isOutFlow && paidTo === 'other' && (
-              <AutocompleteInput
-                label="Favorecido"
-                name="payeeId"
-                control={control}
-                options={options.financePayees ?? []}
-                onInputChange={(v) => setSearch('financePayees', v)}
-                enableCreate={canCreateFinancialField}
-                createLabel="Adicionar favorecido"
-                onCreate={handleCreateFinancePayee}
-              />
+              <>
+                <FormControl fullWidth size="small">
+                  <InputLabel>{FINANCE_PAID_TO_LABEL}</InputLabel>
+                  <Select
+                    label={FINANCE_PAID_TO_LABEL}
+                    value={paidTo}
+                    onChange={(e) =>
+                      setPaidTo(e.target.value as 'employee' | 'payee' | '')
+                    }
+                  >
+                    <MenuItem value="">
+                      <em>Selecione</em>
+                    </MenuItem>
+                    <MenuItem value="employee">Funcionário</MenuItem>
+                    <MenuItem value="payee">Favorecido</MenuItem>
+                  </Select>
+                </FormControl>
+                {paidTo === 'employee' && (
+                  <AutocompleteInput
+                    label="Funcionário"
+                    name="employeeId"
+                    control={control}
+                    options={options.employees ?? []}
+                    onInputChange={(v) => setSearch('employees', v)}
+                    enableCreate={canCreateEmployee}
+                    createLabel="Adicionar funcionário"
+                    onCreate={handleOpenCreateEmployee}
+                  />
+                )}
+                {paidTo === 'payee' && (
+                  <AutocompleteInput
+                    label="Favorecido"
+                    name="payeeId"
+                    control={control}
+                    options={options.financePayees ?? []}
+                    onInputChange={(v) => setSearch('financePayees', v)}
+                    enableCreate={canCreateFinancialField}
+                    createLabel="Adicionar favorecido"
+                    onCreate={handleCreateFinancePayee}
+                  />
+                )}
+              </>
             )}
             <AutocompleteInput
-              label="Centro de Custo"
+              label={FINANCE_TYPE_LABEL}
               name="typeId"
               control={control}
               options={options.financeTypes ?? []}
               onInputChange={(v) => setSearch('financeTypes', v)}
               enableCreate={canCreateFinancialField}
-              createLabel="Adicionar centro de custo"
+              createLabel="Adicionar marcador"
               onCreate={handleCreateFinanceType}
             />
             <AutocompleteInput

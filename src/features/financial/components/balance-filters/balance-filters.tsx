@@ -3,6 +3,10 @@ import { FormResourceOption } from '@/hooks/use-form-resources';
 import { ResourceKey } from '@/services/form-resources.service';
 import { Box, Button, CircularProgress, Grid, Typography } from '@mui/material';
 import { Control } from 'react-hook-form';
+import {
+  FINANCE_CLIENT_LABEL,
+  FINANCE_TYPE_LABEL,
+} from '../../constants/field-labels';
 import { BalanceFilterDto } from '../../pages/balance/balance.hook';
 
 type Props = {
@@ -70,10 +74,21 @@ export function BalanceFilters({
           <AutocompleteInput
             control={control}
             name="typeId"
-            label="Centro de Custo"
+            label={FINANCE_TYPE_LABEL}
             options={[
               { value: '', label: 'Todos' },
               ...(options.financeTypes ?? []),
+            ]}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <AutocompleteInput
+            control={control}
+            name="clientId"
+            label={FINANCE_CLIENT_LABEL}
+            options={[
+              { value: '', label: 'Todos' },
+              ...(options.clients ?? []),
             ]}
           />
         </Grid>

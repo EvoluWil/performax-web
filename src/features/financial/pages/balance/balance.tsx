@@ -35,8 +35,8 @@ const VIEW_MODES: { value: ViewMode; label: string }[] = [
   { value: 'period', label: 'Por Período' },
   { value: 'segment', label: 'Por Segmento' },
   { value: 'category', label: 'Por Categoria' },
-  { value: 'type', label: 'Por Centro de Custo' },
-  { value: 'client', label: 'Por Cliente' },
+  { value: 'type', label: 'Por Marcador' },
+  { value: 'client', label: 'Por Centro de Custo' },
 ];
 
 const MONTHS_PT = [

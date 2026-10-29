@@ -146,7 +146,7 @@ export const FinanceDetailCard: React.FC<Props> = ({ finance }) => {
             <Divider sx={{ my: 1.5 }} />
 
             <FieldRow
-              label="Centro de Custo"
+              label="Marcador"
               value={finance.type?.name ?? '-'}
             />
             <FieldRow label="Categoria" value={finance.category?.name ?? '-'} />
@@ -156,7 +156,7 @@ export const FinanceDetailCard: React.FC<Props> = ({ finance }) => {
               <FieldRow label="Favorecido" value={finance.payee.name} />
             )}
             {finance.client && (
-              <FieldRow label="Cliente" value={finance.client.name} />
+              <FieldRow label="Centro de custo" value={finance.client.name} />
             )}
 
             <Divider sx={{ my: 1.5 }} />

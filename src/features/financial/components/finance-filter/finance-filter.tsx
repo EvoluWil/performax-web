@@ -144,7 +144,7 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
 
               {fieldAccess.typeIds && (
                 <AutocompleteInput
-                  label="Centro de Custo"
+                  label="Marcador"
                   name="typeIds"
                   control={control}
                   multiple
@@ -210,7 +210,7 @@ export const FinanceFilter: React.FC<FinanceFilterProps> = ({
 
               {fieldAccess.clientIds && (
                 <AutocompleteInput
-                  label="Cliente"
+                  label="Centro de custo"
                   name="clientIds"
                   control={control}
                   multiple

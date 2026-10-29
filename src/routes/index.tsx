@@ -144,7 +144,7 @@ export const routes: Route[] = [
         scope: 'write',
         subRoutes: [
           {
-            id: 'Centros de Custo',
+            id: 'Marcadores',
             path: '/panel/financial/types',
             permissions: ['financial'],
             modules: ['financial'],

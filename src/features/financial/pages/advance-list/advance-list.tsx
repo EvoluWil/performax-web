@@ -416,7 +416,7 @@ export const FinanceAdvanceList = () => {
             onInputChange={(v) => setSearch('financePaymentMethods', v)}
           />
           <AutocompleteInput
-            label="Centro de Custo"
+            label="Marcador"
             name="typeId"
             control={control}
             options={options.financeTypes ?? []}

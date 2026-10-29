@@ -47,15 +47,15 @@ const ENTRY_HEADERS = [
   'VALOR',
   'STATUS',
   'CATEGORIA',
-  'CLIENTE',
+  'CENTRO DE CUSTO',
 ];
 
 const VIEW_MODE_LABELS: Record<ViewMode, string> = {
   period: 'por Período',
   segment: 'por Segmento',
   category: 'por Categoria',
-  type: 'por Centro de Custo',
-  client: 'por Cliente',
+  type: 'por Marcador',
+  client: 'por Centro de Custo',
 };
 
 function EntryRow({ finance }: { finance: Finance }) {

@@ -112,7 +112,7 @@ const columns: MRT_ColumnDef<Finance>[] = [
   },
   {
     accessorKey: 'type',
-    header: 'Centro de Custo',
+    header: 'Marcador',
     Cell({ cell }: any) {
       return cell.getValue()?.name ?? '-';
     },
@@ -206,7 +206,7 @@ const columns: MRT_ColumnDef<Finance>[] = [
   },
   {
     accessorKey: 'client',
-    header: 'Cliente',
+    header: 'Centro de custo',
     Cell({ cell }: any) {
       return cell.getValue()?.name ?? '-';
     },
